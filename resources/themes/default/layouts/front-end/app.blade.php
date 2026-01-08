@@ -217,6 +217,15 @@
 
     @endif
 
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3CS341WB06"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-3CS341WB06');
+    </script>
+
     @php($pixel_analytices_user_code =\App\CPU\Helpers::get_business_settings('pixel_analytics'))
     @if($pixel_analytices_user_code)
         <!-- Facebook Pixel Code -->
