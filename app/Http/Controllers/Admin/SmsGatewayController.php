@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Model\BusinessSetting;
+use App\Models\BusinessSetting;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class SmsGatewayController extends Controller
 {
@@ -19,7 +18,7 @@ class SmsGatewayController extends Controller
         if ($name == 'sms_nexmo') {
             $sms = BusinessSetting::where('type', 'sms_nexmo')->first();
             if (isset($sms) == false) {
-                DB::table('business_settings')->insert([
+                BusinessSetting::insert([
                     'type' => 'sms_nexmo',
                     'value' => json_encode([
                         'status' => 1,
@@ -30,7 +29,7 @@ class SmsGatewayController extends Controller
                     'updated_at' => now()
                 ]);
             } else {
-                DB::table('business_settings')->where(['type' => 'sms_nexmo'])->update([
+                BusinessSetting::where(['type' => 'sms_nexmo'])->update([
                     'type' => 'sms_nexmo',
                     'value' => json_encode([
                         'status' => $request['status'],
@@ -40,6 +39,7 @@ class SmsGatewayController extends Controller
                     'updated_at' => now()
                 ]);
             }
+            clearWebConfigCacheKeys();
         }
 
         return back();

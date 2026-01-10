@@ -3,62 +3,135 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use App\Model\WalletTransaction;
-use App\CPU\Helpers;
-use App\Model\AddFundBonusCategories;
+use App\Models\WalletTransaction;
+use App\Utils\Helpers;
+use App\Models\AddFundBonusCategories;
 use Brian2694\Toastr\Facades\Toastr;
 use Carbon\Carbon;
 
-use function App\CPU\payment_gateways;
+use function App\Utils\payment_gateways;
 
 class UserWalletController extends Controller
 {
 
-    public function index(Request $request)
+    public function index(Request $request): View|RedirectResponse
     {
-        $wallet_status = Helpers::get_business_settings('wallet_status');
-        if ($wallet_status == 1) {
-            $total_wallet_balance = auth('customer')->user()->wallet_balance;
-            $wallet_transactio_list = WalletTransaction::where('user_id', auth('customer')->id())
-                ->when($request->has('type'), function ($query) use ($request) {
-                    $query->when($request->type == 'order_transactions', function ($query) {
-                        $query->where('transaction_type', 'order_place');
-                    })->when($request->type == 'converted_from_loyalty_point', function ($query) {
-                        $query->where('transaction_type', 'loyalty_point');
-                    })->when($request->type == 'added_via_payment_method', function ($query) {
-                        $query->where(['transaction_type' => 'add_fund', 'reference' => 'add_funds_to_wallet']);
-                    })->when($request->type == 'add_fund_by_admin', function ($query) {
-                        $query->where(['transaction_type' => 'add_fund_by_admin']);
-                    })->when($request->type == 'order_refund', function ($query) {
-                        $query->where(['transaction_type' => 'order_refund']);
-                    });
-                })->latest()->paginate(10);
+        $walletStatus = getWebConfig(name: 'wallet_status');
+        if ($walletStatus == 1) {
+            $transactionTypes = $this->getSelectTransactionTypes(types: $request->get('types', []));
+            $totalWalletBalance = auth('customer')->user()->wallet_balance;
 
-            $payment_gateways = payment_gateways();
+            $walletTransactionList = $this->getWalletTransactionList(request: $request, types: $transactionTypes);
+            $paymentGatewayList = payment_gateways();
+            $addFundBonusList = $this->getAddFundBonusList();
 
-            $add_fund_bonus_list = AddFundBonusCategories::where('is_active', 1)
-                ->whereDate('start_date_time', '<=', date('Y-m-d'))
-                ->whereDate('end_date_time', '>=', date('Y-m-d'))
-                ->get();
+            $filterCount = count($request['types']??[]) + (int)!empty($request['transaction_range']) + (int)!empty($request['filter_by']);
 
-            if ($request->has('flag') && $request->flag == 'success') {
+            if ($request->has('flag') && $request['flag'] == 'success') {
                 Toastr::success(translate('add_fund_to_wallet_success'));
                 return redirect()->route('wallet');
-            } else if ($request->has('flag') && $request->flag == 'fail') {
+            } else if ($request->has('flag') && $request['flag'] == 'fail') {
                 Toastr::error(translate('add_fund_to_wallet_unsuccessful'));
                 return redirect()->route('wallet');
             }
 
-            return view(VIEW_FILE_NAMES['user_wallet'], compact('total_wallet_balance', 'wallet_transactio_list', 'payment_gateways', 'add_fund_bonus_list'));
+            $digitalPaymentStatus = getWebConfig(name: 'digital_payment');
+            $addFundsToWallet = getWebConfig(name: 'add_funds_to_wallet');
+            $addFundsToWalletStatus = $addFundsToWallet && count($paymentGatewayList) > 0 && ($digitalPaymentStatus['status'] ?? 0);
+
+            return view(VIEW_FILE_NAMES['user_wallet'], [
+                'addFundsToWalletStatus' => $addFundsToWalletStatus,
+                'totalWalletBalance' => $totalWalletBalance,
+                'walletTransactionList' => $walletTransactionList,
+                'paymentGatewayList' => $paymentGatewayList,
+                'addFundBonusList' => $addFundBonusList,
+                'transactionTypes' => $request->get('types', []),
+                'filterCount' => $filterCount,
+                'filterBy' => $request['filter_by'] ?? '',
+                'transactionRange' => $request['transaction_range'] ?? '',
+            ]);
+
         } else {
-            Toastr::warning(\App\CPU\translate('access_denied!'));
-            return back();
+            Toastr::warning(translate('access_denied!'));
+            return redirect()->route('home');
         }
     }
 
-    public function my_wallet_account()
+    public function myWalletAccount(): View
     {
         return view(VIEW_FILE_NAMES['wallet_account']);
+    }
+
+    private function getWalletTransactionList(object|array $request, array $types)
+    {
+        $startDate = '';
+        $endDate = '';
+        if (isset($request['transaction_range']) && !empty($request['transaction_range'])) {
+            $dates = explode(' - ', $request['transaction_range']);
+            if (count($dates) !== 2 || !checkDateFormatInMDY($dates[0]) || !checkDateFormatInMDY($dates[1])) {
+                Toastr::error(translate('Invalid_date_range_format'));
+                return back();
+            }
+            $startDate = Carbon::createFromFormat('d/m/Y', $dates[0])->format('Y-m-d') . ' 00:00:00';
+            $endDate = Carbon::createFromFormat('d/m/Y', $dates[1])->format('Y-m-d') . ' 23:59:59';
+        }
+        return WalletTransaction::where('user_id', auth('customer')->id())
+            ->when($request->has('filter_by') && in_array($request['filter_by'], ['debit', 'credit']), function ($query) use ($request) {
+                $query->when($request['filter_by'] == 'debit', function ($query) {
+                    $query->where('debit', '!=', 0);
+                })->when($request['filter_by'] == 'credit', function ($query) {
+                    $query->where('debit', '=', 0);
+                });
+            })
+            ->when(!empty($startDate) && !empty($endDate), function ($query) use ($startDate, $endDate) {
+                return $query->whereBetween('created_at', [$startDate, $endDate]);
+            })
+            ->when(!empty($types) || in_array('added_via_payment_method', $request['types'] ?? []) || in_array('earned_by_referral', $request['types'] ?? []), function ($query) use ($types, $request) {
+                $query->where(function ($query) use ($types, $request) {
+                    return $query->when(!empty($types), function ($query) use ($types, $request) {
+                        return $query->when(!in_array('earned_by_referral', $types), function ($query) use ($types) {
+                                return $query->where('reference', '!=', 'earned_by_referral');
+                            })->whereIn('transaction_type', $types)
+                            ->orWhere(function ($query) use ($types, $request) {
+                                return $query->whereNull('reference');
+                            });
+                    })->when(in_array('added_via_payment_method', $request['types'] ?? []), function ($query) use ($types, $request) {
+                        return $query->orWhere('reference', 'add_funds_to_wallet');
+                    })->when(in_array('earned_by_referral', $request['types'] ?? []), function ($query) use ($types, $request) {
+                       return $query->orWhere('reference', 'earned_by_referral');
+                    });
+                });
+            })
+            ->latest()
+            ->paginate(10)->appends(request()->query());
+    }
+
+    public function getAddFundBonusList()
+    {
+        return AddFundBonusCategories::where('is_active', 1)
+            ->whereDate('start_date_time', '<=', date('Y-m-d'))
+            ->whereDate('end_date_time', '>=', date('Y-m-d'))
+            ->get();
+    }
+
+    public function getSelectTransactionTypes($types): array
+    {
+        $typeMapping = [
+            'order_refund' => 'order_refund',
+            'order_place' => 'order_place',
+            'loyalty_point' => 'loyalty_point',
+            'add_fund' => 'add_fund',
+            'add_fund_by_admin' => 'add_fund_by_admin',
+        ];
+
+        foreach ($typeMapping as $key => $value) {
+            if (in_array($key, $types)) {
+                $transactionTypes[] = $value;
+            }
+        }
+        return $transactionTypes ?? [];
     }
 }

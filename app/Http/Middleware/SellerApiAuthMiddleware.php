@@ -2,21 +2,22 @@
 
 namespace App\Http\Middleware;
 
-use App\Model\Seller;
+use App\Models\Seller;
 use Closure;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use function App\CPU\translate;
+use Illuminate\Http\Response;
 
 class SellerApiAuthMiddleware
 {
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse)  $next
+     * @param Request $request
+     * @param Closure(Request): (Response|RedirectResponse) $next
      * @return mixed
      */
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next): mixed
     {
         $token = explode(' ', $request->header('authorization'));
         if (count($token) > 1 && strlen($token[1]) > 30) {

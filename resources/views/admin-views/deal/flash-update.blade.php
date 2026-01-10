@@ -1,193 +1,298 @@
-@extends('layouts.back-end.app')
-@section('title', translate('flash_Deal_Update'))
-@push('css_or_js')
-    <link href="{{asset('public/assets/back-end/css/tags-input.min.css')}}" rel="stylesheet">
-    <link href="{{ asset('public/assets/select2/css/select2.min.css')}}" rel="stylesheet">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-@endpush
+@extends('layouts.admin.app')
+
+@section('title', translate('Flash_Deal_Update'))
 
 @section('content')
-<div class="content container-fluid">
+    <div class="content container-fluid">
 
-    <!-- Page Title -->
-    <div class="mb-3">
-        <h2 class="h1 mb-0 text-capitalize d-flex gap-2">
-            <img width="20" src="{{asset('/public/assets/back-end/img/flash_deal.png')}}" alt="">
-            {{translate('flash_deals_update')}}
-        </h2>
-    </div>
-    <!-- End Page Title -->
+        <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+            <h2 class="h1 mb-0 d-flex align-items-center gap-2">
+                <img width="20" src="{{ dynamicAsset(path: 'public/assets/back-end/img/flash_deal.png') }}" alt="">
+                {{ translate('Flash_Deal_Update') }}
+            </h2>
+        </div>
 
-    <!-- Content Row -->
-    <div class="row">
-        <div class="col-md-12">
+        <form action="{{route('admin.deal.update-data',[$deal['id']]) }}" method="post" enctype="multipart/form-data"
+              class="form-advance-validation form-advance-inputs-validation form-advance-file-validation non-ajax-form-validate" novalidate>
+            @csrf
+
             <div class="card">
                 <div class="card-body">
-                    <form action="{{route('admin.deal.update',[$deal['id']])}}" method="post" style="text-align: {{Session::get('direction') === "rtl" ? 'right' : 'left'}};" enctype="multipart/form-data">
-                        @csrf
-                        @php($language=\App\Model\BusinessSetting::where('type','pnc_language')->first())
-                        @php($language = $language->value ?? null)
-                        @php($default_lang = 'en')
+                    <div class="row gy-3">
+                        <div class="col-lg-8">
+                            <div class="p-12 p-sm-20 bg-section rounded h-100">
 
-                        @php($default_lang = json_decode($language)[0])
-                        <ul class="nav nav-tabs w-fit-content mb-4">
-                            @foreach(json_decode($language) as $lang)
-                                <li class="nav-item text-capitalize">
-                                    <a class="nav-link lang_link {{$lang == $default_lang? 'active':''}}"
-                                       href="#"
-                                       id="{{$lang}}-link">{{\App\CPU\Helpers::get_language_name($lang).'('.strtoupper($lang).')'}}</a>
-                                </li>
-                            @endforeach
-                        </ul>
-
-                        <div class="row">
-                            <div class="col-lg-6">
-                                @foreach(json_decode($language) as $lang)
-                                    <?php
-                                    if (count($deal['translations'])) {
-                                        $translate = [];
-                                        foreach ($deal['translations'] as $t) {
-                                            if ($t->locale == $lang && $t->key == "title") {
-                                                $translate[$lang]['title'] = $t->value;
-                                            }
-                                        }
-                                    }
-                                    ?>
-                                    <div class="form-group {{$lang != $default_lang ? 'd-none':''}} lang_form" id="{{$lang}}-form">
-                                        <input type="text" name="deal_type" value="flash_deal"  class="d-none">
-                                        <label for="name" class="title-color">{{ translate('title')}} ({{strtoupper($lang)}})</label>
-                                        <input type="text" name="title[]" class="form-control" id="title"
-                                                value="{{$lang==$default_lang?$deal['title']:($translate[$lang]['title']??'')}}"
-                                                placeholder="{{translate('ex')}} : {{translate('LUX')}}"
-                                            {{$lang == $default_lang? 'required':''}}>
+                                <div class="form-group mb-0">
+                                    <div class="table-responsive w-auto overflow-y-hidden mb-4">
+                                        <div class="position-relative nav--tab-wrapper">
+                                            <ul class="nav nav-pills nav--tab lang_tab" id="pills-tab" role="tablist">
+                                                @foreach($language as $lang)
+                                                    <?php
+                                                        if (count($deal['translations'])) {
+                                                            $translate = [];
+                                                            foreach ($deal['translations'] as $t) {
+                                                                if ($t->locale == $lang && $t->key == "title") {
+                                                                    $translate[$lang]['title'] = $t->value;
+                                                                }
+                                                            }
+                                                        }
+                                                    ?>
+                                                    <li class="nav-item p-0">
+                                                        <a data-bs-toggle="pill" data-bs-target="#{{ $lang }}-form" role="tab"
+                                                           class="nav-link px-2 {{ $lang == $defaultLanguage ? 'active' : '' }}"
+                                                           id="{{ $lang }}-link">
+                                                            {{ ucfirst(getLanguageName($lang)).'('.strtoupper($lang).')' }}
+                                                        </a>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                            <div class="nav--tab__prev">
+                                                <button class="btn btn-circle border-0 bg-white text-primary">
+                                                    <i class="fi fi-sr-angle-left"></i>
+                                                </button>
+                                            </div>
+                                            <div class="nav--tab__next">
+                                                <button class="btn btn-circle border-0 bg-white text-primary">
+                                                    <i class="fi fi-sr-angle-right"></i>
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <input type="hidden" name="lang[]" value="{{$lang}}" id="lang">
-                                @endforeach
-                                <div class="form-group">
-                                    <label for="name" class="title-color">{{ translate('start_date')}}</label>
-                                    <input type="date" value="{{date('Y-m-d',strtotime($deal['start_date']))}}" name="start_date" required
-                                           class="form-control">
-                                </div>
-                                <div class="form-group">
-                                    <label for="name" class="title-color">{{ translate('end_date')}}</label>
-                                    <input type="date" value="{{date('Y-m-d', strtotime($deal['end_date']))}}" name="end_date" required
-                                           class="form-control">
-                                </div>
-                            </div>
 
-                            <div class="col-lg-6">
-                                <div>
-                                    <div class="form-group">
-                                        <center>
-                                            <img class="border radius-10 ratio-4:1 max-w-655px img-fit" id="viewer"
-                                            onerror="this.src='{{asset('public/assets/front-end/img/placeholder.png')}}'" src="{{asset('storage/app/public/deal')}}/{{$deal['banner']}}" alt="banner image"/>
-                                        </center>
+                                    <input type="text" name="deal_type" value="flash_deal" hidden>
+
+                                    <div class="tab-content" id="pills-tabContent">
+                                        @foreach($language as $lang)
+                                            <div class="tab-pane fade {{ $lang == $defaultLanguage ? 'show active' : '' }}"
+                                                 id="{{ $lang }}-form" aria-labelledby="{{ $lang }}-link" role="tabpanel">
+                                                <div class="form-group mb-0">
+                                                    <label class="form-label" for="exampleFormControlInput1">
+                                                        {{ translate('title') }}
+                                                        @if($lang == $defaultLanguage)
+                                                            <span class="text-danger">*</span>
+                                                        @endif
+                                                        ({{ strtoupper($lang) }})
+                                                    </label>
+                                                    <input type="text" name="title[]" class="form-control"
+                                                           data-required-msg="{{ translate('Deal_title_is_required') }}"
+                                                           placeholder="{{ translate('ex') }}: {{ translate('Mega Flash Sale') }}"
+                                                           {{ $lang == $defaultLanguage? 'required':'' }}
+                                                           value="{{ $lang==$defaultLanguage?$deal['title']:($translate[$lang]['title']??'') }}"
+                                                           data-maxlength="100">
+                                                    <div class="d-flex justify-content-end">
+                                                        <span class="text-body-light">{{ '0/100' }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <input type="hidden" name="lang[]" value="{{ $lang }}">
+                                        @endforeach
                                     </div>
-                                    <div class="form-group">
-                                        <label for="name" class="title-color">{{translate('upload_Image')}}</label>
-                                        <span class="text-info ml-0">( {{translate('ratio')}} 5:1 )</span>
-                                        <div class="custom-file text-left">
-                                            <input type="file" name="image" id="customFileUpload" class="custom-file-input"
-                                                accept=".jpg, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*">
-                                            <label class="custom-file-label" for="customFileUpload">{{translate('choose_File')}}</label>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-lg-6">
+                                        <div class="form-group mb-0">
+                                            <label for="name" class="form-label">
+                                                {{ translate('Start_Date') }}
+                                                <span class="text-danger">*</span>
+                                            </label>
+                                            <input type="date" name="start_date" id="start-date-time" data-required-msg="{{ translate('start_date_field_is_required') }}"
+                                                   class="form-control" required value="{{ date('Y-m-d', strtotime($deal['start_date'])) }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <div class="form-group mb-0">
+                                            <label for="name" class="form-label">{{ translate('End_Date') }}<span class="text-danger">*</span></label>
+                                            <input type="date" name="end_date" id="end-date-time" class="form-control" data-required-msg="{{ translate('end_date_field_is_required') }}"
+                                                   required value="{{ date('Y-m-d', strtotime($deal['end_date'])) }}">
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="d-flex justify-content-end gap-3">
-                            <button type="reset" id="reset" class="btn btn-secondary">{{ translate('reset')}}</button>
-                            <button type="submit" class="btn btn--primary">{{ translate('update')}}</button>
+
+                        <div class="col-lg-4">
+                            <div class="p-12 p-sm-20 bg-section rounded h-100">
+                                <div class="d-flex justify-content-center align-items-center bg-section rounded-8 p-20 w-100 h-100
+                                    {{ theme_root_path() == 'theme_aster' ? 'aster-flash-deal-disable-overlay' : '' }}">
+                                    <div class="flash-deal-disable-overlay">
+                                        {{ translate('Please_active_Default_Theme_to_use_flash_deals_banner.') }}
+                                    </div>
+                                    <div class="d-flex flex-column gap-30 w-100">
+                                        <div class="text-center">
+                                            <label for="" class="form-label fw-semibold mb-0">
+                                                {{ translate('upload_image') }}<span class="text-danger">*</span>
+                                                <span class="text-info-dark">
+                                                    ( {{ translate('ratio') . ' ' . '5:1' }} )</span>
+                                            </label>
+                                        </div>
+                                        <div class="upload-file">
+                                            <input type="file" name="image" id="custom-file-upload"
+                                                   class="upload-file__input single_file_input" data-required-msg="{{ translate('image_field_is_required') }}"
+                                                   accept="{{getFileUploadFormats()}}"  data-max-size="{{ getFileUploadMaxSize() }}"
+                                                   value="" {{ $deal->banner_full_url ? '':'required' }}>
+                                            <label class="upload-file__wrapper ratio-5-1">
+                                                <div class="upload-file-textbox text-center">
+                                                    <img width="34" height="34" class="svg"
+                                                         src="{{ dynamicAsset(path: 'public/assets/new/back-end/img/svg/image-upload.svg') }}"
+                                                         alt="image upload">
+                                                    <h6 class="mt-1 fw-medium lh-base text-center">
+                                                            <span
+                                                                class="text-info">{{ translate('Click to upload') }}</span>
+                                                        <br>
+                                                        {{ translate('or drag and drop') }}
+                                                    </h6>
+                                                </div>
+                                                <img class="upload-file-img" loading="lazy"
+                                                     src="{{ getStorageImages(path: $deal->banner_full_url , type: 'backend-basic') }}"
+                                                     data-default-src="{{ getStorageImages(path: $deal->banner_full_url , type: 'backend-basic') }}"
+                                                     alt="{{ translate('banner_image') }}">
+                                            </label>
+                                            <div class="overlay">
+                                                <div
+                                                    class="d-flex gap-10 justify-content-center align-items-center h-100">
+                                                    <button type="button"
+                                                            class="btn btn-outline-info icon-btn view_btn">
+                                                        <i class="fi fi-sr-eye"></i>
+                                                    </button>
+                                                    <button type="button"
+                                                            class="btn btn-outline-info icon-btn edit_btn">
+                                                        <i class="fi fi-rr-camera"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <p class="fs-10 mb-0 text-center">
+                                                {{ getFileUploadFormats(skip:'.svg,.gif') }} : {{ translate('Max_'.getFileUploadMaxSize().'_MB') }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!--modal-->
-    @include('shared-partials.image-process._image-crop-modal',['modal_id'=>'banner-image-modal','width'=>1100,'margin_left'=>'-65%'])
-</div>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <div class="row align-items-center gy-3 mb-3 mb-sm-20">
+                        <div class="col-md-9">
+                            <div>
+                                <h2 class="text-capitalize">
+                                    {{ translate('Meta_Data_Setup') }}
+                                </h2>
+                                <p class="fs-12 mb-0">
+                                    {{ translate('Include meta titles, descriptions, and images for your flash deal.') }}
+                                    {{ translate('This will enhance visibility and help more people discover your content on search engines.') }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row gy-3 mb-4">
+                        <div class="col-lg-8">
+                            <div class="p-12 p-sm-20 bg-section rounded h-100">
+                                <div class="form-group mb-0">
+                                    <label class="form-label" for="meta_title">
+                                        {{ translate('Meta_Title') }}
+                                        <span class="tooltip-icon cursor-pointer" data-bs-toggle="tooltip"
+                                              data-bs-placement="top"
+                                              title="{{ translate('add_the_clearance_sale_taglines_etc_here.').' '.translate('this_meta_title_will_be_seen_on_search_engine_results_pages_and_while_sharing_the_clearance_sale_link_on_social_platforms') .' [ '. translate('character_Limit') }} : 50 ]">
+                                            <i class="fi fi-sr-info"></i>
+                                        </span>
+                                    </label>
+                                    <input type="text" name="meta_title" placeholder="{{ translate('meta_Title') }}"
+                                           class="form-control" id="meta_title" data-maxlength="50" value="{{ $deal?->seo?->title ?? '' }}">
+                                    <div class="d-flex justify-content-end">
+                                        <span class="text-body-light">0/50</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label text-capitalize" for="meta_description">
+                                        {{ translate('Meta_Description') }}
+                                        <span class="tooltip-icon cursor-pointer" data-bs-toggle="tooltip"
+                                              data-bs-placement="top"
+                                              title="{{ translate('write_a_short_description_of_the_clearance_sale.').' '.translate('this_description_will_be_seen_on_search_engine_results_pages_and_while_sharing_the_clearance_sale_link_on_social_platforms') .' [ '. translate('character_Limit') }} : 160 ]">
+                                            <i class="fi fi-sr-info"></i>
+                                        </span>
+                                    </label>
+                                    <textarea rows="2" type="text" name="meta_description" id="meta_description"
+                                              class="form-control" data-maxlength="160"
+                                              placeholder="{{ translate('Enter_your_meta_description') }}">{{ $deal?->seo?->description ?? '' }}</textarea>
+                                    <div class="d-flex justify-content-end">
+                                        <span class="text-body-light">0/160</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="p-12 p-sm-20 bg-section rounded h-100">
+                                <div class="d-flex flex-column gap-20">
+                                    <div class="d-flex flex-column align-items-center">
+                                        <label for="" class="form-label fw-semibold mb-1 text-capitalize">
+                                            {{ translate('Meta_Image') }}
+                                            <span class="tooltip-icon cursor-pointer" data-bs-toggle="tooltip"
+                                                  aria-label="{{ translate('add_Meta_Image_in') }} {{ getFileUploadFormats(skip:'.svg,.gif') }} {{ translate('format_within') }} {{ getFileUploadMaxSize().'MB' }}, {{ translate('which_will_be_shown_in_search_engine_results') }}."
+                                                  data-bs-title="{{ translate('add_Meta_Image_in') }} {{ getFileUploadFormats(skip:'.svg,.gif') }} {{ translate('format_within') }} {{ getFileUploadMaxSize().'MB' }}, {{ translate('which_will_be_shown_in_search_engine_results') }}."
+                                            >
+                                                <i class="fi fi-sr-info"></i>
+                                            </span>
+                                        </label>
+                                        <p class="fs-12 mb-0">{{ translate('Upload_your_Meta_Image') }}</p>
+                                    </div>
+                                    <div class="upload-file">
+                                        <input type="file" name="meta_image" class="upload-file__input single_file_input"
+                                               data-max-size="{{ getFileUploadMaxSize() }}"
+                                               data-required-msg="{{ translate('Meta_image_is_required') }}"
+                                               accept="{{ getFileUploadFormats(skip:'.svg,.gif') }}">
+
+                                        <label
+                                            class="upload-file__wrapper">
+                                            <div class="upload-file-textbox text-center">
+                                                <img width="34" height="34" class="svg" src="{{ dynamicAsset(path: 'public/assets/new/back-end/img/svg/image-upload.svg') }}" alt="image upload">
+                                                <h6 class="mt-1 fw-medium lh-base text-center">
+                                                        <span class="text-info">
+                                                            {{ translate('Click_to_upload') }}
+                                                        </span>
+                                                    <br>
+                                                    {{ translate('or drag and drop') }}
+                                                </h6>
+                                            </div>
+                                            <img class="upload-file-img" loading="lazy"
+                                                 src="{{ $deal?->seo?->image_full_url['path'] ? getStorageImages(path: $deal?->seo?->image_full_url['path'] ? $deal?->seo?->image_full_url : '', type: 'backend-banner') : '' }}"
+                                                 data-default-src="{{ $deal?->seo?->image_full_url['path'] ? getStorageImages(path: $deal?->seo?->image_full_url['path'] ? $deal?->seo?->image_full_url : '', type: 'backend-banner') : '' }}"
+                                                 alt="">
+                                        </label>
+                                        <div class="overlay">
+                                            <div class="d-flex gap-10 justify-content-center align-items-center h-100">
+                                                <button type="button" class="btn btn-outline-info icon-btn view_btn">
+                                                    <i class="fi fi-sr-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-info icon-btn edit_btn">
+                                                    <i class="fi fi-rr-camera"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="fs-10 mb-0 text-center">
+                                        {{ getFileUploadFormats(skip:'.svg,.gif') }} : {{ translate('Max_'.getFileUploadMaxSize().'_MB') }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap justify-content-end gap-3 my-4">
+                <button type="reset" class="btn btn-secondary px-4 w-120">{{translate('reset')}}</button>
+                <button type="submit" class="btn btn-primary px-4 w-120">{{translate('save')}}</button>
+            </div>
+        </form>
+    </div>
 @endsection
 
 @push('script')
-    <script src="{{asset('public/assets/back-end')}}/js/select2.min.js"></script>
-    <script>
-        function readURL(input) {
-            if (input.files && input.files[0]) {
-                var reader = new FileReader();
-
-                reader.onload = function (e) {
-                    $('#viewer').attr('src', e.target.result);
-                }
-
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        $("#customFileUpload").change(function () {
-            readURL(this);
-        });
-
-        $(".js-example-theme-single").select2({
-            theme: "classic"
-        });
-
-        $(".js-example-responsive").select2({
-            width: 'resolve'
-        });
-    </script>
-
-    <!-- Page level custom scripts -->
-
-    <script>
-        $(document).ready(function () {
-            // color select select2
-            $('.color-var-select').select2({
-                templateResult: colorCodeSelect,
-                templateSelection: colorCodeSelect,
-                escapeMarkup: function (m) {
-                    return m;
-                }
-            });
-
-            function colorCodeSelect(state) {
-                var colorCode = $(state.element).val();
-                if (!colorCode) return state.text;
-                return "<span class='color-preview' style='background-color:" + colorCode + ";'></span>" + state.text;
-            }
-        });
-    </script>
-
-    <script>
-        $(".lang_link").click(function (e) {
-            e.preventDefault();
-            $(".lang_link").removeClass('active');
-            $(".lang_form").addClass('d-none');
-            $(this).addClass('active');
-
-            let form_id = this.id;
-            let lang = form_id.split("-")[0];
-            console.log(lang);
-            $("#" + lang + "-form").removeClass('d-none');
-            if (lang == '{{$default_lang}}') {
-                $(".from_part_2").removeClass('d-none');
-            } else {
-                $(".from_part_2").addClass('d-none');
-            }
-        });
-
-        $(document).ready(function () {
-            $('#dataTable').DataTable();
-        });
-    </script>
-
-    @include('shared-partials.image-process._script',[
-     'id'=>'banner-image-modal',
-     'height'=>170,
-     'width'=>1050,
-     'multi_image'=>false,
-     'route'=>route('image-upload')
-     ])
+    <script src="{{ dynamicAsset(path: 'public/assets/back-end/js/admin/deal.js') }}"></script>
 @endpush

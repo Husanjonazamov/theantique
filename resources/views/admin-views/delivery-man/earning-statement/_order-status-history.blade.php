@@ -1,10 +1,10 @@
-<div class="modal-header">
-    <h5 class="modal-title" id="exampleModalLongTitle">
+<div class="modal-header d-flex justify-content-between align-items-center gap-2">
+    <h4 class="modal-title dd-flex align-items-center gap-1" id="exampleModalLongTitle">
         {{ translate('history_of_Order_No:') }} {{ $histories[0]->order_id?? '##' }}
-        <span class="badge badge-soft-dark radius-50 fz-12 ml-1">{{ $histories->count() }}</span>
-    </h5>
-    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
+        <span class="badge text-dark bg-body-secondary fw-semibold rounded-50">{{ $histories->count() }}</span>
+    </h4>
+    <button type="button" class="btn-close border-0 btn-circle bg-section2 shadow-none"
+        data-bs-dismiss="modal" aria-label="Close">
     </button>
 </div>
 <div class="modal-body">
@@ -58,5 +58,5 @@
     </div>
 </div>
 <div class="modal-footer">
-    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ translate('close') }}</button>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ translate('close') }}</button>
 </div>

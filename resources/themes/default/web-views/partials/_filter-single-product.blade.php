@@ -1,31 +1,38 @@
-@php($overallRating = \App\CPU\ProductManager::get_overall_rating($product->reviews))
+@php($overallRating = getOverallRating($product?->reviews))
 
-<div class="product-single-hover style--card" >
+<div class="product-single-hover style--card h-100">
     <div class="overflow-hidden position-relative">
         <div class=" inline_product clickable d-flex justify-content-center">
-            @if($product->discount > 0)
-            <span class="for-discoutn-value p-1 pl-2 pr-2">
-            @if ($product->discount_type == 'percent')
-                    {{round($product->discount, (!empty($decimal_point_settings) ? $decimal_point_settings: 0))}}%
-                @elseif($product->discount_type =='flat')
-                    {{\App\CPU\Helpers::currency_converter($product->discount)}}
-                @endif
-                {{translate('off')}}
-            </span>
+            @if(getProductPriceByType(product: $product, type: 'discount', result: 'value') > 0)
+                <span class="for-discount-value p-1 pl-2 pr-2 font-bold fs-13">
+                    <span class="direction-ltr d-block">
+                        -{{ getProductPriceByType(product: $product, type: 'discount', result: 'string') }}
+                    </span>
+                </span>
             @else
-                <div class="d-flex justify-content-end for-dicount-div-null">
-                    <span class="for-discoutn-value-null"></span>
+                <div class="d-flex justify-content-end">
+                    <span class="for-discount-value-null"></span>
                 </div>
             @endif
-            <div class="p-10px pb-0">
-                <a href="{{route('product',$product->slug)}}" class="w-100">
-                    <img src="{{\App\CPU\ProductManager::product_image_path('thumbnail')}}/{{$product['thumbnail']}}"
-                        onerror="this.src='{{asset('public/assets/front-end/img/image-place-holder.png')}}'">
+            <div class="d-flex pb-0">
+                <a href="{{route('product',$product->slug)}}" class="w-100 rounded">
+                    <img alt="" class="border border-black-50" src="{{ getStorageImages(path: $product->thumbnail_full_url, type: 'product') }}">
                 </a>
             </div>
 
             <div class="quick-view">
-                <a class="btn-circle stopPropagation" href="javascript:" onclick="quickView('{{$product->id}}')">
+                <div class="d-none d-md-flex gap-2 align-items-center quick-view-tag">
+                    @if($product->product_type == 'digital')
+                        <div class="bg-white btn-circle" style="--size: 26px" data-toggle="tooltip" title="{{ translate('Digital_Product') }}" data-placement="left">
+                            <img class="h-16px aspect-1 svg" src="{{theme_asset(path: "public/assets/front-end/img/icons/digital-product.svg")}}" alt="">
+                        </div>
+                    @else
+                        <div class="bg-white btn-circle" style="--size: 26px" data-toggle="tooltip" title="{{ translate('Physical_Product') }}" data-placement="left">
+                            <img class="h-16px aspect-1 svg" src="{{theme_asset(path: "public/assets/front-end/img/icons/physical-product.svg")}}" alt="">
+                        </div>
+                    @endif
+                </div>
+                <a class="btn-circle stopPropagation action-product-quick-view" href="javascript:" data-product-id="{{ $product->id }}">
                     <i class="czi-eye align-middle"></i>
                 </a>
             </div>
@@ -34,6 +41,24 @@
             @endif
         </div>
         <div class="single-product-details">
+            <h4 class="text-center mb-1 lh-1 letter-spacing-0 fs-14 fw-semibold">
+                <a href="{{route('product',$product->slug)}}">
+                    {{ $product['name'] }}
+                </a>
+            </h4>
+            <div class="text-center mb-1">
+                <h5 class="product-price text-center d-flex flex-wrap justify-content-center align-items-baseline gap-1 mb-0 lh-1 letter-spacing-0">
+                    @if(getProductPriceByType(product: $product, type: 'discount', result: 'value') > 0)
+                        <del class="category-single-product-price font-weight-normal fs-14">
+                            {{ webCurrencyConverter(amount: $product->unit_price) }}
+                        </del>
+                    @endif
+                    <span class="text-accent text-dark fs-15">
+                        {{ getProductPriceByType(product: $product, type: 'discounted_unit_price', result: 'string') }}
+                    </span>
+                </h5>
+            </div>
+            @if($overallRating[0] != 0 )
             <div class="rating-show justify-content-between text-center">
                 <span class="d-inline-block font-size-sm text-body">
                     @for($inc=1;$inc<=5;$inc++)
@@ -45,28 +70,10 @@
                             <i class="tio-star-outlined text-warning"></i>
                         @endif
                     @endfor
-                    <label class="badge-style">( {{$product->reviews_count}} )</label>
+                    <label class="badge-style">( {{ count($product->reviews) }} )</label>
                 </span>
             </div>
-            <div class="text-center">
-                <a href="{{route('product',$product->slug)}}">
-                    {{ Str::limit($product['name'], 23) }}
-                </a>
-            </div>
-            <div class="justify-content-between text-center">
-                <div class="product-price text-center d-flex flex-wrap justify-content-center align-items-center gap-8">
-                    @if($product->discount > 0)
-                        <strike style="font-size: 12px!important;color: #9B9B9B!important;">
-                            {{\App\CPU\Helpers::currency_converter($product->unit_price)}}
-                        </strike><br>
-                    @endif
-                    <span class="text-accent text-dark">
-                        {{\App\CPU\Helpers::currency_converter(
-                            $product->unit_price-(\App\CPU\Helpers::get_product_discount($product,$product->unit_price))
-                        )}}
-                    </span>
-                </div>
-            </div>
+            @endif
         </div>
     </div>
 </div>

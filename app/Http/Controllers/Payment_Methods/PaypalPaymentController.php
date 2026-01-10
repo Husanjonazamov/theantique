@@ -2,20 +2,24 @@
 
 namespace App\Http\Controllers\Payment_Methods;
 
-use App\Model\PaymentRequest;
+use App\Models\PaymentRequest;
 use App\Traits\Processor;
-use Illuminate\Support\Str;
+use Illuminate\Foundation\Application;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Routing\Redirector;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class PaypalPaymentController extends Controller
 {
     use Processor;
 
-    private $config_values;
-    private $base_url;
+    private mixed $config_values;
+    private string $base_url;
 
     private PaymentRequest $payment;
 
@@ -28,16 +32,17 @@ class PaypalPaymentController extends Controller
             $this->config_values = json_decode($config->test_values);
         }
 
-        if($config){
+        if ($config) {
             $this->base_url = ($config->mode == 'test') ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
         }
         $this->payment = $payment;
     }
 
-    public function token(){
+    public function token(): bool|string
+    {
         $ch = curl_init();
 
-        curl_setopt($ch, CURLOPT_URL, $this->base_url.'/v1/oauth2/token');
+        curl_setopt($ch, CURLOPT_URL, $this->base_url . '/v1/oauth2/token');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_POSTFIELDS, "grant_type=client_credentials");
@@ -59,7 +64,7 @@ class PaypalPaymentController extends Controller
      * Responds with a welcome message with instructions
      *
      */
-    public function payment(Request $request)
+    public function payment(Request $request): JsonResponse|RedirectResponse
     {
         $validator = Validator::make($request->all(), [
             'payment_id' => 'required|uuid'
@@ -81,42 +86,39 @@ class PaypalPaymentController extends Controller
             $business_name = "my_business";
         }
 
-        $accessToken = json_decode($this->token(),true);
+        $accessToken = json_decode($this->token(), true);
 
-        if ( isset($accessToken['access_token'])) {
+        if (isset($accessToken['access_token'])) {
             $accessToken = $accessToken['access_token'];
-            $payment_data = [];
-            $payment_data['purchase_units'] = [
-                [
-                    'reference_id' => $data->id,
-                    'name' => $business_name,
-                    'desc'  => 'payment ID :' . $data->id,
-                    'amount' => [
-                        'currency_code' => 'USD',
-                        'value' => round($data->payment_amount, 2)
+            $payment_data = [
+                'intent' => 'CAPTURE',
+                'purchase_units' => [
+                    [
+                        'reference_id' => $data->id,
+                        'amount' => [
+                            'currency_code' => $data->currency_code ?? 'USD',
+                            'value' => number_format($data->payment_amount, 2, '.', '')
+                        ],
+                        'description' => 'payment ID :' . $data->id
                     ]
+                ],
+                'application_context' => [
+                    'return_url' => route('paypal.success', ['payment_id' => $data->id]),
+                    'cancel_url' => route('paypal.cancel', ['payment_id' => $data->id])
                 ]
             ];
 
-            $payment_data['invoice_id'] = $data->id;
-            $payment_data['invoice_description'] = "Order #{$payment_data['invoice_id']} Invoice";
-            $payment_data['total'] = round($data->payment_amount, 2);
-            $payment_data['intent'] = 'CAPTURE';
-            $payment_data['application_context'] = [
-                'return_url' => route('paypal.success',['payment_id' => $data->id]),
-                'cancel_url' => route('paypal.cancel',['payment_id' => $data->id])
-            ];
             $ch = curl_init();
-
-            curl_setopt($ch, CURLOPT_URL, $this->base_url.'/v2/checkout/orders');
+            curl_setopt($ch, CURLOPT_URL, $this->base_url . '/v2/checkout/orders');
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS,  json_encode($payment_data));
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payment_data));
 
-            $headers = array();
-            $headers[] = 'Content-Type: application/json';
-            $headers[] = "Authorization: Bearer $accessToken";
-            $headers[] = "Paypal-Request-Id:".Str::uuid();
+            $headers = [
+                'Content-Type: application/json',
+                "Authorization: Bearer $accessToken",
+                "Paypal-Request-Id: " . Str::uuid()
+            ];
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
             $response = curl_exec($ch);
@@ -124,47 +126,50 @@ class PaypalPaymentController extends Controller
                 echo 'Error:' . curl_error($ch);
             }
             curl_close($ch);
-        }else{
+        } else {
             return response()->json($this->response_formatter(GATEWAYS_DEFAULT_204), 200);
-        }
-;
+        };
         $response = json_decode($response);
 
-        $links = $response->links;
-        return Redirect::away($links[1]->href);
+        try {
+            if (isset($response->links)) {
+                $links = $response->links;
+                return Redirect::away($links[1]->href);
+            }
+        } catch (\Exception $exception) {
+        }
 
-        return 0;
-
+        return response()->json($this->response_formatter(GATEWAYS_DEFAULT_204), 200);
     }
 
     /**
      * Responds with a welcome message with instructions
      */
-    public function cancel(Request $request)
+    public function cancel(Request $request): Application|JsonResponse|Redirector|\Illuminate\Contracts\Foundation\Application|RedirectResponse
     {
         $data = $this->payment::where(['id' => $request['payment_id']])->first();
-        return $this->payment_response($data,'cancel');
+        return $this->payment_response($data, 'cancel');
     }
 
     /**
      * Responds with a welcome message with instructions
      */
-    public function success(Request $request)
+    public function success(Request $request): Application|JsonResponse|Redirector|\Illuminate\Contracts\Foundation\Application|RedirectResponse
     {
 
-        $accessToken = json_decode($this->token(),true);
+        $accessToken = json_decode($this->token(), true);
         $accessToken = $accessToken['access_token'];
 
         $ch = curl_init();
 
-        curl_setopt($ch, CURLOPT_URL, $this->base_url."/v2/checkout/orders/{$request->token}/capture");
+        curl_setopt($ch, CURLOPT_URL, $this->base_url . "/v2/checkout/orders/{$request->token}/capture");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_POST, 1);
 
         $headers = array();
         $headers[] = 'Content-Type: application/json';
         $headers[] = "Authorization: Bearer  $accessToken";
-        $headers[] = 'Paypal-Request-Id:'.Str::uuid();
+        $headers[] = 'Paypal-Request-Id:' . Str::uuid();
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
         $result = curl_exec($ch);
@@ -175,7 +180,7 @@ class PaypalPaymentController extends Controller
 
         $response = json_decode($result);
 
-        if($response->status === 'COMPLETED'){
+        if ($response->status === 'COMPLETED') {
             $this->payment::where(['id' => $request['payment_id']])->update([
                 'payment_method' => 'paypal',
                 'is_paid' => 1,
@@ -188,12 +193,12 @@ class PaypalPaymentController extends Controller
                 call_user_func($data->success_hook, $data);
             }
 
-            return $this->payment_response($data,'success');
+            return $this->payment_response($data, 'success');
         }
         $payment_data = $this->payment::where(['id' => $request['payment_id']])->first();
         if (isset($payment_data) && function_exists($payment_data->failure_hook)) {
             call_user_func($payment_data->failure_hook, $payment_data);
         }
-        return $this->payment_response($payment_data,'fail');
+        return $this->payment_response($payment_data, 'fail');
     }
 }

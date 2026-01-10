@@ -1,19 +1,18 @@
-<div class="container rtl pb-4 pt-3 px-0 px-md-3">
+@if(count($companyReliability) > 0)
+<div class="container rtl pb-4 px-0 px-md-3">
     <div class="shipping-policy-web">
-        <div class="row g-3 justify-content-center mx-max-md-0">
-            @foreach ($company_reliability as $key=>$value)
+        <div class="footer-top-slider owl-theme owl-carousel" data-slide-items="4">
+            @foreach ($companyReliability as $key=>$value)
                 @if ($value['status'] == 1 && !empty($value['title']))
-                    <div class="col-md-3 d-flex justify-content-center px-max-md-0">
-                        <div class="shipping-method-system">
-                            <div class="text-center">
-                                <img class="{{Session::get('direction') === "rtl" ? 'float-right ml-2' : 'mr-2'}} size-60"  src="{{asset("/storage/app/public/company-reliability").'/'.$value['image']}}"
-                                    onerror="this.src='{{asset('/public/assets/front-end/img').'/'.$value['item'].'.png'}}'"
-                                        alt="">
-                            </div>
-                            <div class="text-center">
-                                <p class="m-0">
-                                    {{$value['title']}}
-                                </p>
+                    <div class="footer-top-slide-item">
+                        <div class="d-flex justify-content-center">
+                            <div class="shipping-method-system">
+                                <div class="shopping-method-icon d-flex mx-auto justify-content-center bg-white rounded-circle mb-20 d-center">
+                                    <img loading="lazy" alt="" class="object-contain" width="88" height="88" src="{{ getStorageImages(path: imagePathProcessing(imageData: $value['image'],path: 'company-reliability'), type: 'source', source: 'public/assets/front-end/img'.'/'.$value['item'].'.png') }}">
+                                </div>
+                                <div class="w-100 text-center">
+                                    <p class="m-0">{{ $value['title'] }}</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -22,3 +21,4 @@
         </div>
     </div>
 </div>
+@endif

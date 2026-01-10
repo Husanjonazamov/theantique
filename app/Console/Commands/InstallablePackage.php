@@ -2,7 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\CPU\Helpers;
+use App\Utils\Helpers;
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Artisan;
@@ -37,9 +38,10 @@ class InstallablePackage extends Command
     /**
      * Execute the console command.
      *
-     * @return int
+     * @return void
+     * @throws Exception
      */
-    public function handle()
+    public function handle(): void
     {
         Helpers::remove_dir('.idea');
         Artisan::call('debugbar:clear');
@@ -56,11 +58,12 @@ class InstallablePackage extends Command
             }
         }
 
-        $add_on_folder = base_path('Modules');
-        $add_on_directories = glob($add_on_folder . '/*', GLOB_ONLYDIR);
-        foreach ($add_on_directories as $directory) {
+        $addOnFolder = base_path('Modules');
+        $addOnDirectories = glob($addOnFolder . '/*', GLOB_ONLYDIR);
+        foreach ($addOnDirectories as $directory) {
             $array = explode('/', $directory);
-            if (File::isDirectory($directory)) {
+            $directoryName = end($array);
+            if (File::isDirectory($directory) && $directoryName == 'Gateways') {
                 File::deleteDirectory($directory);
             }
         }

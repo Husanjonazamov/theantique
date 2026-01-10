@@ -18,21 +18,20 @@ p.sansserif {
     color-adjust: exact !important; /*Firefox*/
 }
 
-.barcodea4 {
-    width: 8.25in;
-    /* height: 13in; */
-    /* display: block; */
+.barcode-a4 {
+    width: 8.27in;
+    height: 11.5in;
     border: 1px solid #ccc;
     margin: 10px auto;
     padding: 0.1in 0 0 0.1in;
     page-break-after: always;
-    display: flex;
-    flex-wrap: wrap;
+    display: block;
+    /* flex-wrap: wrap;
     height: unset !important;
-    row-gap: 6px;
+    row-gap: 6px; */
 }
 
-.barcodea4 .style24 {
+.barcode-a4 .style24 {
     width: 2.48in;
     height: 1.535in;
     margin-left: 0.079in;
@@ -44,7 +43,7 @@ p.sansserif {
     margin-right: auto;
 }
 
-.barcodea4 .item {
+.barcode-a4 .item {
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -84,7 +83,7 @@ p.sansserif {
     margin: 0 !important;
 }
 
-@media screen and (max-width: 800px) {
+@media screen and (max-width: 830px) {
     .show-div {
         visibility: hidden;
         display: none;
@@ -96,7 +95,7 @@ p.sansserif {
     }
 }
 
-@media screen and (min-width: 800px) {
+@media screen and (min-width: 831px) {
     .show-div {
         display: block;
     }

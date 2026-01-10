@@ -3,7 +3,8 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use App\CPU\Helpers;
+use App\Utils\Helpers;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class SellerMiddleware
@@ -11,17 +12,17 @@ class SellerMiddleware
     /**
      * Handle an incoming request.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param \Closure $next
+     * @param Request $request
+     * @param Closure $next
      * @return mixed
      */
-    public function handle($request, Closure $next)
+    public function handle(Request $request, Closure $next): mixed
     {
         if (auth('seller')->check() && auth('seller')->user()->status == 'approved') {
             return $next($request);
         }
         auth()->guard('seller')->logout();
 
-        return redirect()->route('seller.auth.login');
+        return redirect()->route('vendor.auth.login');
     }
 }

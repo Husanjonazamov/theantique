@@ -1,14 +1,17 @@
-<div class="container rtl pt-4 px-0 px-md-3">
+<div class="container rtl pt-0 px-0 px-md-3">
     <div class="seller-card">
         <div class="card __shadow h-100">
             <div class="card-body">
                 <div class="row d-flex justify-content-between">
                     <div class="seller-list-title">
-                        <h5 class="font-bold m-0 text-capitalize">{{ translate('top_sellers')}}</h5>
+                        <h2 class="font-bold m-0 text-capitalize h5">
+                            {{ translate('top_sellers')}}
+                        </h2>
                     </div>
                     <div class="seller-list-view-all">
-                        <a class="text-capitalize view-all-text" style="color: {{$web_config['primary_color']}}!important"
-                            href="{{route('sellers')}}">{{ translate('view_all')}}
+                        <a class="text-capitalize view-all-text web-text-primary"
+                            href="{{ route('vendors', ['filter'=>'top-vendors']) }}">
+                            {{ translate('view_all')}}
                             <i class="czi-arrow-{{Session::get('direction') === "rtl" ? 'left mr-1 ml-n1 mt-1 float-left' : 'right ml-1 mr-n1'}}"></i>
                         </a>
                     </div>
@@ -16,44 +19,53 @@
 
                 <div class="mt-3">
                     <div class="others-store-slider owl-theme owl-carousel">
-                        <!-- Others Store Card -->
-                        @foreach ($top_sellers as $seller)
-                            <a href="{{route('shopView',['id'=>$seller['id']])}}" class="others-store-card text-capitalize">
+
+                        @foreach ($topVendorsList as $vendorData)
+                            <a href="{{route('vendor-shop',['slug'=> $vendorData['slug']])}}" class="others-store-card text-capitalize">
                                 <div class="overflow-hidden other-store-banner">
-                                    <img src="{{asset('storage/app/public/shop/banner/'.$seller->shop->banner)}}"
-                                        onerror="this.src='{{ asset('/public/assets/front-end/img/seller-banner.png') }}'"
-                                        class="w-100 h-100 object-cover" alt="">
+                                    <img loading="lazy" class="w-100 h-100 object-cover" alt=""
+                                         src="{{ getStorageImages(path: $vendorData->banner_full_url, type: 'shop-banner') }}">
                                 </div>
                                 <div class="name-area">
                                     <div class="position-relative">
                                         <div class="overflow-hidden other-store-logo rounded-full">
-                                            <img class="rounded-full" onerror="this.src='{{asset('public/assets/front-end/img/image-place-holder.png')}}'"
-                                                src="{{ asset('storage/app/public/shop/'.$seller->shop->image)}}" alt="others-store">
+                                            <img loading="lazy" class="rounded-full" alt="{{ translate('store') }}"
+                                                 src="{{ getStorageImages(path: $vendorData->image_full_url, type: 'shop') }}">
                                         </div>
-                                        <!-- Temporary Closed Store Status -->
-                                        @if($seller->shop->temporary_close || ($seller->shop->vacation_status && ($current_date >= $seller->shop->vacation_start_date) && ($current_date <= $seller->shop->vacation_end_date)))
-                                            <span class="temporary-closed position-absolute text-center rounded-full">
+
+                                        @if(checkVendorAbility(type: 'vendor', status: 'temporary_close', vendor: $vendorData))
+                                            <span class="temporary-closed position-absolute text-center rounded-full p-2">
+                                                <span>{{translate('Temporary_OFF')}}</span>
+                                            </span>
+                                        @elseif(checkVendorAbility(type: 'vendor', status: 'vacation_status', vendor: $vendorData))
+                                            <span class="temporary-closed position-absolute text-center rounded-full p-2">
                                                 <span>{{translate('closed_now')}}</span>
                                             </span>
                                         @endif
                                     </div>
                                     <div class="info pt-2">
-                                        <h5 >{{ $seller->shop->name }}</h5>
+                                        <h3 class="h5">{{ $vendorData->name }}</h3>
+                                        @if($vendorData->average_rating > 0)
                                         <div class="d-flex align-items-center">
-                                            <h6 style="color:{{$web_config['primary_color']}}">{{number_format($seller->average_rating,1)}}</h6>
+                                            <h4 class="web-text-primary fs-12 m-0">{{number_format($vendorData->average_rating,1)}}</h4>
                                             <i class="tio-star text-star mx-1"></i>
                                             <small>{{ translate('rating') }}</small>
                                         </div>
+                                        @endif
                                     </div>
                                 </div>
                                 <div class="info-area">
                                     <div class="info-item">
-                                        <h6 style="color:{{$web_config['primary_color']}}">{{$seller->review_count < 1000 ? $seller->review_count : number_format($seller->review_count/1000 , 1).'K'}}</h6>
-                                        <span>{{ translate('reviews') }}</span>
+                                        <h5 class="fs-18 fw-bold web-text-primary m-0">
+                                            {{$vendorData->review_count < 1000 ? $vendorData->review_count : number_format($vendorData->review_count/1000 , 1).'K'}}
+                                        </h5>
+                                        <p class="m-0">{{ translate('reviews') }}</p>
                                     </div>
                                     <div class="info-item">
-                                        <h6 style="color:{{$web_config['primary_color']}}">{{$seller->product_count < 1000 ? $seller->product_count : number_format($seller->product_count/1000 , 1).'K'}}</h6>
-                                        <span>{{ translate('products') }}</span>
+                                        <h5 class="fs-18 fw-bold web-text-primary m-0">
+                                            {{$vendorData->products_count < 1000 ? $vendorData->products_count : number_format($vendorData->products_count/1000 , 1).'K'}}
+                                        </h5>
+                                        <p class="m-0">{{ translate('products') }}</p>
                                     </div>
                                 </div>
                             </a>

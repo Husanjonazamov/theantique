@@ -1,151 +1,273 @@
-@extends('layouts.back-end.app')
+@extends('layouts.admin.app')
 
-@section('title', translate('brand_Edit'))
-
-@push('css_or_js')
-    <link href="{{asset('public/assets/back-end')}}/css/select2.min.css" rel="stylesheet"/>
-    <link href="{{asset('public/assets/back-end/css/croppie.css')}}" rel="stylesheet">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-@endpush
+@section('title', translate('Brand_Update'))
 
 @section('content')
-<div class="content container-fluid">
-    <!-- Page Title -->
-    <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
-        <h2 class="h1 mb-0 align-items-center d-flex gap-2">
-            <img width="20" src="{{asset('/public/assets/back-end/img/brand.png')}}" alt="">
-            {{translate('brand_Update')}}
-        </h2>
-    </div>
-    <!-- End Page Title -->
+    <div class="content container-fluid">
 
-    <!-- Content Row -->
-    <div class="row">
-        <div class="col-md-12">
+        <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+            <h2 class="h1 mb-0 d-flex align-items-center gap-2">
+                <img width="20" src="{{ dynamicAsset(path: 'public/assets/new/back-end/img/brand.png') }}" alt="">
+                {{ translate('Brand_Update') }}
+            </h2>
+        </div>
+
+        <form action="{{ route('admin.brand.update', [$brand['id']]) }}" method="post" enctype="multipart/form-data"
+              class="brand-setup-form form-advance-validation form-advance-inputs-validation form-advance-file-validation non-ajax-form-validate" novalidate>
+            @csrf
+
             <div class="card">
-                <div class="card-body" style="text-align: {{Session::get('direction') === "rtl" ? 'right' : 'left'}};">
-                    <form action="{{route('admin.brand.update',[$b['id']])}}" method="post" enctype="multipart/form-data">
-                        @csrf
-                        @php($language=\App\Model\BusinessSetting::where('type','pnc_language')->first())
-                            @php($language = $language->value ?? null)
-                            @php($default_lang = 'en')
+                <div class="card-body">
+                    <div class="row gy-3">
+                        <div class="col-lg-8">
+                            <div class="p-12 p-sm-20 bg-section rounded h-100">
 
-                            @php($default_lang = json_decode($language)[0])
-                            <ul class="nav nav-tabs w-fit-content mb-4">
-                                @foreach(json_decode($language) as $lang)
-                                    <li class="nav-item text-capitalize">
-                                        <a class="nav-link lang_link {{$lang == $default_lang? 'active':''}}"
-                                           href="#"
-                                           id="{{$lang}}-link">{{ucfirst(\App\CPU\Helpers::get_language_name($lang)).'('.strtoupper($lang).')'}}</a>
-                                    </li>
-                                @endforeach
-                            </ul>
-                        <div class="row">
-                            <div class="col-md-6">
-                                @foreach(json_decode($language) as $lang)
-                                        <?php
-                                        if (count($b['translations'])) {
-                                            $translate = [];
-                                            foreach ($b['translations'] as $t) {
-                                                if ($t->locale == $lang && $t->key == "name") {
-                                                    $translate[$lang]['name'] = $t->value;
+                                <div class="form-group mb-3">
+                                    <div class="table-responsive w-auto overflow-y-hidden mb-4">
+                                        <div class="position-relative nav--tab-wrapper">
+                                            <ul class="nav nav-pills nav--tab lang_tab" id="pills-tab" role="tablist">
+                                                @foreach($language as $lang)
+                                                    <li class="nav-item p-0">
+                                                        <a data-bs-toggle="pill" data-bs-target="#{{ $lang }}-form" role="tab"
+                                                           class="nav-link px-2 {{ $lang == $defaultLanguage ? 'active' : '' }}"
+                                                           id="{{ $lang }}-link">
+                                                            {{ ucfirst(getLanguageName($lang)).'('.strtoupper($lang).')' }}
+                                                        </a>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                            <div class="nav--tab__prev">
+                                                <button type="button" class="btn btn-circle border-0 bg-white text-primary">
+                                                    <i class="fi fi-sr-angle-left"></i>
+                                                </button>
+                                            </div>
+                                            <div class="nav--tab__next">
+                                                <button type="button" class="btn btn-circle border-0 bg-white text-primary">
+                                                    <i class="fi fi-sr-angle-right"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="tab-content" id="pills-tabContent">
+                                        @foreach($language as $lang)
+                                            <?php
+                                                if (count($brand['translations'])) {
+                                                    $translate = [];
+                                                    foreach ($brand['translations'] as $translations) {
+                                                        if ($translations->locale == $lang && $translations->key == "name") {
+                                                            $translate[$lang]['name'] = $translations->value;
+                                                        }
+                                                    }
                                                 }
-                                            }
-                                        }
-                                        ?>
-                                    <div class="form-group {{$lang != $default_lang ? 'd-none':''}} lang_form"
-                                            id="{{$lang}}-form">
-                                        <label class="title-color" for="name">{{ translate('brand_Name')}} ({{strtoupper($lang)}})</label>
-                                        <input type="text" name="name[]" value="{{$lang==$default_lang?$b['name']:($translate[$lang]['name']??'')}}"
-                                                class="form-control" id="name"
-                                                placeholder="{{ translate('ex')}} : {{ translate('LUX')}}" {{$lang == $default_lang? 'required':''}}>
-                                    </div>
-                                    <input type="hidden" name="lang[]" value="{{$lang}}">
-                                @endforeach
-                                <div class="form-group">
-                                    <label class="title-color" for="brand">{{ translate('brand_Logo')}}</label>
-                                    <span class="ml-2 text-info">{{ THEME_RATIO[theme_root_path()]['Category Image'] }}</span>
-                                    <div class="custom-file text-left">
-                                        <input type="file" name="image" id="customFileUpload" class="custom-file-input"
-                                            accept=".jpg, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*">
-                                        <label class="custom-file-label" for="customFileUpload">{{translate('choose_file')}}</label>
+                                            ?>
+                                            <div
+                                                class="tab-pane fade {{ $lang == $defaultLanguage ? 'show active' : '' }}"
+                                                id="{{ $lang }}-form" aria-labelledby="{{ $lang }}-link" role="tabpanel">
+                                                <label class="form-label" for="exampleFormControlInput1">
+                                                    {{ translate('brand_Name') }}
+                                                    @if($lang == $defaultLanguage)
+                                                        <span class="text-danger">*</span>
+                                                    @endif
+                                                    ({{ strtoupper($lang) }})
+                                                </label>
+                                                <input type="text" name="name[]" class="form-control"
+                                                       value="{{ $lang == $defaultLanguage ? $brand['name'] : ($translate[$lang]['name'] ?? '') }}"
+                                                       data-required-msg="{{ translate('brand_name_is_required') }}"
+                                                       placeholder="{{ translate('ex') }} : {{ translate('LUX') }}" {{ $lang == $defaultLanguage? 'required':'' }}>
+                                            </div>
+                                            <input type="hidden" name="lang[]" value="{{ $lang }}">
+                                        @endforeach
                                     </div>
                                 </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="text-center">
-                                    <img class="upload-img-view" id="viewer"
-                                        onerror="this.src='{{asset('public/assets/back-end/img/160x160/img2.jpg')}}'"
-                                        src="{{asset('storage/app/public/brand')}}/{{$b['image']}}" alt="banner image"/>
+
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        {{ translate('image_alt_text') }}
+                                    </label>
+                                    <input type="text" name="image_alt_text" class="form-control" value="{{ $brand['image_alt_text'] ?? '' }}"
+                                           placeholder="{{ translate('ex').' : '. translate('apex_Brand') }}">
                                 </div>
                             </div>
                         </div>
 
-                        <div class="d-flex justify-content-end gap-3">
-                            <button type="reset" id="reset" class="btn btn-secondary px-4">{{ translate('reset')}}</button>
-                            <button type="submit" class="btn btn--primary px-4">{{ translate('update')}}</button>
+                        <div class="col-lg-4">
+                            <div class="p-12 p-sm-20 bg-section rounded h-100">
+                                <div class="d-flex flex-column gap-20">
+                                    <div class="d-flex flex-column align-items-center">
+                                        <label for="" class="form-label fw-semibold mb-1 text-capitalize">
+                                            {{ translate('Brand_image') }}
+                                            <span class="text-danger">*</span>
+                                        </label>
+                                        <p class="fs-12 mb-0">{{ translate('Upload_your_Brand_Image') }}</p>
+                                    </div>
+                                    <div class="upload-file">
+                                        <input type="file" name="image" id="brand-image" class="upload-file__input single_file_input"
+                                               data-max-size="{{ getFileUploadMaxSize() }}"
+                                               data-required-msg="{{ translate('Brand_image_is_required') }}"
+                                               accept="{{ getFileUploadFormats(skip:'.svg,.gif') }}"
+                                                {{ $brand?->image_full_url ? '' : 'required' }}>
+                                        <label
+                                            class="upload-file__wrapper">
+                                            <div class="upload-file-textbox text-center">
+                                                <img width="34" height="34" class="svg" src="{{ dynamicAsset(path: 'public/assets/new/back-end/img/svg/image-upload.svg') }}" alt="image upload">
+                                                <h6 class="mt-1 fw-medium lh-base text-center">
+                                                        <span class="text-info">
+                                                            {{ translate('Click_to_upload') }}
+                                                        </span>
+                                                    <br>
+                                                    {{ translate('or drag and drop') }}
+                                                </h6>
+                                            </div>
+                                            <img class="upload-file-img" loading="lazy"
+                                                 src="{{ getStorageImages($brand?->image_full_url, 'backend-brand') ?? '' }}"
+                                                 data-default-src="{{ getStorageImages($brand?->image_full_url, 'backend-brand') ?? '' }}"
+                                                 alt="">
+                                        </label>
+                                        <div class="overlay">
+                                            <div class="d-flex gap-10 justify-content-center align-items-center h-100">
+                                                <button type="button" class="btn btn-outline-info icon-btn view_btn">
+                                                    <i class="fi fi-sr-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-info icon-btn edit_btn">
+                                                    <i class="fi fi-rr-camera"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="fs-10 mb-0 text-center">
+                                        {{ getFileUploadFormats(skip:'.svg,.gif') }} : {{ translate('Max_'.getFileUploadMaxSize().'_MB') }}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!--modal-->
-    @include('shared-partials.image-process._image-crop-modal',['modal_id'=>'brand-image-modal','width'=>1000,'margin_left'=>'-53%'])
-    <!--modal-->
-</div>
+            <div class="card mt-3">
+                <div class="card-body">
+                    <div class="row align-items-center gy-3 mb-3 mb-sm-20">
+                        <div class="col-md-9">
+                            <div>
+                                <h2 class="text-capitalize">
+                                    {{ translate('Meta_Data_Setup') }}
+                                </h2>
+                                <p class="fs-12 mb-0">
+                                    {{ translate('Include meta titles, descriptions, and images for your brand.') }}
+                                    {{ translate('This will enhance visibility and help more people discover your content on search engines.') }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row gy-3 mb-4">
+                        <div class="col-lg-8">
+                            <div class="p-12 p-sm-20 bg-section rounded h-100">
+                                <div class="form-group mb-0">
+                                    <label class="form-label" for="meta_title">
+                                        {{ translate('Meta_Title') }}
+                                        <span class="tooltip-icon cursor-pointer" data-bs-toggle="tooltip"
+                                              data-bs-placement="top"
+                                              title="{{ translate('add_the_clearance_sale_taglines_etc_here.').' '.translate('this_meta_title_will_be_seen_on_search_engine_results_pages_and_while_sharing_the_clearance_sale_link_on_social_platforms') .' [ '. translate('character_Limit') }} : 50 ]">
+                                            <i class="fi fi-sr-info"></i>
+                                        </span>
+                                    </label>
+                                    <input type="text" name="meta_title" placeholder="{{ translate('meta_Title') }}"
+                                           class="form-control" id="meta_title" data-maxlength="50" value="{{ $brand?->seo?->title ?? '' }}">
+                                    <div class="d-flex justify-content-end">
+                                        <span class="text-body-light">0/50</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label text-capitalize" for="meta_description">
+                                        {{ translate('Meta_Description') }}
+                                        <span class="tooltip-icon cursor-pointer" data-bs-toggle="tooltip"
+                                              data-bs-placement="top"
+                                              title="{{ translate('write_a_short_description_of_the_clearance_sale.').' '.translate('this_description_will_be_seen_on_search_engine_results_pages_and_while_sharing_the_clearance_sale_link_on_social_platforms') .' [ '. translate('character_Limit') }} : 160 ]">
+                                            <i class="fi fi-sr-info"></i>
+                                        </span>
+                                    </label>
+                                    <textarea rows="2" type="text" name="meta_description" id="meta_description"
+                                              class="form-control" data-maxlength="160"
+                                              placeholder="{{ translate('Enter_your_meta_description') }}">{{ $brand?->seo?->description }}</textarea>
+                                    <div class="d-flex justify-content-end">
+                                        <span class="text-body-light">0/160</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="p-12 p-sm-20 bg-section rounded h-100">
+                                <div class="d-flex flex-column gap-20">
+                                    <div class="d-flex flex-column align-items-center">
+                                        <label for="" class="form-label fw-semibold mb-1 text-capitalize">
+                                            {{ translate('Meta_Image') }}
+                                            <span class="tooltip-icon cursor-pointer" data-bs-toggle="tooltip"
+                                                  aria-label="{{ translate('add_Meta_Image_in') }} {{ getFileUploadFormats(skip:'.svg,.gif') }} {{ translate('format_within') }} {{ getFileUploadMaxSize().'MB' }}, {{ translate('which_will_be_shown_in_search_engine_results') }}."
+                                                  data-bs-title="{{ translate('add_Meta_Image_in') }} {{ getFileUploadFormats(skip:'.svg,.gif') }} {{ translate('format_within') }} {{ getFileUploadMaxSize().'MB' }}, {{ translate('which_will_be_shown_in_search_engine_results') }}."
+                                                    >
+                                                <i class="fi fi-sr-info"></i>
+                                            </span>
+                                        </label>
+                                        <p class="fs-12 mb-0">{{ translate('Upload_your_Meta_Image') }}</p>
+                                    </div>
+                                    <div class="upload-file">
+                                        <input type="file" name="meta_image" class="upload-file__input single_file_input"
+                                               data-max-size="{{ getFileUploadMaxSize() }}"
+                                               data-required-msg="{{ translate('Meta_image_is_required') }}"
+                                               accept="{{ getFileUploadFormats(skip:'.svg,.gif') }}">
+                                        <label
+                                            class="upload-file__wrapper">
+                                            <div class="upload-file-textbox text-center">
+                                                <img width="34" height="34" class="svg" src="{{ dynamicAsset(path: 'public/assets/new/back-end/img/svg/image-upload.svg') }}" alt="image upload">
+                                                <h6 class="mt-1 fw-medium lh-base text-center">
+                                                        <span class="text-info">
+                                                            {{ translate('Click_to_upload') }}
+                                                        </span>
+                                                    <br>
+                                                    {{ translate('or drag and drop') }}
+                                                </h6>
+                                            </div>
+                                            <img class="upload-file-img" loading="lazy"
+                                                 src="{{ $brand?->seo?->image_full_url['path'] ? getStorageImages(path: $brand?->seo?->image_full_url['path'] ? $brand?->seo?->image_full_url : '', type: 'backend-banner') : '' }}"
+                                                 data-default-src="{{ $brand?->seo?->image_full_url['path'] ? getStorageImages(path: $brand?->seo?->image_full_url['path'] ? $brand?->seo?->image_full_url : '', type: 'backend-banner') : '' }}"
+                                                 alt="">
+                                        </label>
+                                        <div class="overlay">
+                                            <div class="d-flex gap-10 justify-content-center align-items-center h-100">
+                                                <button type="button" class="btn btn-outline-info icon-btn view_btn">
+                                                    <i class="fi fi-sr-eye"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-info icon-btn edit_btn">
+                                                    <i class="fi fi-rr-camera"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="fs-10 mb-0 text-center">
+                                        {{ getFileUploadFormats(skip:'.svg,.gif') }} : {{ translate('Max_'.getFileUploadMaxSize().'_MB') }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap justify-content-end gap-3 my-4">
+                <button type="reset" class="btn btn-secondary px-4 w-120">{{translate('reset')}}</button>
+                <button type="submit" class="btn btn-primary px-4 w-120">{{translate('save')}}</button>
+            </div>
+        </form>
+    </div>
 @endsection
 
 @push('script')
-<script>
-        $(".lang_link").click(function (e) {
-            e.preventDefault();
-            $(".lang_link").removeClass('active');
-            $(".lang_form").addClass('d-none');
-            $(this).addClass('active');
-
-            let form_id = this.id;
-            let lang = form_id.split("-")[0];
-            console.log(lang);
-            $("#" + lang + "-form").removeClass('d-none');
-            if (lang == '{{$default_lang}}') {
-                $(".from_part_2").removeClass('d-none');
-            } else {
-                $(".from_part_2").addClass('d-none');
-            }
-        });
-
-        $(document).ready(function () {
-            $('#dataTable').DataTable();
-        });
-    </script>
-    <script src="{{asset('public/assets/back-end')}}/js/select2.min.js"></script>
     <script>
-        $(".js-example-theme-single").select2({
-            theme: "classic"
-        });
-
-        $(".js-example-responsive").select2({
-            width: 'resolve'
+        $('.brand-setup-form').on('reset', function () {
+            window.location.reload()
         });
     </script>
-
-    <script>
-        function readURL(input) {
-            if (input.files && input.files[0]) {
-                var reader = new FileReader();
-
-                reader.onload = function (e) {
-                    $('#viewer').attr('src', e.target.result);
-                }
-
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        $("#customFileUpload").change(function () {
-            readURL(this);
-        });
-    </script>
+    <script src="{{ dynamicAsset(path: 'public/assets/backend/admin/js/products/products-management.js') }}"></script>
 @endpush

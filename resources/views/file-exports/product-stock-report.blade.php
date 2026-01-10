@@ -27,7 +27,6 @@
                 <td> {{translate('current_Stock	')}}</td>
                 <td> {{translate('status')}}</td>
             </tr>
-            <!-- loop  you data -->
             @foreach ($data['products'] as $key=>$item)
                 <tr>
                     <td> {{++$key}}	</td>
@@ -43,9 +42,7 @@
                             {{translate('soon_Stock_Out')}}
                         @endif
                     </td>
-
             @endforeach
-            <!-- end -->
         </thead>
     </table>
 </html>

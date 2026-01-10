@@ -16,17 +16,17 @@ class RedirectIfAuthenticated
      * @param string|null $guard
      * @return mixed
      */
-    public function handle($request, Closure $next, $guard = null)
+    public function handle(Request $request, Closure $next, ?string $guard = null): mixed
     {
         switch ($guard) {
             case 'admin':
                 if (Auth::guard($guard)->check()) {
-                    return redirect()->route('admin.dashboard');
+                    return redirect()->route('admin.dashboard.index');
                 }
                 break;
             case 'seller':
                 if (Auth::guard($guard)->check()) {
-                    return redirect()->route('seller.dashboard.index');
+                    return redirect()->route('vendor.dashboard.index');
                 }
                 break;
             case 'customer':

@@ -1,3 +1,11 @@
+.btn-number:hover {
+    color: var(--web-secondary);
+}
+
+thead {
+    background: var(--web-primary) !important;
+}
+
 .feature_header {
     display: flex;
     justify-content: center;
@@ -217,12 +225,6 @@ figure {
     font-size: 22px !important;
 }
 
-.text-muted {
-    font-weight: 600;
-    font-size: 20px;
-    color: #6a6a6a !important;
-}
-
 .list-unstyled li {
     font-weight: 700;
     font-size: 20px;
@@ -356,11 +358,11 @@ figure {
     }
 
     .view_border {
-        margin: 16px 0px;
+        margin: 16px 0;
         border-top: 2px solid #e2f0ff !important;
     }
     @media (max-width: 375px) {
-        .for-dicount-div {
+        .for-discount-div {
             margin-top: -5% !important;
             margin-right: -5% !important;
             margin-bottom: 6%;

@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Payment_Methods;
 
-use App\Model\PaymentRequest;
+use App\Models\PaymentRequest;
 use App\Models\User;
 use App\Traits\Processor;
-use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class BkashPaymentController extends Controller
 {
@@ -104,7 +104,7 @@ class BkashPaymentController extends Controller
             'amount' => round($data->payment_amount, 2),
             'currency' => 'BDT',
             'intent' => 'sale',
-            'payerReference' => $payer->phone,
+            'payerReference' => !empty($payer->phone) ? $payer->phone : getWebConfig(name: 'company_phone'),
             'merchantInvoiceNumber' => 'invoice_' . Str::random('15'),
             'callbackURL' => $callbackURL
         );

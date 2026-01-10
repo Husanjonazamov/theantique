@@ -1,322 +1,390 @@
-@extends('layouts.back-end.app')
-{{--@section('title','Customer')--}}
+@php use App\Utils\Convert; @endphp
+@extends('layouts.admin.app')
+
 @section('title', translate('customer_settings'))
 
-@push('css_or_js')
-
-@endpush
-
 @section('content')
-
     <div class="content container-fluid">
-        <!-- Page Title -->
-        <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
+        <div class="mb-3 mb-sm-20">
             <h2 class="h1 mb-0 text-capitalize d-flex align-items-center gap-2">
-                <img src="{{asset('/public/assets/back-end/img/business-setup.png')}}" alt="">
-                {{translate('business_Setup')}}
+                {{ translate('business_Setup') }}
             </h2>
-
-            <div class="btn-group">
-                <div class="ripple-animation" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18" fill="none" class="svg replaced-svg">
-                        <path d="M9.00033 9.83268C9.23644 9.83268 9.43449 9.75268 9.59449 9.59268C9.75449 9.43268 9.83421 9.2349 9.83366 8.99935V5.64518C9.83366 5.40907 9.75366 5.21463 9.59366 5.06185C9.43366 4.90907 9.23588 4.83268 9.00033 4.83268C8.76421 4.83268 8.56616 4.91268 8.40616 5.07268C8.24616 5.23268 8.16644 5.43046 8.16699 5.66602V9.02018C8.16699 9.25629 8.24699 9.45074 8.40699 9.60352C8.56699 9.75629 8.76477 9.83268 9.00033 9.83268ZM9.00033 13.166C9.23644 13.166 9.43449 13.086 9.59449 12.926C9.75449 12.766 9.83421 12.5682 9.83366 12.3327C9.83366 12.0966 9.75366 11.8985 9.59366 11.7385C9.43366 11.5785 9.23588 11.4988 9.00033 11.4993C8.76421 11.4993 8.56616 11.5793 8.40616 11.7393C8.24616 11.8993 8.16644 12.0971 8.16699 12.3327C8.16699 12.5688 8.24699 12.7668 8.40699 12.9268C8.56699 13.0868 8.76477 13.1666 9.00033 13.166ZM9.00033 17.3327C7.84755 17.3327 6.76421 17.1138 5.75033 16.676C4.73644 16.2382 3.85449 15.6446 3.10449 14.8952C2.35449 14.1452 1.76088 13.2632 1.32366 12.2493C0.886437 11.2355 0.667548 10.1521 0.666992 8.99935C0.666992 7.84657 0.885881 6.76324 1.32366 5.74935C1.76144 4.73546 2.35505 3.85352 3.10449 3.10352C3.85449 2.35352 4.73644 1.7599 5.75033 1.32268C6.76421 0.88546 7.84755 0.666571 9.00033 0.666016C10.1531 0.666016 11.2364 0.884905 12.2503 1.32268C13.2642 1.76046 14.1462 2.35407 14.8962 3.10352C15.6462 3.85352 16.24 4.73546 16.6778 5.74935C17.1156 6.76324 17.3342 7.84657 17.3337 8.99935C17.3337 10.1521 17.1148 11.2355 16.677 12.2493C16.2392 13.2632 15.6456 14.1452 14.8962 14.8952C14.1462 15.6452 13.2642 16.2391 12.2503 16.6768C11.2364 17.1146 10.1531 17.3332 9.00033 17.3327ZM9.00033 15.666C10.8475 15.666 12.4206 15.0168 13.7195 13.7185C15.0184 12.4202 15.6675 10.8471 15.667 8.99935C15.667 7.15213 15.0178 5.57907 13.7195 4.28018C12.4212 2.98129 10.8481 2.33213 9.00033 2.33268C7.1531 2.33268 5.58005 2.98185 4.28116 4.28018C2.98227 5.57852 2.3331 7.15157 2.33366 8.99935C2.33366 10.8466 2.98283 12.4196 4.28116 13.7185C5.57949 15.0174 7.15255 15.6666 9.00033 15.666Z" fill="currentColor"></path>
-                    </svg>
-                </div>
-
-
-                <div class="dropdown-menu dropdown-menu-right bg-aliceblue border border-color-primary-light p-4 dropdown-w-lg">
-                    <div class="d-flex align-items-center gap-2 mb-3">
-                        <img width="20" src="{{asset('/public/assets/back-end/img/note.png')}}" alt="">
-                        <h5 class="text-primary mb-0">{{translate('note')}}</h5>
-                    </div>
-                    <p class="title-color font-weight-medium mb-0">{{ translate('please_click_the_Save_button_below_to_save_all_the_changes') }}</p>
-                </div>
-            </div>
         </div>
-        <!-- End Page Title -->
-
-        <!-- Inlile Menu -->
         @include('admin-views.business-settings.business-setup-inline-menu')
-        <!-- End Inlile Menu -->
 
-        <form action="{{ route('admin.customer.customer-settings-update') }}" method="post" id="update-settings">
+        <form action="{{ route('admin.business-settings.customer-settings') }}" method="post" id="update-settings">
             @csrf
 
-            <div class="card mb-3">
-                <div class="card-body">
-
-                    <div class="row align-items-end gy-2">
-
-                        @php($wallet_status =\App\CPU\Helpers::get_business_settings('wallet_status'))
-
-                        <div class="col-xl-4 col-md-6">
-                            <div class="d-flex justify-content-between align-items-center gap-10 form-control">
-                                <span class="title-color">
-                                    {{translate('customer_Wallet')}}
-                                    <span class="input-label-secondary cursor-pointer" data-toggle="tooltip"
-                                          data-placement="right" title="{{translate('admin_can_set_whether_wallet_will_be_available_on_customer_profile_by_enabling_or_disabling_this_button')}}">
-                                        <img width="16" src="{{asset('/public/assets/back-end/img/info-circle.svg')}}" alt="">
-                                    </span>
-                                </span>
-
-                                <label class="switcher" for="customer_wallet">
-                                    <input type="checkbox" class="switcher_input" name="customer_wallet" id="customer_wallet" value="1"
-                                           {{ $wallet_status == 1 ? 'checked':'' }}
-                                           onclick="toogleModal(event,'customer_wallet','customer-wallet-on.png','customer-wallet-off.png','{{translate('want_to_Turn_ON_Customer_Wallet')}}','{{translate('want_to_Turn_OFF_Customer_Wallet')}}',`<p>{{translate('if_enabled_customers_can_have_the_wallet_option_on_their_account_and_use_it_while_placing_orders_and_getting_refunds')}}</p>`,`<p>{{translate('if_disabled_customer_wallet_option_will_be_hidden_from_their_account')}}</p>`)">
-                                    <span class="switcher_control"></span>
-                                </label>
+            <div class="d-flex flex-column gap-3">
+                <div class="card">
+                    <div class="card-body d-flex flex-column gap-3 gap-sm-20">
+                        <div class="p-12 p-sm-20 bg-section rounded">
+                            @php($walletStatus = getWebConfig(name: 'wallet_status'))
+                            <div class="d-flex justify-content-between align-items-center gap-3">
+                                <div>
+                                    <h2>{{ translate('Customer_Wallet') }}</h2>
+                                    <p class="mb-0">
+                                        {{ translate('for_these_wallet_settings_customers_can_get_the_refund_to_the_wallet_and_also_can_use_their_wallet_money_to_pay_for_any_order') }}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label class="switcher" for="customer-wallet-status">
+                                        <input class="switcher_input custom-modal-plugin" type="checkbox" value="1"
+                                            name="customer_wallet" id="customer-wallet-status"
+                                            {{ $walletStatus == 1 ? 'checked' : '' }} data-modal-type="input-change"
+                                            data-on-image="{{ dynamicAsset(path: 'public/assets/new/back-end/img/modal/customer-wallet-on.png') }}"
+                                            data-off-image="{{ dynamicAsset(path: 'public/assets/new/back-end/img/modal/customer-wallet-off.png') }}"
+                                            data-on-title="{{ translate('want_to_Turn_ON_Customer_Wallet') }}"
+                                            data-off-title="{{ translate('want_to_Turn_OFF_Customer_Wallet') }}"
+                                            data-on-message="<p>{{ translate('if_enabled_customers_can_have_the_wallet_option_on_their_account_and_use_it_while_placing_orders_and_getting_refunds') }}</p>"
+                                            data-off-message="<p>{{ translate('if_disabled_customer_wallet_option_will_be_hidden_from_their_account') }}</p>">
+                                        <span class="switcher_control"></span>
+                                    </label>
+                                </div>
                             </div>
                         </div>
-
-                        @php($loyalty_point_status = \App\CPU\Helpers::get_business_settings('loyalty_point_status'))
-
-                        <div class="col-xl-4 col-md-6">
-                            <div class="d-flex justify-content-between align-items-center gap-10 form-control">
-                                <span class="title-color">
-                                    {{translate('customer_Loyalty_Point')}}
-                                    <span class="input-label-secondary cursor-pointer" data-toggle="tooltip"
-                                          data-placement="right" title="{{translate('admin_can_set_whether_customers_will_get_loyalty_points_by_enabling_or_disabling_this_button')}}">
-                                        <img width="16" src="{{asset('/public/assets/back-end/img/info-circle.svg')}}" alt="">
-                                    </span>
-                                </span>
-
-                                <label class="switcher" for="customer_loyalty_point">
-                                    <input type="checkbox" class="switcher_input" name="customer_loyalty_point" value="1"
-                                           id="customer_loyalty_point" {{ $loyalty_point_status == 1 ? 'checked':'' }}
-                                           onclick="toogleModal(event,'customer_loyalty_point','loyalty-on.png','loyalty-off.png','{{translate('want_to_Turn_ON_Loyalty_Point')}}','{{translate('want_to_Turn_OFF_Loyalty_Point')}}',`<p>{{translate('if_enabled_the_loyalty_point_option_will_be_available_to_the_customers_account')}}</p>`,`<p>{{translate('if_disabled_loyalty_point_option_will_be_hidden_from_the_customers_account')}}</p>`)">
-                                    <span class="switcher_control"></span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="col-xl-4 col-md-6">
-                            @php($ref_earning_status = \App\CPU\Helpers::get_business_settings('ref_earning_status'))
-
-                            <div class="d-flex justify-content-between align-items-center gap-10 form-control">
-                                <span class="title-color d-flex align-items-center gap-1">
-                                    {{translate('customer_Referrer_Earning')}}
-                                    <span class="input-label-secondary cursor-pointer" data-toggle="tooltip"
-                                          data-placement="right" title="{{translate('admin_can_set_whether_customers_will_get_referral_earnings_by_enabling_or_disabling_this_button')}}">
-                                        <img width="16" src="{{asset('/public/assets/back-end/img/info-circle.svg')}}" alt="">
-                                    </span>
-                                </span>
-
-                                <label class="switcher" for="ref_earning_status">
-                                    <input type="checkbox" class="switcher_input" name="ref_earning_status" value="1"
-                                           id="ref_earning_status" {{$ref_earning_status == 1?'checked':''}}
-                                           onclick="toogleModal(event,'ref_earning_status','referral-earning-on.png','referral-earning-off.png','{{translate('want_to_Turn_ON_Referral_And_Earning_option')}}','{{translate('want_to_Turn_OFF_Referral_And_Earning_option')}}',`<p>{{translate('if_enabled_customers_will_receive_rewards_for_each_successful_referral')}}</p>`,`<p>{{translate('if_disabled_customers_will_not_receive_rewards_for_successful_referral')}}</p>`)">
-                                    <span class="switcher_control"></span>
-                                </label>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-
-            <div class="card mb-3 {{ $wallet_status == 0?'opacity--40':'' }}">
-                <div class="border-bottom px-4 py-3">
-                    <h5 class="mb-0 text-capitalize d-flex align-items-center gap-2">
-                        <img src="{{asset('/public/assets/back-end/img/vector.png')}}" alt="">
-                        {{translate('customer_Wallet_Settings')}}
-                        <span class="input-label-secondary cursor-pointer" data-toggle="tooltip" data-placement="right"
-                              title="{{translate('if_the_Customer_Wallet_option_is_disabled_above_all_settings_of_this_section_will_be_unavailable')}}">
-                            <img width="16" src="{{asset('/public/assets/back-end/img/info-circle.svg')}}" alt="">
-                        </span>
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row align-items-end gy-2">
-
-                        @php($wallet_add_refund = \App\CPU\Helpers::get_business_settings('wallet_add_refund'))
-
-                        <div class="col-xl-4 col-md-6">
-                            <div class="d-flex justify-content-between align-items-center gap-10 form-control">
-                                <span class="title-color">
-                                    {{translate('add_Refund_Amount_to_Wallet')}}
-                                    <span class="input-label-secondary cursor-pointer" data-toggle="tooltip"
-                                          data-placement="right" title="{{translate('admin_can_set_whether_customers_will_get_refund_amount_to_wallet_by_enabling_or_disabling_this_button')}}">
-                                        <img width="16" src="{{asset('/public/assets/back-end/img/info-circle.svg')}}" alt="">
-                                    </span>
-                                </span>
-
-                                <label class="switcher" for="refund_to_wallet">
-                                    <input type="checkbox" class="switcher_input" name="refund_to_wallet" id="refund_to_wallet" value="1"
-                                           {{ ($wallet_status && $wallet_add_refund) ? 'checked':'' }} {{ $wallet_status == 0 ? 'disabled':'' }}
-                                           onclick="toogleModal(event,'refund_to_wallet','refund-wallet-on.png','refund-wallet-off.png','{{translate('want_to_Turn_ON_Refund_to_Wallet_option')}}','{{translate('want_to_Turn_OFF_Refund_to_Wallet_option')}}',`<p>{{translate('if_enabled_Admin_can_return_the_refund_amount_directly_to_the_customers_wallet_')}}</p>`,`<p>{{translate('if_disabled_Admin_needs_to_return_the_refund_amount_manually')}}</p>`)">
-                                    <span class="switcher_control"></span>
-                                </label>
-                            </div>
-                        </div>
-
-                        @php($add_funds_to_wallet=\App\CPU\Helpers::get_business_settings('add_funds_to_wallet'))
-
-                        <div class="col-xl-4 col-md-6">
-                            <div class="d-flex justify-content-between align-items-center gap-10 form-control">
-                                <span class="title-color">
-                                    {{translate('add_Fund_to_Wallet')}}
-                                    <span class="input-label-secondary cursor-pointer" data-toggle="tooltip"
-                                          data-placement="right" title="{{translate('admin_can_set_whether_customers_can_add_money_to_their_wallets_by_enabling_or_disabling_this_button')}}">
-                                        <img width="16" src="{{asset('/public/assets/back-end/img/info-circle.svg')}}" alt="">
-                                    </span>
-                                </span>
-
-                                <label class="switcher" for="add_funds_to_wallet">
-                                    <input type="checkbox" class="switcher_input" name="add_funds_to_wallet" value="1"
-                                           id="add_funds_to_wallet" {{ ($wallet_status && $add_funds_to_wallet) ? 'checked':'' }} {{ $wallet_status == 0 ? 'disabled':'' }}
-                                           onclick="toogleModal(event,'add_funds_to_wallet','wallet-on.png','wallet-off.png','{{translate('want_to_Turn_ON_Add_Fund_to_Wallet_option')}}','{{translate('want_to_Turn_OFF_Add_Fund_to_Wallet_option')}}',`<p>{{translate('if_enabled_customers_can_add_money_to_their_wallet')}}</p>`,`<p>{{translate('if_disabled_customers_would_not_be_able_to_add_money_to_their_wallet')}}</p>`)">
-                                    <span class="switcher_control"></span>
-                                </label>
-                            </div>
-                        </div>
-
-                        @php($minimum_add_fund_amount=\App\CPU\Helpers::get_business_settings('minimum_add_fund_amount'))
-
-                        <div class="col-xl-4 col-md-6">
-                            <div class="">
-                                <label class="title-color" for="minimum_add_fund_amount">
-                                    {{translate('minimum_Add_Fund_Amount')}} ({{ \App\CPU\BackEndHelper::currency_symbol() }})
-                                </label>
-                                <input type="text" class="form-control" name="minimum_add_fund_amount" id="minimum_add_fund_amount"
-                                       placeholder="{{translate('ex')}} : {{translate('10')}}"
-                                       value="{{ \App\CPU\Convert::default($minimum_add_fund_amount) ?? 0 }}" {{ $wallet_status == 0?'disabled':'' }}>
-                            </div>
-                        </div>
-
-                        @php($maximum_add_fund_amount=\App\CPU\Helpers::get_business_settings('maximum_add_fund_amount'))
-
-                        <div class="col-xl-4 col-md-6">
-                            <div class="">
-                                <label class="title-color" for="maximum_add_fund_amount">
-                                    {{translate('maximum_Add_Fund_Amount')}} ({{ \App\CPU\BackEndHelper::currency_symbol() }})
-                                </label>
-                                <input type="text" class="form-control" name="maximum_add_fund_amount" id="maximum_add_fund_amount"
-                                       placeholder="{{translate('ex')}} : {{translate('10')}}"
-                                       value="{{ \App\CPU\Convert::default($maximum_add_fund_amount) ?? 0 }}" {{ $wallet_status == 0?'disabled':'' }}>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-
-            <div class="card mb-3 {{ $loyalty_point_status == 0?'opacity--40':'' }}">
-                <div class="border-bottom px-4 py-3">
-                    <h5 class="mb-0 text-capitalize d-flex align-items-center gap-2">
-                        <i class="tio-award"></i>
-                        {{translate('customer_Loyalty_Point_Settings')}}
-                        <span class="input-label-secondary cursor-pointer" data-toggle="tooltip" data-placement="right"
-                              title="{{translate('if_the_Customer_Loyalty_Point_option_is_disabled_above_all_settings_of_this_section_will_be_unavailable')}}">
-                            <img width="16" src="{{asset('/public/assets/back-end/img/info-circle.svg')}}" alt="">
-                        </span>
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row align-items-end gy-2">
-                        @php($loyalty_point_exchange_rate=\App\CPU\Helpers::get_business_settings('loyalty_point_exchange_rate'))
-                        <div class="col-xl-4 col-md-6">
-                            <div class="">
-                                <label class="title-color" for="loyalty_point_exchange_rate">
-                                    {{translate('equivalent_Point_to_1_Unit_Currency')}}
-                                </label>
-                                <input type="text" class="form-control" name="loyalty_point_exchange_rate" {{ $loyalty_point_status == 0?'disabled':'' }}
-                                id="loyalty_point_exchange_rate" placeholder="{{translate('ex')}} : {{translate('10')}}"
-                                       value="{{ $loyalty_point_exchange_rate ?? 0 }}">
-                            </div>
-                        </div>
-
-                        @php($loyalty_point_item_purchase_point=\App\CPU\Helpers::get_business_settings('loyalty_point_item_purchase_point'))
-
-                        <div class="col-xl-4 col-md-6">
-                            <div class="">
-                                <label class="title-color" for="item_purchase_point">
-                                    {{translate('loyalty_Point_Earn_on_Each_Order')}} (%)
-                                </label>
-                                <input type="text" class="form-control" name="item_purchase_point" id="item_purchase_point"
-                                       placeholder="{{translate('ex')}} : {{translate('10')}}" {{ $loyalty_point_status == 0?'disabled':'' }}
-                                       value="{{ $loyalty_point_item_purchase_point ?? 0 }}">
-                            </div>
-                        </div>
-
-                        @php($loyalty_point_minimum_point=\App\CPU\Helpers::get_business_settings('loyalty_point_minimum_point'))
-
-                        <div class="col-xl-4 col-md-6">
-                            <div class="">
-                                <label class="title-color" for="minimun_transfer_point">
-                                    {{translate('minimum_Point_Required_To_Convert')}}
-                                    <span class="input-label-secondary cursor-pointer" data-toggle="tooltip"
-                                          data-placement="top" title="{{translate('when_converting_loyalty_points_to_currency_customers_will_require_the_minimum_loyalty_point_set_by_the_admin')}}">
-                                        <img width="16" src="{{asset('/public/assets/back-end/img/info-circle.svg')}}" alt="">
-                                    </span>
-                                </label>
-                                <input type="text" class="form-control" name="minimun_transfer_point"
-                                       id="minimun_transfer_point" placeholder="{{translate('ex')}} : {{translate('10')}}" {{ $loyalty_point_status == 0?'disabled':'' }}
-                                       value="{{ $loyalty_point_minimum_point ?? 0 }}">
+                        <div class="p-12 p-sm-20 bg-section rounded">
+                            <div class="row g-4">
+                                @php($addFundsToWallet = getWebConfig(name: 'add_funds_to_wallet'))
+                                <div class="col-xl-4 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label" for="">{{ translate('add_funds_to_wallet') }}
+                                            <span class="tooltip-icon" data-bs-toggle="tooltip" data-bs-placement="right"
+                                                data-bs-title="{{ translate('enabling_the_option_customers_will_be_able_to_add_funds_to_the_wallet_through_the_available_payment_method') }}.">
+                                                <i class="fi fi-sr-info"></i>
+                                            </span>
+                                        </label>
+                                        <label
+                                            class="d-flex justify-content-between align-items-center gap-3 border rounded px-3 py-10 bg-white user-select-none">
+                                            <span class="fw-medium text-dark">{{ translate('status') }}</span>
+                                            <label class="switcher" for="add-funds-to-wallet">
+                                                <input class="switcher_input custom-modal-plugin" type="checkbox"
+                                                    value="1" name="add_funds_to_wallet" id="add-funds-to-wallet"
+                                                    {{ $walletStatus && $addFundsToWallet ? 'checked' : '' }}
+                                                    {{ $walletStatus == 0 ? 'disabled' : '' }}
+                                                    data-modal-type="input-change"
+                                                    data-on-image="{{ dynamicAsset(path: 'public/assets/new/back-end/img/modal/wallet-on.png') }}"
+                                                    data-off-image="{{ dynamicAsset(path: 'public/assets/new/back-end/img/modal/wallet-off.png') }}"
+                                                    data-on-title="{{ translate('want_to_Turn_ON_Add_Fund_to_Wallet_option') }}"
+                                                    data-off-title="{{ translate('want_to_Turn_OFF_Add_Fund_to_Wallet_option') }}"
+                                                    data-on-message="<p>{{ translate('if_enabled_customers_can_add_money_to_their_wallet') }}</p>"
+                                                    data-off-message="<p>{{ translate('if_disabled_customers_would_not_be_able_to_add_money_to_their_wallet') }}</p>">
+                                                <span class="switcher_control"></span>
+                                            </label>
+                                        </label>
+                                    </div>
+                                </div>
+                                @php($minimumAddFundAmount = getWebConfig(name: 'minimum_add_fund_amount'))
+                                <div class="col-xl-4 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label" for="">{{ translate('minimum_Add_Amount') }}
+                                            ({{ getCurrencySymbol(type: 'default') }})
+                                        </label>
+                                        <input type="text" class="form-control" name="minimum_add_fund_amount"
+                                            id="minimum_add_fund_amount" placeholder="{{ translate('ex') . ': ' . '10' }}"
+                                            value="{{ Convert::default($minimumAddFundAmount) ?? 0 }}"
+                                            {{ $walletStatus == 0 ? 'disabled' : '' }}>
+                                    </div>
+                                </div>
+                                @php($maximumAddFundAmount = getWebConfig(name: 'maximum_add_fund_amount'))
+                                <div class="col-xl-4 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label" for="">{{ translate('maximum_Add_Amount') }}
+                                            ({{ getCurrencySymbol(type: 'default') }})
+                                        </label>
+                                        <input type="text" class="form-control" name="maximum_add_fund_amount"
+                                            id="maximum_add_fund_amount" placeholder="{{ translate('ex') . ': ' . '10' }}"
+                                            value="{{ Convert::default($maximumAddFundAmount) ?? 0 }}"
+                                            {{ $walletStatus == 0 ? 'disabled' : '' }}>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="card mb-3 {{ $ref_earning_status == 0?'opacity--40':'' }}">
-                <div class="border-bottom px-4 py-3">
-                    <h5 class="mb-0 text-capitalize d-flex align-items-center gap-2">
-                        <i class="tio-award"></i>
-                        {{translate('customer_Referrer_Settings')}}
-                        <span class="input-label-secondary cursor-pointer" data-toggle="tooltip" data-placement="right"
-                              title="{{translate('if_Customer_Referral_Earning_is_disabled_above_all_settings_of_this_section_will_be_unavailable')}}">
-                            <img width="16" src="{{asset('/public/assets/back-end/img/info-circle.svg')}}" alt="">
-                        </span>
-                    </h5>
+                <div class="card">
+                    <div class="card-body d-flex flex-column gap-3 gap-sm-20">
+                        @php($loyaltyPointStatus = getWebConfig(name: 'loyalty_point_status'))
+                        <div class="p-12 p-sm-20 bg-section rounded">
+                            <div class="d-flex justify-content-between align-items-center gap-3">
+                                <div>
+                                    <h2>{{ translate('Customer_Loyalty_Point') }}</h2>
+                                    <p class="mb-0">
+                                        {{ translate('in_this_settings_admin_can_set_the_rules_for_the_customers_for_earning_and_use_the_loyalty_points') }}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label class="switcher" for="customer-loyalty-point">
+                                        <input class="switcher_input custom-modal-plugin" type="checkbox" value="1"
+                                            name="customer_loyalty_point" id="customer-loyalty-point"
+                                            {{ $loyaltyPointStatus ? 'checked' : '' }} data-modal-type="input-change"
+                                            data-on-image="{{ dynamicAsset(path: 'public/assets/new/back-end/img/modal/loyalty-on.png') }}"
+                                            data-off-image="{{ dynamicAsset(path: 'public/assets/new/back-end/img/modal/loyalty-off.png') }}"
+                                            data-on-title="{{ translate('want_to_Turn_ON_Loyalty_Point') }}"
+                                            data-off-title="{{ translate('want_to_Turn_OFF_Loyalty_Point') }}"
+                                            data-on-message="<p>{{ translate('if_enabled_the_loyalty_point_option_will_be_available_to_the_customers_account') }}</p>"
+                                            data-off-message="<p>{{ translate('if_disabled_loyalty_point_option_will_be_hidden_from_the_customers_account') }}</p>">
+                                        <span class="switcher_control"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-12 p-sm-20 bg-section rounded">
+                            <div class="row g-4">
+                                @php($loyaltyPointExchangeRate = getWebConfig(name: 'loyalty_point_exchange_rate'))
+                                <div class="col-xl-4 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label" for="loyalty_point_exchange_rate">
+                                            {{ translate('Equivalent_Points_Needed_to_Redeem') }}
+                                            {{ setCurrencySymbol(amount: 1) }}
+                                        </label>
+                                        <input type="text" class="form-control" name="loyalty_point_exchange_rate"
+                                            {{ $loyaltyPointStatus == 0 ? '' : 'required' }}
+                                            id="loyalty_point_exchange_rate"
+                                            placeholder="{{ translate('ex') . ': ' . '10' }}"
+                                            value="{{ $loyaltyPointExchangeRate ?? 0 }}" required>
+                                    </div>
+                                </div>
+                                @php($loyaltyPointMinimumPoint = getWebConfig(name: 'loyalty_point_minimum_point'))
+                                <div class="col-xl-4 col-md-6">
+                                    <div class="form-group">
+                                        <label class="form-label" for="minimum_transfer_point">
+                                            {{ translate('minimum_Point_Required_To_Convert') }}
+                                            <span class="tooltip-icon" data-bs-toggle="tooltip" data-bs-placement="right"
+                                                data-bs-title="{{ translate('this_point_is_the_required_amount_which_is_needed_to_convert_the_point_to_the_wallet_balance') }}">
+                                                <i class="fi fi-sr-info"></i>
+                                            </span>
+                                        </label>
+                                        <input type="text" class="form-control" name="minimum_transfer_point"
+                                            id="minimum_transfer_point" placeholder="{{ translate('ex') . ': ' . '2' }}"
+                                            {{ $loyaltyPointStatus == 0 ? '' : 'required' }}
+                                            value="{{ $loyaltyPointMinimumPoint ?? 0 }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-12 p-sm-20 bg-section rounded">
+                            @php($loyaltyPointEachOrder = getWebConfig(name: 'loyalty_point_for_each_order'))
+                            <div class="row g-4 align-items-center">
+                                <div class="d-flex justify-content-between align-items-center gap-3">
+                                    <div>
+                                        <h4 class="fw-medium">
+                                            {{ translate('Earn_Loyalty_Point_on_Each_Order') }}
+                                        </h4>
+                                        <p class="mb-0">
+                                            {{ translate('setup_loyalty_point_percentage_earned_by_customer_based_on_order_amount') }}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label class="switcher" for="customer-loyalty-point-each-order">
+                                            <input class="switcher_input custom-modal-plugin" type="checkbox" value="1"
+                                                   name="loyalty_point_for_each_order" id="customer-loyalty-point-each-order"
+                                                   {{ $loyaltyPointStatus && $loyaltyPointEachOrder ? 'checked' : '' }}
+                                                   {{ $loyaltyPointStatus ? '' : 'disabled' }}
+                                                   data-modal-type="input-change"
+                                                   data-on-image="{{ dynamicAsset(path: 'public/assets/new/back-end/img/modal/loyalty-on.png') }}"
+                                                   data-off-image="{{ dynamicAsset(path: 'public/assets/new/back-end/img/modal/loyalty-off.png') }}"
+                                                   data-on-title="{{ translate('want_to_Turn_ON_Loyalty_Point_on_Each_Order') }}"
+                                                   data-off-title="{{ translate('want_to_Turn_OFF_Loyalty_Point_on_Each_Order') }}"
+                                                   data-on-message="<p>{{ translate('if_enabled_the_loyalty_point_option_will_be_available_to_the_customers_each_order_when_order_place') }}</p>"
+                                                   data-off-message="<p>{{ translate('if_disabled_loyalty_point_option_will_be_hidden_from_the_customers_each_order_when_order_place') }}</p>">
+                                            <span class="switcher_control"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    @php($loyaltyPointItemPurchasePoint = getWebConfig(name: 'loyalty_point_item_purchase_point'))
+                                    <div class="form-group">
+                                        <label class="form-label" for="">
+                                            {{ translate('Earning_Percentage') }} (%)
+                                        </label>
+                                        <input type="number" class="form-control" name="item_purchase_point"
+                                            id="" placeholder="{{ translate('ex') . ': ' . '2' }}"
+                                            value="{{ $loyaltyPointItemPurchasePoint ?? 1 }}" min="0" step="any"
+                                            {{ $loyaltyPointStatus == 1 ? 'required' : '' }}>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body d-flex flex-column gap-3 gap-sm-20">
+                        @php($refEarningStatus = getWebConfig(name: 'ref_earning_status'))
+                        <div class="p-12 p-sm-20 bg-section rounded">
+                            <div class="d-flex justify-content-between align-items-center gap-3">
+                                <div>
+                                    <h2>{{ translate('Customer_Referral_Earning_Settings') }}</h2>
+                                    <p class="mb-0">
+                                        {{ translate('allow_customers_to_refer_your_business_to_friends_and_family_using_a_referral_code_and_earn_rewards.') }}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label class="switcher" for="ref-earning-status">
+                                        <input class="switcher_input custom-modal-plugin" type="checkbox" value="1"
+                                            name="ref_earning_status" id="ref-earning-status"
+                                            {{ $refEarningStatus ? 'checked' : '' }} data-modal-type="input-change"
+                                            data-on-image="{{ dynamicAsset(path: 'public/assets/new/back-end/img/modal/referral-earning-on.png') }}"
+                                            data-off-image="{{ dynamicAsset(path: 'public/assets/new/back-end/img/modal/referral-earning-off.png') }}"
+                                            data-on-title="{{ translate('want_to_Turn_ON_Referral_And_Earning_option') }}?"
+                                            data-off-title="{{ translate('want_to_Turn_OFF_Referral_And_Earning_option') }}?"
+                                            data-on-message="<p>{{ translate('if_enabled_Customers_will_earn_rewards_when_someone_registers_using_their_referral_code.') }}</p>"
+                                            data-off-message="<p>{{ translate('if_disabled_Customers_will_no_longer_earn_rewards_for_successful_referrals.') }}</p>">
+                                        <span class="switcher_control"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-12 p-sm-20 bg-section rounded">
+                            <div class="row g-4 align-items-center">
+                                @php($refEarningExchangeRate = getWebConfig(name: 'ref_earning_exchange_rate'))
+
+                                <div class="col-lg-4">
+                                    <h2>{{ translate('Who_share_the_Code') }}</h2>
+                                    <p>
+                                        {{ translate('set_the_reward_for_the_customer_who_is_sharing_the_code_with_friends_and_family_to_refer_the_app.') }}
+                                    </p>
+                                </div>
+                                <div class="col-lg-8">
+                                    <div class="form-group">
+                                        <label class="form-label" for="ref_earning_exchange_rate">
+                                            {{ translate('earnings_to_Each_Referral') }}
+                                            ({{ getCurrencySymbol(type: 'default') }})
+                                        </label>
+                                        <input type="text" class="form-control" name="ref_earning_exchange_rate"
+                                            id="ref_earning_exchange_rate"
+                                            placeholder="{{ translate('ex') . ': ' . '10' }}"
+                                            {{ $refEarningStatus == 0 ? '' : 'required' }}
+                                            value="{{ Convert::default($refEarningExchangeRate) ?? 0 }}">
+                                        <p class="text-danger mt-1 mb-0">
+                                            {{ translate('must_turn_on_add_fund_to_wallet_option_otherwise_customer_can_not_receive_the_reward_amount') }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="card-body">
-                    <div class="row align-items-end gy-2">
-                        @php($ref_earning_exchange_rate = \App\CPU\Helpers::get_business_settings('ref_earning_exchange_rate'))
+                @php($referralEarningDiscountData = getWebConfig('ref_earning_customer'))
+                <div class="card">
+                    <div class="card-body">
+                        <div class="p-12 p-sm-20 bg-section rounded">
+                            <div class="row g-4 align-items-center">
+                                <div class="col-lg-4">
+                                    <h2>{{ translate('Who_use_the_code') }}</h2>
+                                    <p class="mb-0">
+                                        {{ translate('set_up_the_discount_that_the_customer_will_receive_when_using_the_refer_code_in_signup_and_taking_their_first_order.') }}
+                                    </p>
+                                </div>
+                                <div class="col-lg-8">
+                                    <div class="row g-4">
+                                        <div class="col-12">
+                                            <div class="form-group">
+                                                <label class="form-label" for="">
+                                                    {{ translate('customer_will_get_discount_on_first_order') }}
+                                                    <span class="text-danger">*</span>
+                                                </label>
+                                                <label
+                                                    class="d-flex justify-content-between align-items-center gap-3 border rounded px-3 py-10 bg-white user-select-none">
+                                                    <span class="fw-medium text-dark">{{ translate('status') }}</span>
+                                                    <label class="switcher" for="ref_earning_discount_status">
 
-                        <div class="col-xl-4 col-md-6">
-                            <div class="">
-                                <label class="title-color" for="ref_earning_exchange_rate">
-                                    {{translate('earnings_to_Each_Referral')}} ({{ \App\CPU\BackEndHelper::currency_symbol() }})
-                                    <span class="input-label-secondary cursor-pointer" data-toggle="tooltip"
-                                          data-placement="right" title="{{translate('set_the_earning_amount_for_each_successful_referral')}}">
-                                        <img width="16" src="{{asset('/public/assets/back-end/img/info-circle.svg')}}" alt="">
-                                    </span>
-                                </label>
-                                <input type="text" class="form-control" name="ref_earning_exchange_rate" id="ref_earning_exchange_rate"
-                                       placeholder="{{translate('ex')}} : {{translate('10')}}" {{ $ref_earning_status == 0?'disabled':'' }}
-                                       value="{{ \App\CPU\Convert::default($ref_earning_exchange_rate) ?? 0 }}">
+                                                        <input class="switcher_input custom-modal-plugin" type="checkbox"
+                                                            @if (isset($referralEarningDiscountData['ref_earning_discount_status']) && $referralEarningDiscountData['ref_earning_discount_status'] == 1) checked @endif value="1"
+                                                            name="ref_earning_discount_status"
+                                                            id="ref_earning_discount_status"
+                                                            data-modal-type="input-change"
+                                                           data-on-image="{{ dynamicAsset(path: 'public/assets/new/back-end/img/modal/referral-earning-on.png') }}"
+                                                           data-off-image="{{ dynamicAsset(path: 'public/assets/new/back-end/img/modal/referral-earning-off.png') }}"
+                                                            data-on-title="{{ translate('are_you_sure_to_turn_on_new_user_referral_reward') }}?"
+                                                            data-off-title="{{ translate('are_you_sure_to_turn_off_new_user_referral_reward') }}?"
+                                                            data-on-message="<p>{{ translate('customers_will_only_receive_referral_rewards_if_the_referral_and_referral_reward_options_are_enabled.') }}</p>"
+                                                            data-off-message="<p>{{ translate('customers_will_only_receive_referral_rewards_if_the_referral_and_referral_reward_options_are_enabled.') }}</p>">
+                                                        <span class="switcher_control"></span>
+                                                    </label>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label class="form-label"
+                                                    for="">{{ translate('Discount_Amount') }}
+                                                    <span class="tooltip-icon" data-bs-toggle="tooltip"
+                                                        data-bs-placement="right" data-bs-title="{{ translate('the_value_of_the_discount_the_referred_customer_will_get_on_their_first_order_.') }} {{ translate('you_can_choose_a_fixed_amount_or_a_percentage_.') }}">
+                                                        <i class="fi fi-sr-info"></i>
+                                                    </span>
+                                                </label>
+                                                <div class="input-group">
+                                                    <input type="number" name="discount_amount" id="discount_amount" min="0"
+                                                        value="{{ $referralEarningDiscountData['discount_amount'] ?? '' }}"
+                                                        class="form-control" placeholder="{{ translate('Ex: 10') }}">
+                                                    <div class="input-group-append select-wrapper">
+                                                        <select name="discount_type" class="form-select shadow-none">
+                                                            <option value="percentage" {{ isset($referralEarningDiscountData['discount_type']) && $referralEarningDiscountData['discount_type'] == 'percentage' ? 'selected' : '' }}>%</option>
+                                                            <option value="flat"{{ isset($referralEarningDiscountData['discount_type']) && $referralEarningDiscountData['discount_type'] == 'flat' ? 'selected' : '' }}>$</option>
+                                                        </select>
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-6">
+                                            <div class="form-group">
+                                                <label class="form-label" for="">{{ translate('Validity') }}
+                                                    <span class="tooltip-icon" data-bs-toggle="tooltip"
+                                                        data-bs-placement="right" data-bs-title="{{ translate('sets_how_long_the_referral_discount_will_remain_active_after_the_customer_signs_up_measured_in_days.') }}">
+                                                        <i class="fi fi-sr-info"></i>
+                                                    </span>
+                                                </label>
+                                                <div class="input-group">
+                                                    <input type="number" name="validity" id="validity"
+                                                        value="{{ $referralEarningDiscountData['validity'] ?? '' }}"
+                                                        class="form-control" placeholder="{{ translate('Ex: 10') }}" min="1" >
+                                                    <div class="input-group-append select-wrapper">
+                                                        <?php
+                                                            $validityTypes = ['day', 'week', 'month'];
+                                                        ?>
+                                                        <select class="form-select shadow-none" name="validity_type">
+                                                            <option disabled value="">
+                                                                {{ translate('select_Type') }}
+                                                            </option>
+                                                            @foreach ($validityTypes as $type)
+                                                                <option value="{{ $type }}"
+                                                                    {{ isset($referralEarningDiscountData['validity_type']) && $referralEarningDiscountData['validity_type'] == $type ? 'selected' : '' }}>
+                                                                    {{ translate($type) }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="d-flex justify-content-end my-3">
-                <button class="btn btn--primary px-5">{{translate('save')}}</button>
+            <div class="d-flex justify-content-end trans3 mt-4">
+                <div
+                    class="d-flex justify-content-sm-end justify-content-center gap-3 flex-grow-1 flex-grow-sm-0 bg-white action-btn-wrapper trans3">
+                    <button type="reset" class="btn btn-secondary px-3 px-sm-4 w-120">{{ translate('reset') }}</button>
+                    <button type="submit" class="btn btn-primary px-3 px-sm-4">
+                        <i class="fi fi-sr-disk"></i>
+                        {{ translate('save_information') }}
+                    </button>
+                </div>
             </div>
-
         </form>
     </div>
+    @include('layouts.admin.partials.offcanvas._customer-settings')
 @endsection
 
-@push('script_2')
-    <script>
-        function section_visibility(id) {
-            if ($('#' + id).is(':checked')) {
-                $('#' + id + '_section').attr('style', 'display: block');
-            } else {
-                $('#' + id + '_section').attr('style', 'display: none !important');
-            }
-        }
-
-        $('#update-settings').on('submit', function(e) {
-            let minimum_add_fund_amount = parseFloat($('#minimum_add_fund_amount').val());
-            let maximum_add_fund_amount = parseFloat($('#maximum_add_fund_amount').val());
-            if (maximum_add_fund_amount < minimum_add_fund_amount) {
-                e.preventDefault();
-                toastr.error("{{ translate('minimum_amount_can_not_be_greater_than_maximum_amount') }}");
-            }
-        });
-    </script>
+@push('script')
+    <script src="{{ dynamicAsset(path: 'public/assets/new/back-end/js/business-setting.js') }}"></script>
 @endpush

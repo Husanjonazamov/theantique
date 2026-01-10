@@ -1,129 +1,76 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ session()->get('direction') }}">
 <head>
-    <!-- Fonts -->
-    <link rel="dns-prefetch" href="//fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
 
-    <title>@yield('title')</title>
-
-    <!-- CSRF Token -->
     <meta name="base-url" content="{{ url('/') }}">
+    <meta property="og:site_name" content="{{ $web_config['company_name'] }}" />
 
-    <!-- Meta Data -->
+    <meta name="google-site-verification" content="{{ getWebConfig('google_search_console_code') }}">
+    <meta name="msvalidate.01" content="{{ getWebConfig('bing_webmaster_code') }}">
+    <meta name="baidu-site-verification" content="{{ getWebConfig('baidu_webmaster_code') }}">
+    <meta name="yandex-verification" content="{{ getWebConfig('yandex_webmaster_code') }}">
+
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <meta name="_token" content="{{csrf_token()}}">
+    <meta name="robots" content="index, follow">
+    <meta name="_token" content="{{ csrf_token() }}">
+    <link rel="shortcut icon" href="{{ $web_config['fav_icon']['path'] }}"/>
 
-    <!-- Favicon -->
-    <link rel="shortcut icon" href="{{asset('storage/app/public/company')}}/{{$web_config['fav_icon']->value}}"/>
-
-
-    <!-- Web Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Mulish:wght@300;400;500;600;700;800;900&display=swap"
-          rel="stylesheet">
-
-    <!-- ======= BEGIN GLOBAL MANDATORY STYLES ======= -->
+    <link rel="stylesheet" href="{{ theme_asset('assets/css/fonts-init.css') }}"/>
     <link rel="stylesheet" href="{{ theme_asset('assets/css/bootstrap.min.css') }}"/>
     <link rel="stylesheet" href="{{ theme_asset('assets/css/bootstrap-icons.min.css') }}"/>
+    <link rel="stylesheet" href="{{ theme_asset('assets/plugins/magnific-popup-1.1.0/magnific-popup.css') }}" />
     <link rel="stylesheet" href="{{ theme_asset('assets/plugins/swiper/swiper-bundle.min.css') }}"/>
-    <!-- ======= END BEGIN GLOBAL MANDATORY STYLES ======= -->
-    <!-- sweet alert Css -->
     <link rel="stylesheet" href="{{ theme_asset('assets/plugins/sweet_alert/sweetalert2.css') }}">
-    <!--Toastr -->
-    <link rel="stylesheet" href="{{theme_asset('assets/css/toastr.css')}}"/>
+    <link rel="stylesheet" href="{{ theme_asset('assets/css/toastr.css') }}"/>
 
-    <!-- ======= MAIN STYLES ======= -->
+    <link rel="stylesheet" href="{{ dynamicAsset(path: 'public/assets/backend/webfonts/uicons-regular-rounded.css') }}">
+    <link rel="stylesheet" href="{{ dynamicAsset(path: 'public/assets/backend/webfonts/uicons-solid-rounded.css') }}">
+
+    <link rel="stylesheet" href="{{ theme_asset('assets/plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ theme_asset('assets/css/style.css') }}"/>
-    <!-- ======= END MAIN STYLES ======= -->
+    <link rel="stylesheet" href="{{ dynamicAsset(path: 'public/assets/backend/libs/intl-tel-input/css/intlTelInput.css') }}">
+    <link rel="stylesheet" href="{{ dynamicAsset(path: 'public/assets/backend/libs/google-recaptcha/google-recaptcha-init.css') }}">
+
+    <title>@yield('title')</title>
+
+    @include(VIEW_FILE_NAMES['robots_meta_content_partials'])
 
     @stack('css_or_js')
 
-    <!-- ======= CUSTOMIZE STYLES ======= -->
     <link rel="stylesheet" href="{{ theme_asset('assets/css/custom.css') }}"/>
-    <!-- ======= END CUSTOMIZE STYLES ======= -->
-
     <style>
         :root {
             --bs-primary: {{ $web_config['primary_color'] }};
-            --bs-primary-rgb: {{ \App\CPU\hex_to_rgb($web_config['primary_color']) }};
+            --bs-primary-rgb: {{ getHexToRGBColorCode($web_config['primary_color']) }};
             --primary-dark: {{ $web_config['primary_color'] }};
             --primary-light: {{ $web_config['primary_color_light'] }};
             --bs-secondary: {{ $web_config['secondary_color'] }};
-            --bs-secondary-rgb: {{ \App\CPU\hex_to_rgb($web_config['secondary_color']) }};
+            --bs-secondary-rgb: {{ getHexToRGBColorCode($web_config['secondary_color']) }};
         }
-        .announcement-color{
+
+        .announcement-color {
             background-color: {{ $web_config['announcement']['color'] }};
-            color:{{$web_config['announcement']['text_color']}};
+            color: {{$web_config['announcement']['text_color']}};
+        }
+        .btn-outline-success {
+            --bs-btn-hover-bg: {{ $web_config['primary_color'] }} !important;
+            --bs-btn-active-bg: {{ $web_config['primary_color'] }} !important;
+            --bs-btn-border-color: {{ $web_config['primary_color'] }} !important;
+        }
+        .btn-outline-success:active {
+            background-color: var(--bg-color) !important;
+            color: {{ $web_config['primary_color'] }} !important;
+            --bs-btn-border-color: {{ $web_config['primary_color'] }} !important;
         }
     </style>
-    @php($google_tag_manager_id = \App\CPU\Helpers::get_business_settings('google_tag_manager_id'))
-    @if($google_tag_manager_id )
-        <!-- Google Tag Manager -->
-        <script>(function (w, d, s, l, i) {
-                w[l] = w[l] || [];
-                w[l].push({
-                    'gtm.start':
-                        new Date().getTime(), event: 'gtm.js'
-                });
-                var f = d.getElementsByTagName(s)[0],
-                    j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : '';
-                j.async = true;
-                j.src =
-                    'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-                f.parentNode.insertBefore(j, f);
-            })(window, document, 'script', 'dataLayer', '{{$google_tag_manager_id}}');</script>
-        <!-- End Google Tag Manager -->
 
-    @endif
-
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3CS341WB06"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-3CS341WB06');
-    </script>
-
-    @php($pixel_analytices_user_code =\App\CPU\Helpers::get_business_settings('pixel_analytics'))
-    @if($pixel_analytices_user_code)
-        <!-- Facebook Pixel Code -->
-        <script>
-            !function (f, b, e, v, n, t, s) {
-                if (f.fbq) return;
-                n = f.fbq = function () {
-                    n.callMethod ?
-                        n.callMethod.apply(n, arguments) : n.queue.push(arguments)
-                };
-                if (!f._fbq) f._fbq = n;
-                n.push = n;
-                n.loaded = !0;
-                n.version = '2.0';
-                n.queue = [];
-                t = b.createElement(e);
-                t.async = !0;
-                t.src = v;
-                s = b.getElementsByTagName(e)[0];
-                s.parentNode.insertBefore(t, s)
-            }(window, document, 'script',
-                'https://connect.facebook.net/en_US/fbevents.js');
-            fbq('init', '{{ $pixel_analytices_user_code }}');
-            fbq('track', 'PageView');
-        </script>
-        <noscript>
-            <img height="1" width="1" style="display:none"
-                 src="https://www.facebook.com/tr?id={{ $pixel_analytices_user_code }}&ev=PageView&noscript=1"/>
-        </noscript>
-        <!-- End Facebook Pixel Code -->
-    @endif
+    {!! getSystemDynamicPartials(type: 'analytics_script') !!}
 </head>
-<!-- Body-->
 <body class="toolbar-enabled">
 <script>
+    'use strict';
     function setThemeMode() {
         if (localStorage.getItem('theme') === null) {
             document.body.setAttribute('theme', 'light');
@@ -133,81 +80,58 @@
     }
     setThemeMode();
 </script>
-@if($google_tag_manager_id)
-    <!-- Google Tag Manager (noscript) -->
-    <noscript>
-        <iframe src="https://www.googletagmanager.com/ns.html?id={{$google_tag_manager_id}}"
-                height="0" width="0" style="display:none;visibility:hidden"></iframe>
-    </noscript>
-    <!-- End Google Tag Manager (noscript) -->
-@endif
-{{--loader--}}
+
 <div class="preloader d--none" id="loading">
-    <img width="200"
-         src="{{asset('storage/app/public/company')}}/{{\App\CPU\Helpers::get_business_settings('loader_gif')}}"
-         onerror="this.src='{{theme_asset('assets/img/loader.gif')}}'">
+    <img width="200" alt="" src="{{ getStorageImages(path: getWebConfig(name: 'loader_gif'), type: 'source', source: theme_asset('assets/img/loader.gif')) }}">
 </div>
-{{--loader--}}
-
-
-<!-- Header and top offer bar -->
+@include('theme-views.layouts.partials._alert-message')
 @include('theme-views.layouts.partials._header')
-
-<!-- Settings Sidebar -->
 @include('theme-views.layouts.partials._settings-sidebar')
-
-<!-- Main Content -->
 @yield('content')
-
-<!-- Feature -->
 @include('theme-views.layouts.partials._feature')
-
-<!-- Footer-->
 @include('theme-views.layouts.partials._footer')
 
-<!-- Back To Top Button -->
 <a href="#" class="back-to-top">
     <i class="bi bi-arrow-up"></i>
 </a>
 
-<!-- App Bar -->
-<div class="app-bar px-sm-2 d-xl-none" id="mobile_app_bar">
+<div class="app-bar d-xl-none" id="mobile_app_bar">
     @include('theme-views.layouts.partials._app-bar')
 </div>
 
-<!-- Cookies -->
+<span class="customize-text"
+      data-textno="{{ translate('no') }}"
+      data-textyes="{{ translate('yes') }}"
+      data-textnow="{{ translate('now') }}"
+      data-textsuccessfullycopied="{{ translate('successfully_copied') }}"
+      data-text-no-discount="{{ translate('no_discount') }}"
+      data-stock-available="{{ translate('stock_available') }}"
+      data-stock-not-available="{{ translate('stock_not_available') }}"
+      data-update-this-address="{{ translate('update_this_Address') }}"
+      data-password-characters-limit="{{ translate('your_password_must_be_at_least_8_characters') }}"
+      data-password-not-match="{{ translate('password_does_not_Match') }}"
+      data-textpleaseselectpaymentmethods="{{ translate('please_select_a_payment_Methods') }}"
+      data-reviewmessage="{{ translate('you_can_review_after_the_product_is_delivered') }}"
+      data-refundmessage="{{ translate('you_can_refund_request_after_the_product_is_delivered') }}"
+      data-textshoptemporaryclose="{{ translate('This_shop_is_temporary_closed_or_on_vacation').' '.translate('You_cannot_add_product_to_cart_from_this_shop_for_now') }}"
+></span>
+<span class="system-default-country-code" data-value="{{ getWebConfig(name: 'country_code') ?? 'us' }}"></span>
+<span class="cannot_use_zero" data-text="{{ translate('cannot_Use_0_only') }}"></span>
 @php($cookie = $web_config['cookie_setting'] ? json_decode($web_config['cookie_setting']['value'], true):null)
 @if($cookie && $cookie['status']==1)
     <section id="cookie-section"></section>
 @endif
 
+@if(!auth()->guard('customer')->check())
+    @include('theme-views.layouts.partials.modal._register')
+    @include('theme-views.layouts.partials.modal._login')
+@endif
 
-<!-- ======= All Modals ======= -->
-
-<!-- Register Modal -->
-@include('theme-views.layouts.partials.modal._register')
-
-<!-- Login Modal -->
-@include('theme-views.layouts.partials.modal._login')
-
-<!-- Seller Login Modal -->
-@include('theme-views.layouts.partials.modal._seller-login')
-
-<!-- Quick View Modal -->
 @include('theme-views.layouts.partials.modal._quick-view')
-
-<!-- Initial Modal -->
+@include('theme-views.layouts.partials.modal._buy-now')
 @include('theme-views.layouts.partials.modal._initial')
 
-<span id="update_nav_cart_url" data-url="{{route('cart.nav-cart')}}"></span>
-<span id="remove_from_cart_url" data-url="{{ route('cart.remove') }}"></span>
-<span id="update_quantity_url" data-url="{{route('cart.updateQuantity.guest')}}"></span>
-<span id="order_again_url" data-url="{{ route('cart.order-again') }}"></span>
-<span id="authentication-status" data-auth="{{ auth('customer')->check() ? 'true' : 'false' }}"></span>
-<span id="all-msg-container" data-afterextend="{{translate('see_less')}}" data-seemore="{{translate('see_more')}}"></span>
-<span class="please_fill_out_this_field" data-text="{{ translate('please_fill_out_this_field') }}"></span>
-
-@php($whatsapp = \App\CPU\Helpers::get_business_settings('whatsapp'))
+@php($whatsapp = getWebConfig(name: 'whatsapp'))
 <div class="social-chat-icons">
     @if(isset($whatsapp['status']) && $whatsapp['status'] == 1 )
         <div class="">
@@ -219,81 +143,27 @@
     @endif
 </div>
 
-<span class="cannot_use_zero" data-text="{{ translate('cannot_Use_0_only') }}"></span>
-
-<!-- ======= BEGIN GLOBAL MANDATORY SCRIPTS ======= -->
-<script src="{{ theme_asset('assets/js/jquery-3.6.0.min.js') }}"></script>
-<script src="{{ theme_asset('assets/js/bootstrap.bundle.min.js') }}"></script>
-<script src="{{ theme_asset('assets/plugins/swiper/swiper-bundle.min.js') }}"></script>
-<script src="{{ theme_asset('assets/plugins/sweet_alert/sweetalert2.js') }}"></script>
-<script src="{{ theme_asset('assets/plugins/easyzoom/easyzoom.min.js') }}"></script>
-<script src="{{ theme_asset('assets/js/toastr.js') }}"></script>
-<script src="{{ theme_asset('assets/js/main.js') }}"></script>
-<script src="{{ theme_asset('assets/js/custom.js') }}"></script>
+@include('theme-views.layouts.partials._translate-text-for-js')
+@include('theme-views.layouts.partials._route-for-js')
+@include('theme-views.layouts.main-script')
+@include('theme-views.layouts._firebase-script')
+<span class="d-none" id="text-validate-translate"
+      data-required="{{ translate('this_field_is_required') }}"
+      data-file-size-larger="{{ translate('file_size_is_larger') }}"
+      data-max-limit-crossed="{{ translate('max_limit_crossed') }}"
+      data-something-went-wrong="{{ translate('something_went_wrong!') }}"
+      data-passwords-do-not-match="{{ translate('passwords_do_not_match') }}"
+      data-valid-email="{{ translate('please_enter_a_valid_email') }}"
+      data-password-validation="{{ translate('password_must_be_8+_chars_with_upper,_lower,_number_&_symbol') }}"
+      data-file-type-not-allowed="{{ translate('Invalid_file_type_selected') }}"
+></span>
+<span id="imageUploadMaxSize" data-max-size="{{ getFileUploadMaxSize() }}"></span>
 
 {!! Toastr::message() !!}
-
-@if ($errors->any())
-    <script>
-        @foreach($errors->all() as $error)
-        toastr.error('{{$error}}', Error, {
-            CloseButton: true,
-            ProgressBar: true
-        });
-        @endforeach
-    </script>
-@endif
-
-<script>
-    @if(Request::is('/') &&  \Illuminate\Support\Facades\Cookie::has('popup_banner')==false)
-    $(document).ready(function () {
-        $('#initialModal').modal('show');
-    });
-    @php(\Illuminate\Support\Facades\Cookie::queue('popup_banner', 'off', 1))
-    @endif
-</script>
-
-<script>
-    @php($cookie = $web_config['cookie_setting'] ? json_decode($web_config['cookie_setting']['value'], true):null)
-    let cookie_content = `
-        <div class="cookies active absolute-white py-4">
-            <div class="container">
-                <h4 class="absolute-white mb-3">{{translate('Your_Privacy_Matter')}}</h4>
-                <p>{{ $cookie ? $cookie['cookie_text'] : '' }}</p>
-                <div class="d-flex gap-3 justify-content-end mt-4">
-                    <button type="button" class="btn absolute-white btn-link" id="cookie-reject">{{translate('no_thanks')}}</button>
-                    <button type="button" class="btn btn-primary" id="cookie-accept">{{translate('yes_i_Accept')}}</button>
-                </div>
-            </div>
-        </div>
-        `;
-    $(document).on('click', '#cookie-accept', function () {
-        document.cookie = '6valley_cookie_consent=accepted; max-age=' + 60 * 60 * 24 * 30;
-        $('#cookie-section').hide();
-    });
-    $(document).on('click', '#cookie-reject', function () {
-        document.cookie = '6valley_cookie_consent=reject; max-age=' + 60 * 60 * 24;
-        $('#cookie-section').hide();
-    });
-
-    $(document).ready(function () {
-        if (document.cookie.indexOf("6valley_cookie_consent=accepted") !== -1) {
-            $('#cookie-section').hide();
-        } else {
-            $('#cookie-section').html(cookie_content).show();
-        }
-    });
-
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl)
-    })
-</script>
-
 <script>
     function route_alert(route, message) {
         Swal.fire({
-            title: '{{translate("are_you_sure")}}?',
+            title: "{{translate('are_you_sure')}}?",
             text: message,
             type: 'warning',
             showCancelButton: true,
@@ -309,61 +179,6 @@
         })
     }
 </script>
-
-@if(!auth('customer')->check())
-<script>
-    $(document).ready(function() {
-        const currentUrl = new URL(window.location.href);
-        const referral_code_parameter = new URLSearchParams(currentUrl.search).get("referral_code");
-
-        if (referral_code_parameter) {
-            $('#registerModal').modal('show');
-
-            if ($('#referral_code').length) {
-            $('#referral_code').val(referral_code_parameter);
-            }
-        }
-    });
-</script>
-@endif
-
-<script>
-    // Input Field Validation Custom Message
-    var errorMessages = {
-        valueMissing: $('.please_fill_out_this_field').data('text')
-    };
-
-    $('input').each(function () {
-        var $el = $(this);
-
-        $el.on('invalid', function (event) {
-            var target = event.target,
-                validity = target.validity;
-            target.setCustomValidity("");
-            if (!validity.valid) {
-                if (validity.valueMissing) {
-                    target.setCustomValidity($el.data('errorRequired') || errorMessages.valueMissing);
-                }
-            }
-        });
-    });
-
-    $('textarea').each(function () {
-            var $el = $(this);
-
-            $el.on('invalid', function (event) {
-                var target = event.target,
-                    validity = target.validity;
-                target.setCustomValidity("");
-                if (!validity.valid) {
-                    if (validity.valueMissing) {
-                        target.setCustomValidity($el.data('errorRequired') || errorMessages.valueMissing);
-                    }
-                }
-            });
-        });
-</script>
-
 @stack('script')
 
 </body>

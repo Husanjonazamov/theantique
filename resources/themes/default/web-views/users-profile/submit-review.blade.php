@@ -4,11 +4,8 @@
 
 @section('content')
 
-<!-- Page Content-->
-<div class="container pb-5 mb-2 mb-md-4 mt-2 rtl"
-     style="text-align: {{Session::get('direction') === "rtl" ? 'right' : 'left'}};">
+<div class="container pb-5 mb-2 mb-md-4 mt-2 rtl text-align-direction">
     <div class="row g-3">
-        <!-- Sidebar-->
     @include('web-views.partials._profile-aside')
         <section class="col-lg-9 col-md-8">
             <div class="card">
@@ -60,7 +57,7 @@
 @endsection
 
 @push('script')
-    <script src="{{asset('public/assets/front-end/js/spartan-multi-image-picker.js')}}"></script>
+    <script src="{{theme_asset(path: 'public/assets/front-end/js/spartan-multi-image-picker.js')}}"></script>
     <script type="text/javascript">
         $(function () {
             $(".coba").spartanMultiImagePicker({
@@ -69,18 +66,15 @@
                 rowHeight: '150px',
                 groupClassName: 'col-md-4',
                 placeholderImage: {
-                    image: '{{asset('public/assets/front-end/img/image-place-holder.png')}}',
+                    image: '{{theme_asset(path: 'public/assets/front-end/img/image-place-holder.png')}}',
                     width: '100%'
                 },
                 dropFileLabel: "{{translate('drop_here')}}",
                 onAddRow: function (index, file) {
-
                 },
                 onRenderedPreview: function (index) {
-
                 },
                 onRemoveRow: function (index) {
-
                 },
                 onExtensionErr: function (index, file) {
                     toastr.error('{{translate('input_png_or_jpg')}}', {

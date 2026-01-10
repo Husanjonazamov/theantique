@@ -34,11 +34,11 @@ use Madnest\Madzipper\Facades\Madzipper;
         ->png();
 });*/
 
-use App\CPU\Helpers;
+use App\Utils\Helpers;
 Route::get('aws-data', function () {
     return "bdsb";
     return view('installation.step5');
-    $mail_config = Helpers::get_business_settings('mail_config');
+    $mail_config = getWebConfig(name: 'mail_config');
      return $mail_config['status']??0;
     return view('welcome');
 });
@@ -57,7 +57,6 @@ Route::post('aws-upload', function (Request $request) {
     $path = Storage::disk('s3')->put('images', $request->image);
     $path = Storage::disk('s3')->url($path);
 
-    dd($path);
     /* Store $imageName name in DATABASE from HERE */
     return back()
         ->with('success', 'You have successfully upload image.')
@@ -66,7 +65,7 @@ Route::post('aws-upload', function (Request $request) {
 
 /*Route::get('test-data-insert', function () {
     ini_set('max_execution_time', '300');
-    $order_id = \App\Model\Order::orderBy('id', 'DESC')->first()->id??0;
+    $order_id = \App\Models\Order::orderBy('id', 'DESC')->first()->id??0;
     $user_id = rand(1, 20);
     $or = [];
     for ($count = 1; $count < 110000; $count++) {

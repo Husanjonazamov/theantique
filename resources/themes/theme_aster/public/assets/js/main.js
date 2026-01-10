@@ -73,10 +73,20 @@ We may release future updates so it will overwrite this file. it's better and sa
         .find(".has-sub-item > a, .has-sub-item > label")
         .on("click", function (event) {
             event.preventDefault();
+            $(this)
+                .parent(".has-sub-item")
+                .siblings("li")
+                .removeClass("sub-menu-opened");
             $(this).parent(".has-sub-item").toggleClass("sub-menu-opened");
             if ($(this).siblings("ul").hasClass("open")) {
                 $(this).siblings("ul").removeClass("open").slideUp("200");
             } else {
+                $(this)
+                    .parent("li")
+                    .siblings("li")
+                    .find("ul")
+                    .removeClass("open")
+                    .slideUp("200");
                 $(this).siblings("ul").addClass("open").slideDown("200");
             }
         });
@@ -108,6 +118,12 @@ We may release future updates so it will overwrite this file. it's better and sa
     $(".menu-btn").on("click", function () {
         $(".aside").toggleClass("active");
         $(".filter-toggle-aside").removeClass("active");
+
+        if ($(this).hasClass("search")) {
+            setTimeout(function () {
+                $(".aside .search-bar-input-mobile").focus();
+            }, 100);
+        }
     });
     $(".aside-close > i").on("click", function () {
         $(".aside").removeClass("active");
@@ -355,7 +371,6 @@ We may release future updates so it will overwrite this file. it's better and sa
         var timer = setInterval(countdownTimer, 1000);
     });
 
-
     /*==================================
     15: Swiper
     ====================================*/
@@ -366,7 +381,7 @@ We may release future updates so it will overwrite this file. it's better and sa
             new Swiper($t[0], {
                 slidesPerView: checkData($t.data("swiper-items"), 1),
                 spaceBetween: checkData($t.data("swiper-margin"), 0),
-                loop: checkData($t.data("swiper-loop"), true),
+                loop: checkData($t.data("swiper-loop"), false),
                 autoHeight: checkData($t.data("swiper-auto-height"), false),
                 breakpoints: checkData($t.data("swiper-breakpoints"), {}),
                 centeredSlides: checkData($t.data("swiper-center"), false),
@@ -405,22 +420,42 @@ We may release future updates so it will overwrite this file. it's better and sa
                 },
                 on: {
                     init: function () {
+                        handleSwiperButtonVisibility(this);
+
                         var minHeight = 0;
-                        var slides = this.slides;
-
-                        for (var i = 0; i < slides.length; i++) {
-                            var slideHeight = slides[i].clientHeight;
-                            minHeight = Math.max(minHeight, slideHeight);
+                        for (var i = 0; i < this.slides.length; i++) {
+                            minHeight = Math.max(minHeight, this.slides[i].clientHeight);
                         }
-
-                        for (var i = 0; i < slides.length; i++) {
-                            slides[i].style.minHeight = minHeight + "px";
+                        for (var i = 0; i < this.slides.length; i++) {
+                            this.slides[i].style.minHeight = minHeight + "px";
                         }
                     },
-                },
+                    resize: function () {
+                        handleSwiperButtonVisibility(this);
+                    }
+                }
             });
         });
     });
+
+    function handleSwiperButtonVisibility(swiper) {
+        var $el = $(swiper.el);
+        var $nextBtn = $($el.data("swiper-navigation-next"));
+        var $prevBtn = $($el.data("swiper-navigation-prev"));
+
+        var wrapperEl = swiper.wrapperEl;
+        var totalSlidesWidth = wrapperEl.scrollWidth;
+        var visibleWidth = swiper.width;
+
+        if (totalSlidesWidth > visibleWidth) {
+            $nextBtn.show();
+            $prevBtn.show();
+        } else {
+            $nextBtn.hide();
+            $prevBtn.hide();
+        }
+    }
+
 
     /*==================================
     16: PreventDefault
@@ -576,7 +611,8 @@ We may release future updates so it will overwrite this file. it's better and sa
         slidesPerView: "auto",
         freeMode: true,
         watchSlidesVisibility: true,
-        watchSlidesProgress: true,
+        // watchSlidesProgress: true,
+        centeredSlides: false,
         autoplay: {
             delay: 5000,
             disableOnInteraction: false,
@@ -584,8 +620,10 @@ We may release future updates so it will overwrite this file. it's better and sa
         navigation: {
             nextEl: ".swiper-quickview-button-next",
             prevEl: ".swiper-quickview-button-prev",
+            clickable: true,
         },
     });
+
     var quickviewSlider2 = new Swiper(".quickviewSlider2", {
         // spaceBetween: 10,
         autoplay: {
@@ -611,12 +649,12 @@ We may release future updates so it will overwrite this file. it's better and sa
         quickviewSlider2_start();
     });
 
-    function quickviewSlider2_stop(){
+    function quickviewSlider2_stop() {
         quickviewSlider2.autoplay.stop();
         quickviewSliderThumb2.autoplay.stop();
     }
 
-    function quickviewSlider2_start(){
+    function quickviewSlider2_start() {
         quickviewSlider2.autoplay.start();
         quickviewSliderThumb2.autoplay.start();
     }
@@ -697,6 +735,8 @@ We may release future updates so it will overwrite this file. it's better and sa
     ====================================*/
     $(".offer-bar-close").on("click", function (e) {
         $(this).parents(".offer-bar").slideUp("fast");
+        let hideUntil = Date.now() + 300000;
+        localStorage.setItem("offerBarHideUntil", hideUntil);
     });
 
     /*==================================
@@ -756,9 +796,17 @@ We may release future updates so it will overwrite this file. it's better and sa
             "change",
             function () {
                 if ($(this).val() === "list-view") {
-                    $("#filtered-products").addClass("product-list-view").find('[class^="col-"]').removeClass('col-xxl-2 col-xl-3 col-md-4 col-sm-6').addClass('col-xl-4 col-md-6');
+                    $("#filtered-products")
+                        .addClass("product-list-view")
+                        .find('[class^="col-"]')
+                        .removeClass("col-xxl-2 col-xl-3 col-md-4 col-sm-6")
+                        .addClass("col-xl-4 col-md-6");
                 } else {
-                    $("#filtered-products").removeClass("product-list-view").find('[class^="col-"]').removeClass('col-xl-4 col-md-6').addClass('col-xxl-2 col-xl-3 col-md-4 col-sm-6');
+                    $("#filtered-products")
+                        .removeClass("product-list-view")
+                        .find('[class^="col-"]')
+                        .removeClass("col-xl-4 col-md-6")
+                        .addClass("col-xxl-2 col-xl-3 col-md-4 col-sm-6");
                 }
             }
         );
@@ -786,10 +834,16 @@ We may release future updates so it will overwrite this file. it's better and sa
                 });
                 otp_value_field.val(otp_value);
                 // Check if all input fields are filled
-                if (otp_value.length === 4) {
+                if (otp_value.length === 6) {
                     $(".otp-form button[type=submit]").attr("disabled", false);
                 } else {
                     $(".otp-form button[type=submit]").attr("disabled", true);
+                }
+
+                if (otp_value.length === 6) {
+                    $(".otp-form .button-type-submit").attr("disabled", false);
+                } else {
+                    $(".otp-form .button-type-submit").attr("disabled", true);
                 }
             })
             .on("keyup", function (e) {
@@ -809,6 +863,7 @@ We may release future updates so it will overwrite this file. it's better and sa
                     otp_fields.eq(index).val(value);
                 });
             });
+        $(".otp-resend-btn").attr("disabled", false);
     });
 
     /*==================================
@@ -900,7 +955,98 @@ We may release future updates so it will overwrite this file. it's better and sa
     /*==================================
     36: Stop propagation
     ====================================*/
-    $(".stopPropagation").on("click", function (e) {
-        e.stopPropagation();
+    $(window).on("load", function () {
+        $(".stopPropagation").on("click", function (e) {
+            e.stopPropagation();
+        });
     });
+
+    $(document).ready(function () {
+        const tabFunction = function () {
+            $(".show-more--content").each(function () {
+                const button = $(this)
+                    .closest(".tab-pane")
+                    .find(".see-more-details, .see-more-details-review");
+
+                if ($(this).innerHeight() > 280) {
+                    $(this).addClass("custom-height active");
+                    button.show();
+                } else {
+                    $(this).removeClass("custom-height active");
+                    button.hide();
+                }
+            });
+        };
+        tabFunction();
+        $('[data-bs-toggle="tab"]').on("shown.bs.tab", function (e) {
+            tabFunction();
+        });
+        $(".aside-overlay").on("click", function () {
+            $(".aside").removeClass("active");
+            $(".profile-menu-aside").removeClass("active");
+        });
+
+        $(".products-aside-categories-list .categories-form-check").each(function () {
+            const $this = $(this);
+            if (
+                $this.children(".categories-form-check-inner").find("input").is(":checked")
+            ) {
+                $this.children(".categories-form-subgroup").show();
+            } else {
+                $this.children(".categories-form-subgroup").hide();
+                $this.children(".categories-form-subgroup").find("input").prop("checked", false);
+            }
+            $this
+                .children(".categories-form-check-inner")
+                .find("input")
+                .on("change", function () {
+                    if (
+                        $this.children(".categories-form-check-inner").find("input").is(":checked")
+                    ) {
+                        $this.children(".categories-form-subgroup").slideDown(300);
+                    } else {
+                        $this.children(".categories-form-subgroup").slideUp(300);
+                        $this.children(".categories-form-subgroup").find("input").prop("checked", false);
+                    }
+                });
+        });
+    });
+
+
+    // Function to initialize tooltips for given elements
+    function initTooltipsFor(elements) {
+        elements.forEach(el => {
+            if (!el._tooltip) { // prevent re-initialization
+                el._tooltip = new bootstrap.Tooltip(el);
+            }
+        });
+    }
+
+    // Initialize tooltips on page load
+    initTooltipsFor(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+
+    // Create a MutationObserver
+    const observer = new MutationObserver((mutationsList) => {
+        for (let mutation of mutationsList) {
+            if (mutation.type === 'childList') {
+                mutation.addedNodes.forEach(node => {
+                    // Only process element nodes
+                    if (node.nodeType === 1) {
+                        // Check the node itself
+                        if (node.matches('[data-bs-toggle="tooltip"]')) {
+                            initTooltipsFor([node]);
+                        }
+                        // Check any children with tooltip
+                        const tooltipChildren = node.querySelectorAll('[data-bs-toggle="tooltip"]');
+                        if (tooltipChildren.length) {
+                            initTooltipsFor(tooltipChildren);
+                        }
+                    }
+                });
+            }
+        }
+    });
+
+    // Observe the entire document body for added elements
+    observer.observe(document.body, { childList: true, subtree: true });
 })(jQuery);

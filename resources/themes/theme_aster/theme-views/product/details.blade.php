@@ -1,52 +1,13 @@
+@php use App\Utils\Helpers;use App\Utils\ProductManager; @endphp
 @extends('theme-views.layouts.app')
 
-@section('title', $product['name'].' | '.$web_config['name']->value.' '.translate('ecommerce'))
-
+@section('title', $product['name'].' | '.$web_config['company_name'].' '.translate('ecommerce'))
 
 @push('css_or_js')
-    <meta name="description" content="{{$product->slug}}">
-    <meta name="keywords" content="@foreach(explode(' ',$product['name']) as $keyword) {{$keyword.' , '}} @endforeach">
-    @if($product->added_by=='seller')
-        <meta name="author" content="{{ $product->seller->shop?$product->seller->shop->name:$product->seller->f_name}}">
-    @elseif($product->added_by=='admin')
-        <meta name="author" content="{{$web_config['name']->value}}">
-    @endif
-    <!-- Viewport-->
-
-    @if($product['meta_image'])
-        <meta property="og:image" content="{{asset("storage/app/public/product/meta")}}/{{$product->meta_image}}"/>
-        <meta property="twitter:card"
-              content="{{asset("storage/app/public/product/meta")}}/{{$product->meta_image}}"/>
-    @else
-        <meta property="og:image" content="{{asset("storage/app/public/product/thumbnail")}}/{{$product->thumbnail}}"/>
-        <meta property="twitter:card"
-              content="{{asset("storage/app/public/product/thumbnail/")}}/{{$product->thumbnail}}"/>
-    @endif
-
-    @if($product['meta_title'])
-        <meta property="og:title" content="{{$product->meta_title}}"/>
-        <meta property="twitter:title" content="{{$product->meta_title}}"/>
-    @else
-        <meta property="og:title" content="{{$product->name}}"/>
-        <meta property="twitter:title" content="{{$product->name}}"/>
-    @endif
-    <meta property="og:url" content="{{route('product',[$product->slug])}}">
-
-    @if($product['meta_description'])
-        <meta property="twitter:description" content="{!! $product['meta_description'] !!}">
-        <meta property="og:description" content="{!! $product['meta_description'] !!}">
-    @else
-        <meta property="og:description"
-              content="@foreach(explode(' ',$product['name']) as $keyword) {{$keyword.' , '}} @endforeach">
-        <meta property="twitter:description"
-              content="@foreach(explode(' ',$product['name']) as $keyword) {{$keyword.' , '}} @endforeach">
-    @endif
-    <meta property="twitter:url" content="{{route('product',[$product->slug])}}">
-    <link rel="stylesheet" href="{{ theme_asset('assets/css/lightbox.min.css') }}">
+    @include(VIEW_FILE_NAMES['product_seo_meta_content_partials'], ['metaContentData' => $product?->seoInfo, 'productDetails' => $product])
 @endpush
 
 @section('content')
-    <!-- Main Content -->
     <main class="main-content d-flex flex-column gap-3 pt-3 mb-sm-5">
         <div class="container">
             <div class="row gx-3 gy-4">
@@ -55,215 +16,298 @@
                         <div class="card-body">
                             <div class="quickview-content">
                                 <div class="row gy-4">
-                                    <div class="col-lg-5">
-                                        <!-- Product Details Image Wrap -->
+                                    <div class="col-lg-5 col-md-4">
                                         <div class="pd-img-wrap position-relative h-100">
-                                            <div class="swiper-container quickviewSlider2 border rounded aspect-1"
-                                                 style="--bs-border-color: #d6d6d6">
-                                                <div class="product__actions d-flex flex-column gap-2">
-                                                    <a onclick="addWishlist('{{$product['id']}}','{{route('store-wishlist')}}')"
-                                                       id="wishlist-{{$product['id']}}"
-                                                       class="btn-wishlist add_to_wishlist cursor-pointer wishlist-{{$product['id']}} {{($wishlist_status == 1?'wishlist_icon_active':'')}}"
-                                                       title="{{translate('add_to_wishlist')}}">
-                                                        <i class="bi bi-heart"></i>
-                                                    </a>
-                                                    <a onclick="addCompareList('{{$product['id']}}','{{route('store-compare-list')}}')"
-                                                    id="compare_list-{{$product['id']}}"
-                                                       class="btn-compare stopPropagation add_to_compare compare_list-{{$product['id']}} {{($compare_list == 1?'compare_list_icon_active':'')}}"
-                                                       title="{{translate('add_to_wishlist')}}">
-                                                        <i class="bi bi-repeat"></i>
-                                                    </a>
-                                                    <div class="product-share-icons">
-                                                        <a href="javascript:" title="Share">
-                                                            <i class="bi bi-share-fill"></i>
-                                                        </a>
-
-                                                        <ul>
-                                                            <li>
-                                                                <a href="javascript:"
-                                                                   onclick="shareOnFacebook('{{route('product',$product->slug)}}', 'facebook.com/sharer/sharer.php?u='); return false;">
-                                                                    <i class="bi bi-facebook"></i>
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a href="javascript:"
-                                                                   onclick="shareOnFacebook('{{route('product',$product->slug)}}', 'twitter.com/intent/tweet?text='); return false;">
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-twitter-x" viewBox="0 0 16 16">
-                                                                        <path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865l8.875 11.633Z"/>
-                                                                    </svg>
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a href="javascript:"
-                                                                   onclick="shareOnFacebook('{{route('product',$product->slug)}}', 'linkedin.com/shareArticle?mini=true&url='); return false;">
-                                                                    <i class="bi bi-linkedin"></i>
-                                                                </a>
-                                                            </li>
-                                                            <li>
-                                                                <a href="javascript:"
-                                                                   onclick="shareOnFacebook('{{route('product',$product->slug)}}', 'api.whatsapp.com/send?text='); return false;">
-                                                                    <i class="bi bi-whatsapp"></i>
-                                                                </a>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-
-                                                @if($product->images!=null && json_decode($product->images)>0)
-                                                    <div class="swiper-wrapper">
-                                                        @if(json_decode($product->colors) && $product->color_image)
-                                                            @foreach (json_decode($product->color_image) as $key => $photo)
-                                                                @if($photo->color != null)
-                                                                    <div class="swiper-slide position-relative" id="preview-box-{{ $photo->color }}">
-                                                                        <div class="easyzoom easyzoom--overlay">
-                                                                            @if ($product->discount > 0 && $product->discount_type === "percent")
-                                                                                <span class="product__discount-badge">-{{$product->discount}}%</span>
-                                                                            @elseif($product->discount > 0)
-                                                                                <span class="product__discount-badge">-{{\App\CPU\Helpers::currency_converter($product->discount)}}</span>
-                                                                            @endif
-
-                                                                            <a href="{{asset("storage/app/public/product/".$photo->image_name)}}">
-                                                                                <img src="{{asset("storage/app/public/product/".$photo->image_name)}}" class="dark-support rounded" alt="" onerror="this.src='{{theme_asset('assets/img/image-place-holder.png')}}'">
-                                                                            </a>
-                                                                        </div>
-                                                                    </div>
-                                                                @else
-                                                                    <div class="swiper-slide position-relative" id="preview-box-{{ $photo->color }}">
-                                                                        <div class="easyzoom easyzoom--overlay">
-                                                                            @if ($product->discount > 0 && $product->discount_type === "percent")
-                                                                                <span class="product__discount-badge">-{{$product->discount}}%</span>
-                                                                            @elseif($product->discount > 0)
-                                                                                <span class="product__discount-badge">-{{\App\CPU\Helpers::currency_converter($product->discount)}}</span>
-                                                                            @endif
-                                                                            <a href="{{asset("storage/app/public/product/".$photo->image_name)}}">
-                                                                                <img src="{{asset("storage/app/public/product/".$photo->image_name)}}" class="dark-support rounded" alt="" onerror="this.src='{{theme_asset('assets/img/image-place-holder.png')}}'">
-                                                                            </a>
-                                                                        </div>
-                                                                    </div>
-                                                                @endif
-                                                            @endforeach
+                                            <div class="w-100 d-flex justify-content-center">
+                                                <div class="swiper-container quickviewSlider2 active-border border rounded aspect--1 inline-size-100 border--gray">
+                                                    <div class="product__actions d-flex align-items-start gap-12">
+                                                        @if($product->product_type == "physical")
+                                                            <a href="javascript:" style="--size: 35px;" class="border text-warning bg-white" data-bs-toggle="tooltip" title="{{ translate('Physical_Product') }}" data-placement="left">
+                                                                <img width="20" height="20" src="{{ theme_asset('assets/img/icons/product-type.svg') }}" class="svg" alt="">
+                                                            </a>
                                                         @else
-                                                            @foreach (json_decode($product->images) as $key => $photo)
-                                                                <div class="swiper-slide position-relative">
-                                                                    <div class="easyzoom easyzoom--overlay">
-                                                                        @if ($product->discount > 0 && $product->discount_type === "percent")
-                                                                            <span class="product__discount-badge">-{{$product->discount}}%</span>
-                                                                        @elseif($product->discount > 0)
-                                                                            <span class="product__discount-badge">-{{\App\CPU\Helpers::currency_converter($product->discount)}}</span>
-                                                                        @endif
-                                                                        <a href="{{asset("storage/app/public/product/".$photo)}}">
-                                                                            <img src="{{asset("storage/app/public/product/".$photo)}}" onerror="this.src='{{theme_asset('assets/img/image-place-holder.png')}}'" class="dark-support rounded" alt="">
-                                                                        </a>
-                                                                    </div>
-                                                                </div>
-                                                            @endforeach
+                                                            <a href="javascript:" style="--size: 35px;" class="border text-warning bg-white" data-bs-toggle="tooltip" title="{{ translate('Digital_Product') }}" data-placement="left">
+                                                                <img width="20" height="20" src="{{ theme_asset('assets/img/icons/digital-product.svg') }}" class="svg" alt="">
+                                                            </a>
                                                         @endif
+                                                        <div class="d-flex flex-column gap-12">
+                                                            <a class="btn-wishlist add-to-wishlist cursor-pointer wishlist-{{$product['id']}} {{($wishlistStatus == 1?'wishlist_icon_active':'')}}"
+                                                               style="--size: 35px;"
+                                                               data-action="{{route('store-wishlist')}}"
+                                                               data-product-id="{{$product['id']}}"
+                                                               id="wishlist-{{$product['id']}}"
+                                                               title="{{translate('add_to_wishlist')}}">
+                                                                <i class="bi bi-heart fs-14 mt-2px"></i>
+                                                            </a>
+                                                            <a id="compare_list-{{$product['id']}}"
+                                                               class="btn-compare stopPropagation add-to-compare compare_list-{{$product['id']}} {{($compareList == 1?'compare_list_icon_active':'')}}"
+                                                               style="--size: 35px;"
+                                                               data-action="{{route('product-compare.index')}}"
+                                                               data-product-id="{{$product['id']}}"
+                                                               title="{{translate('add_to_compare_list')}}">
+                                                                <i class="bi bi-repeat"></i>
+                                                            </a>
+                                                            <div class="product-share-icons">
+                                                                <a href="javascript:" style="--size: 35px;" title="Share">
+                                                                    <i class="bi bi-share-fill"></i>
+                                                                </a>
+                                                                <ul>
+                                                                    <li>
+                                                                        <a href="javascript:" class="share-on-social-media share_btn facebook"
+                                                                           style="--size: 20px;"
+                                                                           data-action="{{route('product',$product->slug)}}"
+                                                                           data-social-media-name="facebook.com/sharer/sharer.php?u=">
+                                                                            <i class="bi bi-facebook"></i>
+                                                                        </a>
+                                                                    </li>
+                                                                    <li>
+                                                                        <a href="javascript:"
+                                                                           class="share-on-social-media share_btn twitter"
+                                                                           style="--size: 20px;"
+                                                                           data-action="{{route('product',$product->slug)}}"
+                                                                           data-social-media-name="twitter.com/intent/tweet?text=">
+                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="12"
+                                                                                 height="12" fill="currentColor"
+                                                                                 class="bi bi-twitter-x" viewBox="0 0 16 16">
+                                                                                <path
+                                                                                    d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865l8.875 11.633Z"/>
+                                                                            </svg>
+                                                                        </a>
+                                                                    </li>
+                                                                    <li>
+                                                                        <a href="javascript:"
+                                                                           class="share-on-social-media share_btn linkedin"
+                                                                           style="--size: 20px;"
+                                                                           data-action="{{route('product',$product->slug)}}"
+                                                                           data-social-media-name="linkedin.com/shareArticle?mini=true&url=">
+                                                                            <i class="bi bi-linkedin"></i>
+                                                                        </a>
+                                                                    </li>
+                                                                    <li>
+                                                                        <a href="javascript:"
+                                                                           class="share-on-social-media share_btn whatsapp"
+                                                                           style="--size: 20px;"
+                                                                           data-action="{{route('product',$product->slug)}}"
+                                                                           data-social-media-name="api.whatsapp.com/send?text=">
+                                                                            <i class="bi bi-whatsapp"></i>
+                                                                        </a>
+                                                                    </li>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                @endif
-                                            </div>
 
-                                            <div class="mt-2 user-select-none">
-                                                <div class="quickviewSliderThumb2 swiper-container position-relative ">
-                                                    @if($product->images!=null && json_decode($product->images)>0)
-                                                        <div class="swiper-wrapper auto-item-width justify-content-center" style="--width: 4rem; --bs-border-color: #d6d6d6">
-                                                            @if(json_decode($product->colors) && $product->color_image)
-                                                                @foreach (json_decode($product->color_image) as $key => $photo)
-                                                                    @if($photo->color != null)
-                                                                        <div class="swiper-slide position-relative aspect-1">
-                                                                            <img src="{{asset("storage/app/public/product/$photo->image_name")}}" onerror="this.src='{{theme_asset('assets/img/image-place-holder.png')}}'" class="dark-support rounded" alt="">
+                                                    @if($product->images!=null && count($product->images_full_url)>0)
+                                                        <div class="swiper-wrapper">
+                                                            @if(json_decode($product->colors) && count($product->color_images_full_url)>0)
+                                                                @foreach ($product->color_images_full_url as $key => $photo)
+                                                                    @if($photo['color'] != null)
+                                                                        <div class="swiper-slide position-relative rounded aspect--1"
+                                                                             id="preview-box-{{ $photo['color'] }}">
+                                                                            @if (getProductPriceByType(product: $product, type: 'discount', result: 'value') > 0)
+                                                                                <span class="product__discount-badge">
+                                                                                    <span>
+                                                                                        -{{ getProductPriceByType(product: $product, type: 'discount', result: 'string') }}
+                                                                                    </span>
+                                                                                </span>
+                                                                            @endif
+                                                                            <div class="easyzoom easyzoom--overlay">
+                                                                                <a href="{{ getStorageImages(path:$photo['image_name'], type:'product') }}">
+                                                                                    <img class="dark-support rounded" alt=""
+                                                                                        src="{{ getStorageImages(path:$photo['image_name'], type:'product') }}">
+                                                                                </a>
+                                                                            </div>
                                                                         </div>
-                                                                    @endif
-                                                                @endforeach
-
-                                                                @foreach (json_decode($product->color_image) as $key => $photo)
-                                                                    @if($photo->color == null)
-                                                                        <div class="swiper-slide position-relative aspect-1">
-                                                                            <img src="{{asset("storage/app/public/product/$photo->image_name")}}" onerror="this.src='{{theme_asset('assets/img/image-place-holder.png')}}'" class="dark-support rounded" alt="">
+                                                                    @else
+                                                                        <div class="swiper-slide position-relative rounded aspect--1"
+                                                                             id="preview-box-{{ $photo['color'] }}">
+                                                                            @if (getProductPriceByType(product: $product, type: 'discount', result: 'value') > 0)
+                                                                                <span class="product__discount-badge">
+                                                                                    <span>
+                                                                                        -{{ getProductPriceByType(product: $product, type: 'discount', result: 'string') }}
+                                                                                    </span>
+                                                                                </span>
+                                                                            @endif
+                                                                            <div class="easyzoom easyzoom--overlay">
+                                                                                <a href="{{ getStorageImages(path: $photo['image_name'], type:'product') }}">
+                                                                                    <img class="dark-support rounded" alt=""
+                                                                                        src="{{ getStorageImages(path: $photo['image_name'], type:'product') }}">
+                                                                                </a>
+                                                                            </div>
                                                                         </div>
                                                                     @endif
                                                                 @endforeach
                                                             @else
-                                                                @foreach (json_decode($product->images) as $key => $photo)
-                                                                    <div class="swiper-slide position-relative aspect-1">
-                                                                        <img src="{{asset("storage/app/public/product/".$photo)}}" onerror="this.src='{{theme_asset('assets/img/image-place-holder.png')}}'" class="dark-support rounded" alt="">
+                                                                @foreach ($product->images_full_url as $key => $photo)
+                                                                    <div class="swiper-slide position-relative rounded aspect--1">
+                                                                        @if (getProductPriceByType(product: $product, type: 'discount', result: 'value') > 0)
+                                                                            <span class="product__discount-badge">
+                                                                                    <span>
+                                                                                        -{{ getProductPriceByType(product: $product, type: 'discount', result: 'string') }}
+                                                                                    </span>
+                                                                                </span>
+                                                                        @endif
+                                                                        <div class="easyzoom easyzoom--overlay">
+                                                                            <a href="{{ getStorageImages(path: $photo, type:'product') }}">
+                                                                                <img class="dark-support rounded" alt=""
+                                                                                    src="{{ getStorageImages(path: $photo, type:'product') }}">
+                                                                            </a>
+                                                                        </div>
                                                                     </div>
                                                                 @endforeach
                                                             @endif
                                                         </div>
                                                     @endif
 
-                                                    <div class="swiper-button-next swiper-quickview-button-next" style="--size: 1.5rem"></div>
-                                                    <div class="swiper-button-prev swiper-quickview-button-prev" style="--size: 1.5rem"></div>
+                                                    @if($product?->preview_file_full_url['path'])
+                                                        <div class="product-preview-modal-text"
+                                                             data-bs-toggle="modal"
+                                                             data-bs-target="#product-preview-modal">
+                                                                <span class="text-primary fw-bold py-2 user-select-none">
+                                                                    {{ translate('See_Preview') }}
+                                                                </span>
+                                                        </div>
+                                                    @endif
                                                 </div>
                                             </div>
-
+                                            <div class="mt-2 user-select-none d-flex align-items-center gap-3">
+                                                <div class="quickviewSliderThumb2 swiper-container active-border position-relative ">
+                                                    @if($product->images!=null && json_decode($product->images)>0)
+                                                        <div
+                                                            class="swiper-wrapper auto-item-width justify-content-start border--gray width--4rem">
+                                                            @if(count($product->color_images_full_url)>0)
+                                                                @foreach ($product->color_images_full_url as $key => $photo)
+                                                                    @if($photo['color'] != null)
+                                                                        <div
+                                                                            class="swiper-slide position-relative rounded border">
+                                                                            <img class="dark-support rounded" alt=""
+                                                                                src="{{ getStorageImages(path: $photo['image_name'], type:'product') }}">
+                                                                        </div>
+                                                                    @else
+                                                                        <div class="swiper-slide position-relative rounded border">
+                                                                            <img class="dark-support rounded" alt=""
+                                                                                 src="{{ getStorageImages(path: $photo['image_name'], type:'product') }}">
+                                                                        </div>
+                                                                    @endif
+                                                                @endforeach
+                                                            @else
+                                                                @foreach ($product->images_full_url as $key => $photo)
+                                                                    <div
+                                                                        class="swiper-slide position-relative rounded border">
+                                                                        <img class="dark-support rounded" alt=""
+                                                                            src="{{ getStorageImages(path: $photo, type:'product') }}">
+                                                                    </div>
+                                                                @endforeach
+                                                            @endif
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                                <div class="d-lg-flex d-none align-items-center gap-2">
+                                                    <div class="swiper-button-prev swiper-quickview-button-prev size-1-5rem position-static"></div>
+                                                    <div class="swiper-button-next swiper-quickview-button-next size-1-5rem position-static"></div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <!-- End Product Details Image Wrap -->
                                     </div>
 
-                                    <div class="col-lg-7">
-                                        <!-- Product Details Content -->
-                                        <div class="product-details-content position-relative">
+                                    <div class="col-lg-7 col-md-8">
+                                        <div class="product-details-content mobile__views position-relative product-cart-option-container">
 
-                                            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-                                                <h2 class="product_title">{{$product->name}}</h2>
-
-                                                @if ($product->discount > 0 && $product->discount_type === "percent")
-                                                    <span
-                                                        class="product__save-amount">{{translate('save')}} {{$product->discount}}%</span>
-                                                @elseif($product->discount > 0)
-                                                    <span
-                                                        class="product__save-amount">{{translate('save')}} {{\App\CPU\Helpers::currency_converter($product->discount)}}</span>
-                                                @endif
-
-                                            </div>
-
-                                            <div class="d-flex gap-2 align-items-center mb-2">
-                                                <div class="star-rating text-gold fs-12">
-                                                    @for ($i = 1; $i <= 5; $i++)
-                                                        @if ($i <= (int)$overallRating[0])
-                                                            <i class="bi bi-star-fill"></i>
-                                                        @elseif ($overallRating[0] != 0 && $i <= (int)$overallRating[0] + 1.1 && $overallRating[0] > ((int)$overallRating[0]))
-                                                            <i class="bi bi-star-half"></i>
-                                                        @else
-                                                            <i class="bi bi-star"></i>
-                                                        @endif
-                                                    @endfor
-                                                </div>
-                                                <span>({{$product->reviews_count}})</span>
-                                            </div>
-                                            @if(($product['product_type'] == 'physical') && ($product['current_stock']<=0))
-                                                <p class="fw-semibold text-muted">{{translate('out_of_stock')}}</p>
-                                            @else
-                                                @if($product['product_type'] == 'physical')
-                                                    <p class="fw-semibold text-muted"><span
-                                                            class="in_stock_status">{{$product->current_stock}}</span> {{translate('in_Stock')}}
-                                                    </p>
-                                                @endif
-                                            @endif
-
-                                            <div class="product__price d-flex flex-wrap align-items-end gap-2 mb-4">
-                                                @if($product->discount > 0)
-                                                    <del
-                                                        class="product__old-price">{{\App\CPU\Helpers::currency_converter($product->unit_price)}}</del>
-                                                @endif
-                                                <ins
-                                                    class="product__new-price">{{\App\CPU\Helpers::get_price_range($product) }}</ins>
-                                            </div>
-
-                                            <!-- Add to Cart Form -->
-                                            <form class="cart add_to_cart_form" action="{{ route('cart.add') }}"
-                                                  id="add-to-cart-form" data-redirecturl="{{route('checkout-details')}}"
-                                                  data-varianturl="{{ route('cart.variant_price') }}"
+                                            <form class="cart add-to-cart-details-form addToCartDynamicForm" action="{{ route('cart.add') }}"
                                                   data-errormessage="{{translate('please_choose_all_the_options')}}"
                                                   data-outofstock="{{translate('Sorry_Out_of_stock')}}.">
                                                 @csrf
+
+                                                <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                                                    <h3 class="product_title">{{$product->name}}</h3>
+                                                    @if (getProductPriceByType(product: $product, type: 'discount', result: 'value') > 0)
+                                                        <span class="discounted-badge-element">
+                                                        <span class="product__save-amount discounted_badge">
+                                                            {{translate('save')}} {{ getProductPriceByType(product: $product, type: 'discount', result: 'string') }}
+                                                        </span>
+                                                    </span>
+                                                    @endif
+                                                </div>
+
+                                                <div class="d-flex gap-2 gap-sm-3 align-items-start align-items-sm-center flex-column flex-sm-row mb-3">
+                                                    <div class="d-flex gap-2 align-items-center">
+                                                        <div class="star-rating text-gold fs-12">
+                                                            @for ($index = 1; $index <= 5; $index++)
+                                                                @if ($index <= (int)$overallRating[0])
+                                                                    <i class="bi bi-star-fill"></i>
+                                                                @elseif ($overallRating[0] != 0 && $index <= (int)$overallRating[0] + 1.1 && $overallRating[0] > ((int)$overallRating[0]))
+                                                                    <i class="bi bi-star-half"></i>
+                                                                @else
+                                                                    <i class="bi bi-star"></i>
+                                                                @endif
+                                                            @endfor
+                                                        </div>
+                                                        <span>({{ count($product->reviews) }})</span>
+                                                    </div>
+                                                    <div class="cursor-pointer" id="review_tab_trigger">
+                                                        <span class="text-primary fw-semibold">{{ count($product->reviews) }}</span>
+                                                        <span class="text-muted">{{ translate('Reviews') }}</span>
+                                                    </div>
+                                                    <div class="opacity-50 d-none d-sm-block">|</div>
+                                                    @if(($product['product_type'] == 'physical') && ($product['current_stock']<=0))
+                                                        <p class="fw-semibold text-muted mb-0">{{translate('out_of_stock')}}</p>
+                                                    @else
+                                                        @if($product['product_type'] === 'physical')
+                                                            <p class="fw-semibold text-muted mb-0">
+                                                                <span class="product-details-stock-qty text-primary fw-semibold">{{$product->current_stock}}</span>
+                                                                {{translate('in_Stock')}}
+                                                            </p>
+                                                        @endif
+                                                    @endif
+                                                </div>
+
+
+
+                                                @if($product['product_type'] == 'digital')
+                                                    <div class="digital-product-authors mb-2">
+                                                        @if(count($productPublishingHouseInfo['data']) > 0)
+                                                            <div class="d-flex align-items-center g-2 me-2">
+                                                                <span class="text-capitalize digital-product-author-title">{{ translate('Publishing_House') }} :</span>
+                                                                <div class="item-list">
+                                                                    @foreach($productPublishingHouseInfo['data'] as $publishingHouseName)
+                                                                        <a href="{{ route('products', ['publishing_house_id' => $publishingHouseName['id'], 'product_type' => 'digital', 'page'=>1]) }}"
+                                                                           class="text-base">
+                                                                            {{ $publishingHouseName['name'] }}
+                                                                        </a>
+                                                                    @endforeach
+                                                                </div>
+                                                            </div>
+                                                        @endif
+
+                                                        @if(count($productAuthorsInfo['data']) > 0)
+                                                            <div class="d-flex align-items-center g-2 me-2">
+                                                                <span class="text-capitalize digital-product-author-title">{{ translate('Author') }} :</span>
+                                                                <div class="item-list">
+                                                                    @foreach($productAuthorsInfo['data'] as $productAuthor)
+                                                                        <a href="{{ route('products',['author_id' => $productAuthor['id'], 'product_type' => 'digital', 'page' => 1]) }}"
+                                                                           class="text-base">
+                                                                            {{ $productAuthor['name'] }}
+                                                                        </a>
+                                                                    @endforeach
+                                                                </div>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                @endif
+
+                                                <div class="product__price d-flex flex-wrap align-items-end gap-2 mb-4">
+                                                    <div class="text-primary d-flex align-items-center gap-2 mb-0">
+                                                        {!! getPriceRangeWithDiscount(product: $product) !!}
+                                                    </div>
+                                                </div>
+
+
                                                 <div class="">
                                                     <input type="hidden" name="id" value="{{ $product->id }}">
                                                     @if (count(json_decode($product->colors)) > 0)
-                                                        <div class="d-flex gap-4 flex-wrap align-items-center mb-3">
-                                                            <h6 class="fw-semibold">{{translate('color')}}</h6>
-                                                            <ul class="option-select-btn custom_01_option flex-wrap weight-style--two gap-2 pt-2">
+                                                        <div class="d-flex gap-4 align-items-center mb-3">
+                                                            <span class="text-muted">{{translate('color')}}</span>
+                                                            <ul class="option-select-btn custom_01_option flex-wrap weight-style--two gap-3 pt-2">
                                                                 @foreach (json_decode($product->colors) as $key => $color)
                                                                     <li>
                                                                         <label>
@@ -273,10 +317,9 @@
                                                                                 {{ $key == 0 ? 'checked' : '' }}
                                                                             >
                                                                             <span
-                                                                                class="color_variants rounded-circle p-0 {{ $key == 0 ? 'color_variant_active':''}}"
-                                                                                style="background: {{ $color }};"
-                                                                                for="{{ $product->id }}-color-{{ str_replace('#','',$color) }}"
-                                                                                onclick="focus_preview_image_by_color('preview-box-{{ str_replace('#','',$color) }}')"
+                                                                                class="color_variants rounded focus-preview-image-by-color p-0 {{ $key == 0 ? 'color_variant_active':''}}"
+                                                                                style="background: {{ $color }}; --outline:2px;"
+                                                                                data-slide-id="preview-box-{{ str_replace('#','',$color) }}"
                                                                                 id="color_variants_preview-box-{{ str_replace('#','',$color) }}"
                                                                             ></span>
                                                                         </label>
@@ -285,12 +328,12 @@
                                                             </ul>
                                                         </div>
                                                     @endif
-                                                    <!--  -->
-                                                    @foreach (json_decode($product->choice_options) as $key => $choice)
-                                                        <div class="d-flex gap-4 flex-wrap align-items-center mb-4">
-                                                            <h6 class="fw-semibold">{{translate($choice->title)}}</h6>
+
+                                                    @foreach (json_decode($product->choice_options) as  $choice)
+                                                        <div class="d-flex gap-4 align-items-center mb-4">
+                                                            <span class="text-muted">{{translate($choice->title)}}</span>
                                                             <ul class="option-select-btn custom_01_option flex-wrap weight-style--two gap-2">
-                                                                @foreach ($choice->options as $key => $option)
+                                                                @foreach ($choice->options as $key =>$option)
                                                                     <li>
                                                                         <label>
                                                                             <input type="radio" hidden=""
@@ -305,104 +348,184 @@
                                                             </ul>
                                                         </div>
                                                     @endforeach
-                                                    <div class="d-flex gap-4 flex-wrap align-items-center mb-4">
-                                                        <h6 class="fw-semibold">{{translate('quantity')}}</h6>
 
-                                                        <div class="quantity quantity--style-two">
-                                                            <span class="quantity__minus single_quantity__minus">
-                                                                <i class="bi bi-trash3-fill text-danger fs-10"></i>
-                                                            </span>
+                                                    @php($extensionIndex=0)
+                                                    @if($product['product_type'] == 'digital' && $product['digital_product_file_types'] && count($product['digital_product_file_types']) > 0 && $product['digital_product_extensions'])
+                                                        @foreach($product['digital_product_extensions'] as $extensionKey => $extensionGroup)
+                                                            <div class="d-flex gap-4 align-items-center mb-4">
+                                                                <span class="text-muted">
+                                                                    {{ translate($extensionKey) }}
+                                                                </span>
+
+                                                                @if(count($extensionGroup) > 0)
+                                                                    <ul class="option-select-btn custom_01_option flex-wrap weight-style--two gap-2">
+                                                                    @foreach($extensionGroup as $index => $extension)
+                                                                        <li>
+                                                                            <label>
+                                                                                <input type="radio" hidden
+                                                                                       name="variant_key"
+                                                                                       value="{{ $extensionKey.'-'.preg_replace('/\s+/', '-', $extension) }}"
+                                                                                    {{ $extensionIndex == 0 ? 'checked' : ''}}>
+                                                                                <span class="text-transform-none">{{ $extension }}</span>
+                                                                            </label>
+                                                                        </li>
+                                                                    @php($extensionIndex++)
+                                                                    @endforeach
+                                                                    </ul>
+                                                                @endif
+
+                                                            </div>
+                                                        @endforeach
+                                                    @endif
+
+
+                                                    <div class="d-flex gap-4 flex-wrap align-items-center mb-30">
+                                                        <span class="text-muted">{{translate('Qty')}}</span>
+                                                        <div class="quantity quantity--style-two d-flex align-items-center justify-content-between w-130px h-40px rounded overflow-hidden">
+                                                           <span class="quantity__minus single-quantity-minus form-control h-100 bg--light w-32px" data-type="minus" data-field="quantity" data-form=".add-to-cart-details-form">
+                                                            <i class="bi bi-dash"></i>
+                                                        </span>
                                                             <input type="text"
-                                                                   class="quantity__qty product_quantity__qty"
+                                                                   data-details-page="1"
+                                                                   class="quantity__qty product_quantity__qty product-details-cart-qty w-100 fs-12 input-number"
                                                                    name="quantity"
-                                                                   value="{{ $product->minimum_order_qty ?? 1 }}"
-                                                                   min="{{ $product->minimum_order_qty ?? 1 }}"
+                                                                   value="{{ $initialProductConfig['quantity'] ?? 1 }}"
+                                                                   min="{{ $product?->minimum_order_qty ?? 1 }}"
                                                                    max="{{$product['product_type'] == 'physical' ? $product->current_stock : 100}}">
-                                                            <span class="quantity__plus single_quantity__plus" {{($product->current_stock == 1?'disabled':'')}}>
+                                                            <span class="quantity__plus single-quantity-plus form-control h-100 bg--light w-32px" data-type="plus" data-field="quantity" data-form=".add-to-cart-details-form">
                                                                 <i class="bi bi-plus"></i>
                                                             </span>
                                                         </div>
                                                     </div>
-                                                    <div class="mx-w" style="--width: 24rem">
-                                                        <div class="bg-light w-100 rounded p-4">
-                                                            <div class="flex-between-gap-3">
-                                                                <div class="">
-                                                                    <h6 class="flex-middle-gap-2 mb-2">
-                                                                        <span class="text-muted">{{translate('total_price')}}:</span>
-                                                                        <span
-                                                                            class="total_price">{{\App\CPU\Helpers::currency_converter($product->unit_price)}}</span>
-                                                                    </h6>
-                                                                    <h6 class="flex-middle-gap-2">
-                                                                        <span
-                                                                            class="text-muted">{{translate('Tax')}}:</span>
-                                                                        <span
-                                                                            class="product_vat">{{ $product->tax_model == 'include' ? 'incl.' : \App\CPU\Helpers::currency_converter($product->tax)}}</span>
-                                                                    </h6>
-                                                                </div>
+                                                    <input type="hidden" class="product-generated-variation-code" name="product_variation_code" data-product-id="{{ $product['id'] }}">
+                                                    <input type="hidden" value="" class="product-exist-in-cart-list form-control w-50" name="key">
+                                                    <div class="mb-30">
+                                                        <div class="bg-light w-100 rounded px-3 py-2">
+                                                            <div class="d-flex gap-1 align-items-center">
+                                                                <h4 class="flex-middle-gap-2 mb-0 fs-12">
+                                                                    <span>
+                                                                        {{translate('total_price').':'}}
+                                                                    </span>
+                                                                    <span class="product-details-chosen-price-amount fs-18 text-primary">
+                                                                        {{ webCurrencyConverter($initialProductConfig['total_quantity_price']) }}
+                                                                    </span>
+                                                                </h4>
+                                                            </div>
+                                                            <div class="">
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="mx-w d-flex flex-wrap gap-3 mt-4"
-                                                         style="--width: 24rem">
-                                                        @if(($product->added_by == 'seller' && ($seller_temporary_close || (isset($product->seller->shop) && $product->seller->shop->vacation_status && $current_date >= $seller_vacation_start_date && $current_date <= $seller_vacation_end_date))) ||
-                                                        ($product->added_by == 'admin' && ($inhouse_temporary_close || ($inhouse_vacation_status && $current_date >= $inhouse_vacation_start_date && $current_date <= $inhouse_vacation_end_date))))
-                                                            <button type="button"
-                                                                    class="buy_now_button btn btn-secondary fs-16 flex-grow-1"
-                                                                    disabled>{{translate('buy_now')}}</span></button>
-                                                            <button type="button"
-                                                                    class="update_cart_button btn btn-primary fs-16 flex-grow-1"
-                                                                    disabled>{{translate('add_to_Cart')}}</button>
-                                                        @else
-                                                            @php($guest_checkout=\App\CPU\Helpers::get_business_settings('guest_checkout'))
-                                                            <button type="button"
-                                                                class="buy_now_button btn btn-secondary fs-16"
-                                                                onclick="buy_now('add-to-cart-form', {{($guest_checkout==1 || Auth::guard('customer')->check()?'true':'false')}}, '{{route('shop-cart')}}')">{{translate('buy_now')}}</span>
-                                                            </button>
 
-                                                            <button type="button"
-                                                                    class="update_cart_button btn btn-primary fs-16"
-                                                                    onclick="addToCart('add-to-cart-form')">{{translate('add_to_Cart')}}</button>
+                                                    <div class="mx-w d-flex flex-wrap gap-3 width--24rem product-add-and-buy-section-parent">
+                                                        <div class="product-add-and-buy-section d--flex flex-wrap gap-3" {!! $firstVariationQuantity <= 0 ? 'style="display: none;"' : '' !!}>
+                                                                <?php
+
+                                                                $isTemporaryClose = false;
+                                                                $isVacationMode = false;
+                                                                $authorType = $product->added_by == 'admin' ? 'inhouse' : ($product->added_by == 'seller' ? 'vendor' : '');
+
+                                                                if ($authorType === 'vendor') {
+                                                                    $isTemporaryClose = checkVendorAbility(type: $authorType, status: 'temporary_close', vendor: $product->seller->shop);
+                                                                    $isVacationMode = !$isTemporaryClose ? checkVendorAbility(type: $authorType, status: 'vacation_status', vendor: $product->seller->shop) : false;
+                                                                } else {
+                                                                    $isTemporaryClose = checkVendorAbility(type: $authorType, status: 'temporary_close');
+                                                                    $isVacationMode = !$isTemporaryClose ? checkVendorAbility(type: $authorType, status: 'vacation_status') : false;
+                                                                }
+                                                                ?>
+
+                                                             @if($isTemporaryClose || $isVacationMode)
+                                                                <button type="button"
+                                                                        class="btn btn-secondary fs-16 flex-grow-1"
+                                                                        disabled>
+                                                                    {{translate('buy_now')}}
+                                                                </button>
+                                                                <button type="button"
+                                                                        class="btn btn-primary fs-16 flex-grow-1 text-capitalize"
+                                                                        disabled>
+                                                                    {{translate('add_to_cart')}}
+                                                                </button>
+                                                            @else
+                                                                <button type="button"
+                                                                        class="btn btn-secondary fs-16 product-buy-now-button"
+                                                                        data-form=".add-to-cart-details-form"
+                                                                        data-auth="{{( getWebConfig(name: 'guest_checkout') == 1 || Auth::guard('customer')->check() ? 'true':'false')}}"
+                                                                        data-route="{{ route('shop-cart') }}"
+                                                                >
+                                                                    {{translate('buy_now')}}
+                                                                </button>
+                                                                <button type="button"
+                                                                        class="btn btn-primary fs-16 text-capitalize product-add-to-cart-button"
+                                                                        type="button"
+                                                                        data-form=".add-to-cart-details-form"
+                                                                        data-update="{{ translate('update_cart') }}"
+                                                                        data-add="{{ translate('add_to_cart') }}">
+                                                                    {{ $initialProductConfig['first_variant_in_cart'] ? translate('update_cart') : translate('add_to_cart') }}
+                                                                </button>
+                                                            @endif
+                                                        </div>
+
+                                                        @if(($product['product_type'] == 'physical'))
+                                                            <div class="product-restock-request-section collapse" {!! $firstVariationQuantity <= 0 ? 'style="display: block;"' : '' !!}>
+                                                                <button type="button"
+                                                                        class="btn request-restock-btn btn-outline-primary fw-semibold product-restock-request-button"
+                                                                        data-auth="{{ auth('customer')->check() }}"
+                                                                        data-form=".addToCartDynamicForm"
+                                                                        data-default="{{ translate('Request_Restock') }}"
+                                                                        data-requested="{{ translate('Request_Sent') }}"
+                                                                >
+                                                                    {{ translate('Request_Restock')}}
+                                                                </button>
+                                                            </div>
                                                         @endif
                                                     </div>
-                                                    @if(($product->added_by == 'seller' && ($seller_temporary_close || (isset($product->seller->shop) && $product->seller->shop->vacation_status && $current_date >= $seller_vacation_start_date && $current_date <= $seller_vacation_end_date))) ||
-                                                    ($product->added_by == 'admin' && ($inhouse_temporary_close || ($inhouse_vacation_status && $current_date >= $inhouse_vacation_start_date && $current_date <= $inhouse_vacation_end_date))))
-                                                        <div class="alert alert-danger mt-3" role="alert">
-                                                            {{translate('this_shop_is_temporary_closed_or_on_vacation')}}
-                                                            .
-                                                            {{translate('You_cannot_add_product_to_cart_from_this_shop_for_now')}}
-                                                        </div>
+
+                                                    @if($product->added_by == 'admin')
+                                                        @if(checkVendorAbility(type: 'inhouse', status: 'temporary_close') || checkVendorAbility(type: 'inhouse', status: 'vacation_status'))
+                                                            <div class="alert alert-danger mt-3" role="alert">
+                                                                {{ translate('this_shop_is_temporary_closed_or_on_vacation').'.'.translate('you_cannot_add_product_to_cart_from_this_shop_for_now') }}
+                                                            </div>
+                                                        @endif
+                                                    @elseif($product->added_by == 'seller')
+                                                        @if(checkVendorAbility(type: 'vendor', status: 'temporary_close', vendor: $product->seller->shop) || checkVendorAbility(type: 'vendor', status: 'vacation_status', vendor: $product->seller->shop))
+                                                            <div class="alert alert-danger mt-3" role="alert">
+                                                                {{ translate('this_shop_is_temporary_closed_or_on_vacation').'.'.translate('you_cannot_add_product_to_cart_from_this_shop_for_now') }}
+                                                            </div>
+                                                        @endif
                                                     @endif
                                                 </div>
                                             </form>
                                         </div>
-                                        <!-- End Product Details Content -->
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="card">
+                    <div class="card" id="scroll-into-view-wrapper">
                         <div class="card-body">
                             <nav>
-                                <div class="nav justify-content-center gap-4 nav--tabs" id="nav-tab" role="tablist">
-                                    <button class="active" id="product-details-tab" data-bs-toggle="tab"
-                                            data-bs-target="#product-details" type="button" role="tab"
+                                <div class="nav justify-content-center gap-2 nav--tabs nav--tabs--with--bg" id="nav-tab" role="tablist">
+                                    <h2 class="active text-capitalize tab_link fs-16 cursor-pointer" id="product-details-tab" data-bs-toggle="tab"
+                                            data-bs-target="#product-details" role="tab"
                                             aria-controls="product-details"
-                                            aria-selected="true">{{translate('Product_Details')}}</button>
-                                    <button id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews"
-                                            type="button" role="tab" aria-controls="reviews"
-                                            aria-selected="false">{{translate("reviews")}}</button>
+                                            aria-selected="true">{{translate('product_details')}}</h2>
+                                    <h2 class="tab_link fs-16 cursor-pointer" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews"
+                                            role="tab" aria-controls="reviews"
+                                            aria-selected="false">{{translate("reviews")}}</h2>
                                 </div>
                             </nav>
-                            <div class="tab-content mt-3" id="nav-tabContent">
+                            <div class="product-details-tab-content tab-content mt-3" id="nav-tabContent">
                                 <div class="tab-pane fade show active" id="product-details" role="tabpanel"
                                      aria-labelledby="product-details-tab" tabindex="0">
-                                    <div class="details-content-wrap custom-height ov-hidden show-more--content active">
+                                    <div class="details-content-wrap ov-hidden show-more--content">
                                         <div class="table-responsive">
                                             <table class="table mb-0">
                                                 <thead class="table-light">
                                                 <tr>
-                                                    <th class="border-0">{{translate('details_Description')}}</th>
+                                                    <th class="border-0 text-capitalize">
+                                                        <h3 class="fs-14">
+                                                            {{translate('details_description')}}
+                                                        </h3>
+                                                    </th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
@@ -410,12 +533,16 @@
                                                     <td>
                                                         @if($product->video_url != null && (str_contains($product->video_url, "youtube.com/embed/")))
                                                             <div class="col-12 mb-4 text-center">
-                                                                <iframe width="560" height="315"
-                                                                        src="{{$product->video_url}}">
-                                                                </iframe>
+                                                                <iframe width="560" height="315" src="{{ $product->video_url }}"
+                                                                        title="YouTube video player" frameborder="0"
+                                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                                                        referrerpolicy="strict-origin-when-cross-origin"
+                                                                        allowfullscreen></iframe>
                                                             </div>
                                                         @endif
-                                                        {!! $product->details !!}
+                                                        <div class="rich-editor-html-content">
+                                                            {!! $product->details !!}
+                                                        </div>
                                                     </td>
                                                 </tr>
                                                 </tbody>
@@ -423,13 +550,12 @@
                                         </div>
                                     </div>
                                     <div class="d-flex justify-content-center mt-2">
-                                        <button
-                                            class="btn btn-outline-primary see-more-details">{{translate('see_more')}}</button>
+                                        <button class="btn btn-outline-primary see-more-details">{{translate('see_more')}}</button>
                                     </div>
                                 </div>
                                 <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab"
                                      tabindex="0">
-                                    <div class="details-content-wrap custom-height ov-hidden show-more--content active">
+                                    <div class="details-content-wrap ov-hidden show-more--content">
                                         <div class="row gy-4">
                                             <div class="col-lg-5">
                                                 <div class="rating-review mx-auto text-center mb-30">
@@ -437,10 +563,10 @@
                                                             class="rating-review__out-of">{{round($overallRating[0], 1)}}</span>/5
                                                     </h2>
                                                     <div class="rating text-gold mb-2">
-                                                        @for ($i = 1; $i <= 5; $i++)
-                                                            @if ($i <= (int)$overallRating[0])
+                                                        @for ($increment = 1; $increment <= 5; $increment++)
+                                                            @if ($increment <= (int)$overallRating[0])
                                                                 <i class="bi bi-star-fill"></i>
-                                                            @elseif ($overallRating[0] != 0 && $i <= (int)$overallRating[0] + 1.1 && $overallRating[0] > ((int)$overallRating[0]))
+                                                            @elseif ($overallRating[0] != 0 && $increment <= (int)$overallRating[0] + 1.1 && $overallRating[0] > ((int)$overallRating[0]))
                                                                 <i class="bi bi-star-half"></i>
                                                             @else
                                                                 <i class="bi bi-star"></i>
@@ -448,11 +574,9 @@
                                                         @endfor
                                                     </div>
                                                     <div class="rating-review__info">
-                                                        <span>{{$reviews_of_product->total()}} {{translate('ratings')}}</span>
+                                                        <span>{{$productReviews->total().' '.translate($productReviews->total() <=1 ? 'review' : 'reviews')}}</span>
                                                     </div>
                                                 </div>
-
-
                                                 <ul class="list-rating gap-10">
                                                     <li>
                                                         <span class="review-name">5 {{translate('star')}}</span>
@@ -513,60 +637,80 @@
                                             </div>
                                             <div class="col-lg-7">
                                                 <div class="d-flex flex-wrap gap-3" id="product-review-list">
-                                                    @foreach ($reviews_of_product as $item)
+                                                    @foreach ($productReviews as $review)
                                                         <div class="card border-primary-light flex-grow-1">
-                                                            <div class="media flex-wrap align-items-centr gap-3 p-3">
-                                                                <div class="avatar overflow-hidden border rounded-circle"
-                                                                     style="--size: 3.437rem">
-                                                                    <img
-                                                                        src="{{asset("storage/app/public/profile")}}/{{(isset($item->user)?$item->user->image:'')}}"
-                                                                        alt=""
-                                                                        class="img-fit dark-support"
-                                                                        onerror="this.src='{{theme_asset('assets/img/image-place-holder.png')}}'">
+                                                            <div class="media flex-wrap align-items-centr gap-3 p-3 {{ $review->reply ? 'before-content-border' : '' }}">
+                                                                <div
+                                                                    class="avatar overflow-hidden border rounded-circle size-3-437rem">
+                                                                    <img alt="" class="img-fit dark-support"
+                                                                        src="{{ getStorageImages(path: $review?->user?->image_full_url, type: 'avatar') }}">
                                                                 </div>
                                                                 <div class="media-body d-flex flex-column gap-2">
                                                                     <div
                                                                         class="d-flex flex-wrap gap-2 align-items-center justify-content-between">
                                                                         <div>
-                                                                            <h6 class="mb-1">{{isset($item->user)?$item->user->f_name:translate('User_Not_Exist')}}</h6>
+                                                                            <h6 class="mb-1 text-capitalize">{{isset($review->user)?$review->user->f_name:translate('user_not_exist')}}</h6>
                                                                             <div
                                                                                 class="d-flex gap-2 align-items-center">
                                                                                 <div
                                                                                     class="star-rating text-gold fs-12">
                                                                                     @for ($inc=0; $inc < 5; $inc++)
-                                                                                        @if ($inc < $item->rating)
+                                                                                        @if ($inc < $review->rating)
                                                                                             <i class="bi bi-star-fill"></i>
                                                                                         @else
                                                                                             <i class="bi bi-star"></i>
                                                                                         @endif
                                                                                     @endfor
                                                                                 </div>
-                                                                                <span>({{$item->rating}}/5)</span>
+                                                                                <span>({{$review->rating}}/5)</span>
                                                                             </div>
                                                                         </div>
-                                                                        <div>{{$item->updated_at->format("d M Y h:i:s A")}}</div>
+                                                                        <div>{{ $review->created_at ? $review->created_at->format("d M Y h:i:s A") : ($review->updated_at->format("d M Y h:i:s A")) }}</div>
                                                                     </div>
-                                                                    <p>{{$item->comment}}</p>
-
-                                                                    <div class="d-flex flex-wrap gap-2 products-comments-img">
-                                                                        @foreach(json_decode($item->attachment) as $img)
-                                                                            @if(file_exists(base_path("storage/app/public/review/".$img)))
-                                                                                <a href="{{asset("storage/app/public/review/".$img)}}" data-lightbox="">
-                                                                                    <img src="{{asset("storage/app/public/review/".$img)}}" class="remove-mask-img"
-                                                                                         onerror="this.src='{{theme_asset('assets/img/image-place-holder.png')}}'">
+                                                                    <p>{{$review->comment}}</p>
+                                                                    @if(count($review->attachment_full_url)>0)
+                                                                        <div
+                                                                            class="d-flex flex-wrap gap-2 products-comments-img custom-image-popup-init">
+                                                                            @foreach($review->attachment_full_url as $img)
+                                                                                <a href="{{ getStorageImages(path:$img, type:'product') }}" class="custom-image-popup">
+                                                                                    <img class="remove-mask-img" alt=""
+                                                                                        src="{{ getStorageImages(path:$img, type:'product') }}">
                                                                                 </a>
-                                                                            @endif
-                                                                        @endforeach
-                                                                    </div>
+                                                                            @endforeach
+                                                                        </div>
+                                                                   @endif
                                                                 </div>
                                                             </div>
+
+                                                            @if($review->reply)
+                                                            <div class="ps-4 mt-3 pb-4">
+                                                                <div class="review-reply rounded bg-E9F3FF80 p-3 mx-4">
+                                                                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                                                                        <div class="d-flex align-items-center gap-2">
+                                                                            <img src="{{dynamicAsset('/public/assets/front-end/img/seller-reply-icon.png')}}" alt="">
+                                                                            <h6 class="font-bold fs-14 m-0">
+                                                                                {{ translate('Reply_by_Seller') }}
+                                                                            </h6>
+                                                                        </div>
+                                                                        <span class="opacity-50 fs-12">
+                                                                            {{ isset($review->created_at) ? $review->reply->created_at->format('M-d-Y') : '' }}
+                                                                        </span>
+                                                                    </div>
+                                                                    <p class="fs-14">
+                                                                        {!! $review->reply->reply_text !!}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            @endif
                                                         </div>
                                                     @endforeach
-
-                                                    @if(count($product->reviews)==0)
-                                                        <div class="card">
-                                                            <div class="card-body">
-                                                                <h6 class="text-danger text-center m-0">{{translate('product_review_not_available')}}</h6>
+                                                    @if(count($productReviews)==0)
+                                                        <div class="d-flex justify-content-center align-items-center w-100">
+                                                            <div class="d-flex flex-column justify-content-center align-items-center gap-2 py-5 w-100">
+                                                                <img width="60" class="mb-3" src="{{ theme_asset('assets/img/empty-state/empty-review.svg') }}" alt="">
+                                                                <h5 class="text-center text-muted">
+                                                                    {{ translate('No_review_yet') }}!
+                                                                </h5>
                                                             </div>
                                                         </div>
                                                     @endif
@@ -575,16 +719,18 @@
                                         </div>
                                     </div>
                                     <div class="d-flex justify-content-center mt-2">
-                                        @if(count($product->reviews) > 2)
-                                            <button class="btn btn-outline-primary see-more-details-review m-1 view_text"
-                                                onclick="seemore()"
-                                                data-productid="{{$product->id}}"
-                                                data-routename="{{route('review-list-product')}}"
-                                                data-afterextend="{{translate('see_less')}}"
-                                                data-seemore="{{translate('see_more')}}"
+                                        @if($productReviews->total() > 2)
+                                            <button
+                                                class="btn btn-outline-primary see-more-details-review m-1 view_text"
+                                                id="see-more"
+                                                data-product-id="{{$product->id}}"
+                                                data-action="{{route('review-list-product')}}"
+                                                data-after-extend="{{translate('see_less')}}"
+                                                data-see-more="{{translate('see_more')}}"
                                                 data-onerror="{{translate('no_more_review_remain_to_load')}}">{{translate('see_more')}}</button>
                                         @else
-                                            <button class="btn btn-outline-primary see-more-details m-1">{{translate('see_more')}}</button>
+                                            <button
+                                                class="btn btn-outline-primary see-more-details m-1">{{translate('see_more')}}</button>
                                         @endif
                                     </div>
                                 </div>
@@ -593,149 +739,191 @@
                     </div>
                 </div>
                 <div class="col-lg-4 col-xl-3 d-flex flex-column gap-3">
+                    @if (count($moreProductFromSeller)>0)
                     <div class="card order-1 order-sm-0">
                         <div class="card-body">
-                            <h5 class="mb-3">{{translate('More_from_the_Store')}}</h5>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h2 class="text-capitalize h5 mb-0">
+                                    @if(getWebConfig(name: 'business_mode')=='multi')
+                                        {{ translate('more_from_the_store') }}
+                                    @else
+                                        {{ translate('you_may_also_like') }}
+                                    @endif
+                                </h2>
+                                @if($product->added_by == 'seller' && isset($product->seller->shop))
+                                    <a href="{{ route('vendor-shop',['slug'=> $product->seller->shop->slug]) }}"
+                                       class="text-primary font-bold __text-14px">
+                                        {{ translate('View_All') }}
+                                        <i class="bi bi-chevron-{{ session('direction') === 'rtl' ? 'left' : 'right' }} text-primary me-1"></i>
+                                    </a>
+                                @else
+                                    <a href="{{ route('vendor-shop',['slug'=> getInHouseShopConfig(key: 'slug')]) }}"
+                                       class="text-primary font-bold __text-14px">
+                                        {{ translate('View_All') }}
+                                        <i class="bi bi-chevron-{{ session('direction') === 'rtl' ? 'left' : 'right' }} text-primary me-1"></i>
+                                    </a>
+                                @endif
+                            </div>
 
                             <div class="d-flex flex-wrap gap-3">
-                                @if (count($more_product_from_seller)>0)
-                                    @foreach($more_product_from_seller as $key => $item)
-                                        <div class="card border-primary-light flex-grow-1">
-                                            <a href="{{route('product',$item->slug)}}"
-                                               class="media align-items-centr gap-3 p-3">
-                                                <div class="avatar" style="--size: 4.375rem">
-                                                    <img
-                                                        src="{{\App\CPU\ProductManager::product_image_path('thumbnail')}}/{{$item['thumbnail']}}"
-                                                        alt=""
-                                                        class="img-fit dark-support rounded img-fluid overflow-hidden"
-                                                        onerror="this.src='{{theme_asset('assets/img/image-place-holder.png')}}'">
-                                                </div>
-                                                @php($item_review = \App\CPU\ProductManager::get_overall_rating($item->reviews))
-
-                                                <div class="media-body d-flex flex-column gap-2">
-                                                    <h6 class="text-capitalize">{{ Str::limit($item['name'], 18) }}</h6>
-                                                    <div class="d-flex gap-2 align-items-center">
-                                                        <div class="star-rating text-gold fs-12">
-                                                            @for ($i = 1; $i <= 5; $i++)
-                                                                @if ($i <= (int)$item_review[0])
-                                                                    <i class="bi bi-star-fill"></i>
-                                                                @elseif ($item_review[0] != 0 && $i <= (int)$item_review[0] + 1.1 && $item_review[0] > ((int)$item_review[0]))
-                                                                    <i class="bi bi-star-half"></i>
-                                                                @else
-                                                                    <i class="bi bi-star"></i>
-                                                                @endif
-                                                            @endfor
-                                                        </div>
-                                                        <span>({{$item->reviews_count}})</span>
-                                                    </div>
-                                                    <div class="product__price">
-                                                        <ins class="product__new-price">
-                                                            {{\App\CPU\Helpers::currency_converter(
-                                                                $item->unit_price-(\App\CPU\Helpers::get_product_discount($item,$item->unit_price))
-                                                            )}}
-                                                        </ins>
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        </div>
-                                    @endforeach
-                                @else
+                                @foreach($moreProductFromSeller as $key => $item)
                                     <div class="card border-primary-light flex-grow-1">
-                                        <a href="javaScript:void(0)" class="media align-items-centr gap-3 p-3">
+                                        <a href="{{route('product',$item->slug)}}"
+                                           class="media align-items-centr gap-3 p-3 ">
+                                            <div class="avatar size-4-375rem">
+                                                <img class="img-fit dark-support rounded img-fluid overflow-hidden"
+                                                    alt=""
+                                                    src="{{ getStorageImages(path: $item['thumbnail_full_url'], type: 'product') }}">
+                                            </div>
+                                            @php($itemReview = getOverallRating($item?->reviews))
                                             <div class="media-body d-flex flex-column gap-2">
-                                                <h6>{{translate('similar_product_not_available')}}</h6>
+                                                <h3 class="text-capitalize h6">{{ Str::limit($item['name'], 18) }}</h3>
+                                                <div class="d-flex gap-2 align-items-center">
+                                                    <div class="star-rating text-gold fs-12">
+                                                        @for ($index = 1; $index <= 5; $index++)
+                                                            @if ($index <= (int)$itemReview[0])
+                                                                <i class="bi bi-star-fill"></i>
+                                                            @elseif ($itemReview[0] != 0 && $index <= (int)$itemReview[0] + 1.1 && $itemReview[0] > ((int)$itemReview[0]))
+                                                                <i class="bi bi-star-half"></i>
+                                                            @else
+                                                                <i class="bi bi-star"></i>
+                                                            @endif
+                                                        @endfor
+                                                    </div>
+                                                    <span>({{ count($item->reviews) }})</span>
+                                                </div>
+                                                <h4 class="product__price h6">
+                                                    <ins class="product__new-price">
+                                                        {{webCurrencyConverter($item->unit_price-(Helpers::getProductDiscount($item,$item->unit_price)))}}
+                                                    </ins>
+                                                </h4>
                                             </div>
                                         </a>
                                     </div>
-
-                                @endif
+                                @endforeach
                             </div>
                         </div>
                     </div>
+                    @endif
+
                     @if($product->added_by=='seller')
                         @if(isset($product->seller->shop))
                             <div class="card order-0 order-sm-1">
                                 <div class="card-body">
                                     <div class="p-2 overlay shop-bg-card"
-                                         data-bg-img="{{asset('storage/app/public/shop/banner')}}/{{$product->seller->shop->banner}}">
+                                         data-bg-img="{{ getStorageImages(path: $product?->seller?->shop->banner_full_url, type: 'shop-banner') }}">
                                         <div class="media flex-wrap gap-3 p-2">
-                                            <div class="avatar border rounded-circle" style="--size: 3.437rem">
-                                                <img
-                                                    src="{{asset('storage/app/public/shop')}}/{{$product->seller->shop->image}}"
-                                                    alt="" class="img-fit dark-support rounded-circle"
-                                                    onerror="this.src='{{theme_asset('assets/img/image-place-holder.png')}}'">
+                                            <div class="avatar border rounded-circle size-3-437rem get-view-by-onclick cursor-pointer aspect-1 overflow-hidden d-flex align-items-center" data-link="{{ route('vendor-shop',['slug' => $product->seller?->shop?->slug] ) }}">
+                                                <img alt="" class="img-fit dark-support rounded-circle"
+                                                    src="{{ getStorageImages(path: $product?->seller?->shop->image_full_url, type:'shop') }}">
                                             </div>
-                                            <div class="media-body d-flex flex-column gap-2 text-absolute-whtie">
+                                            <div class="media-body d-flex flex-column gap-2 text-absolute-whtie get-view-by-onclick" data-link="{{ route('vendor-shop',['slug' => $product->seller?->shop?->slug]) }}">
                                                 <div class="d-flex flex-column gap-1 justify-content-start">
-                                                    <h5 class="">{{$product->seller->shop->name}}</h5>
+                                                    <h2 class="cursor-pointer h5 mb-1">
+                                                        {{ $product->seller->shop->name }}
+                                                    </h2>
+
+                                                    @if(checkVendorAbility(type: 'vendor', status: 'temporary_close', vendor: $product?->seller?->shop))
+                                                        <div>
+                                                            <span class="bg-danger p-1 px-2 rounded small text-white w-auto">
+                                                                {{ translate('Temporary_OFF') }}
+                                                            </span>
+                                                        </div>
+                                                    @elseif(checkVendorAbility(type: 'vendor', status: 'vacation_status', vendor: $product?->seller?->shop))
+                                                        <div>
+                                                            <span class="bg-danger p-1 px-2 rounded small text-white w-auto">
+                                                                {{ translate('closed_Now') }}
+                                                            </span>
+                                                        </div>
+                                                    @endif
+
                                                     <div class="d-flex gap-2 align-items-center ">
                                                         <div class="star-rating text-gold fs-12">
-                                                            @for ($i = 1; $i <= 5; $i++)
-                                                                @if ($i <= (int)$avg_rating)
+                                                            @for ($increment = 1; $increment <= 5; $increment++)
+                                                                @if ($increment <= (int)$avgRating)
                                                                     <i class="bi bi-star-fill"></i>
-                                                                @elseif ($avg_rating != 0 && $i <= (int)$avg_rating + 1.1 && $avg_rating > ((int)$avg_rating))
+                                                                @elseif ($avgRating != 0 && $increment <= (int)$avgRating + 1.1 && $avgRating > ((int)$avgRating))
                                                                     <i class="bi bi-star-half"></i>
                                                                 @else
                                                                     <i class="bi bi-star"></i>
                                                                 @endif
                                                             @endfor
                                                         </div>
-                                                        <span>({{$total_reviews}})</span>
+                                                        <span>({{$totalReviews}})</span>
                                                     </div>
-                                                    <h6 class="fw-semibold">{{$products_for_review->count()}} {{translate('products')}}</h6>
+                                                    <h3 class="fw-semibold h6">{{ $productsForReview->total() }} {{translate('products')}}</h3>
                                                 </div>
 
                                                 <div class="mb-3">
                                                     <div class="text-center d-inline-block">
-                                                        <h3 class="mb-1">{{round($rating_percentage)}}%</h3>
+                                                        <h4 class="mb-1 h3">{{round($positiveReview).'%'}}</h4>
                                                         <div class="fs-12">{{translate('positive_review')}}</div>
                                                     </div>
                                                 </div>
                                             </div>
                                             @if (auth('customer')->id() == '')
-                                                <div class="btn-circle chat-btn" style="--size: 2.5rem"
+                                                <div class="btn-circle chat-btn size-2-5rem"
                                                      data-bs-toggle="modal" data-bs-target="#loginModal">
                                                     <i class="bi bi-chat-square-dots"></i>
                                                 </div>
                                             @else
-                                                <div class="btn-circle chat-btn" style="--size: 2.5rem"
-                                                     data-bs-toggle="modal" data-bs-target="#contact_sellerModal">
+                                                <div class="btn-circle chat-btn size-2-5rem"
+                                                     data-bs-toggle="modal" data-bs-target="#contact_sellerModal"
+                                                     @if(checkVendorAbility(type: 'vendor', status: 'temporary_close', vendor: $product?->seller?->shop))
+                                                         disabled
+                                                    @endif>
                                                     <i class="bi bi-chat-square-dots"></i>
                                                 </div>
                                             @endif
                                         </div>
 
-                                        <a href="{{ route('shopView',[$product->seller->id]) }}"
-                                           class="btn btn-primary btn-block">{{translate('Visit_Store')}}</a>
+                                        <a href="{{ route('vendor-shop',['slug' => $product->seller?->shop?->slug]) }}"
+                                           class="btn btn-primary btn-block text-capitalize">
+                                            {{ translate('visit_store') }}
+                                        </a>
                                     </div>
                                 </div>
                             </div>
 
-                            @include('theme-views.layouts.partials.modal._chat-with-seller',['seller_id'=>$product->seller->id,'shop_id'=>$product->seller->shop->id])
-
+                            @include('theme-views.layouts.partials.modal._chat-with-seller',['shop' => $product->seller->shop, 'user_type' => 'seller'])
                         @endif
                     @else
                         <div class="card  order-0 order-sm-1">
                             <div class="card-body">
                                 <div class="p-2 overlay shop-bg-card"
-                                     data-bg-img="{{asset("storage/app/public/shop/")}}/{{ \App\CPU\Helpers::get_business_settings('shop_banner') }}">
+                                     data-bg-img="{{getStorageImages(path: getInHouseShopConfig(key: 'banner_full_url'),type: 'banner')}}">
                                     <div class="media flex-wrap gap-3 p-2">
-                                        <div class="avatar border rounded-circle" style="--size: 3.437rem">
-                                            <img
-                                                src="{{asset("storage/app/public/company")}}/{{$web_config['fav_icon']->value}}"
-                                                alt="" class="img-fit dark-support rounded-circle"
-                                                onerror="this.src='{{theme_asset('assets/img/image-place-holder.png')}}'">
+                                        <div class="avatar border rounded-circle size-3-437rem cursor-pointer aspect-1 overflow-hidden d-flex align-items-center">
+                                            <img alt="" class="img-fit dark-support rounded-circle"
+                                                src="{{ getStorageImages(path: getInHouseShopConfig(key: 'image_full_url'), type:'shop') }}">
                                         </div>
 
                                         <div class="media-body d-flex flex-column gap-2 text-absolute-whtie">
                                             <div class="d-flex flex-column gap-1 justify-content-start">
-                                                <h5 class="">{{$web_config['name']->value}}</h5>
+                                                <h2 class="cursor-pointer get-view-by-onclick h5 mb-1"
+                                                    data-link="{{ route('vendor-shop',['slug' => getInHouseShopConfig(key:'slug')]) }}">
+                                                    {{ getInHouseShopConfig(key:'name') }}
+                                                </h2>
+                                                @if(checkVendorAbility(type: 'inhouse', status: 'temporary_close'))
+                                                    <div>
+                                                        <span class="bg-danger p-1 px-2 rounded small text-white w-auto">
+                                                            {{ translate('Temporary_OFF') }}
+                                                        </span>
+                                                    </div>
+                                                @elseif(checkVendorAbility(type: 'inhouse', status: 'vacation_status'))
+                                                    <div>
+                                                        <span class="bg-danger p-1 px-2 rounded small text-white w-auto">
+                                                            {{ translate('closed_Now') }}
+                                                        </span>
+                                                    </div>
+                                                @endif
+
                                                 <div class="d-flex gap-2 align-items-center ">
                                                     <div class="star-rating text-gold fs-12">
-                                                        @for ($i = 1; $i <= 5; $i++)
-                                                            @if ($i <= (int)$avg_rating)
+                                                        @for ($index = 1; $index <= 5; $index++)
+                                                            @if ($index <= (int)$avgRating)
                                                                 <i class="bi bi-star-fill"></i>
-                                                            @elseif ($avg_rating != 0 && $i <= (int)$avg_rating + 1.1 && $avg_rating > ((int)$avg_rating))
+                                                            @elseif ($avgRating != 0 && $index <= (int)$avgRating + 1.1 && $avgRating > ((int)$avgRating))
                                                                 <i class="bi bi-star-half"></i>
                                                             @else
                                                                 <i class="bi bi-star"></i>
@@ -743,86 +931,111 @@
                                                         @endfor
                                                     </div>
 
-                                                    <span>({{$total_reviews}})</span>
+                                                    <span>({{$totalReviews}})</span>
                                                 </div>
-                                                <h6 class="fw-semibold">{{$products_for_review->count()}} {{translate('Products')}}</h6>
+                                                <h3 class="fw-semibold h6">{{ $productsForReview->total() }} {{translate('Products')}}</h3>
 
                                                 <div class="mb-3">
-                                                    <div class="text-center d-inline-block">
-                                                        <h3 class="mb-1">{{round($rating_percentage)}}
-                                                            %</h3>
-                                                        <div
-                                                            class="fs-12">{{translate('positive_review')}}</div>
+                                                    <div class="text-left d-inline-block">
+                                                        <h4 class="mb-1 h3">{{round($positiveReview).'%'}}</h4>
+                                                        <div class="fs-12">{{translate('positive_review')}}</div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
+
+                                        @if (auth('customer')->id() == '')
+                                            <div class="btn-circle chat-btn size-2-5rem"
+                                                 data-bs-toggle="modal" data-bs-target="#loginModal">
+                                                <i class="bi bi-chat-square-dots"></i>
+                                            </div>
+                                        @else
+                                            <div class="btn-circle chat-btn size-2-5rem"
+                                                 data-bs-toggle="modal" data-bs-target="#contact_sellerModal"
+                                                 @if(checkVendorAbility(type: 'inhouse', status: 'temporary_close'))
+                                                     disabled
+                                                @endif>
+                                                <i class="bi bi-chat-square-dots"></i>
+                                            </div>
+                                        @endif
                                     </div>
-                                    <a href="{{ route('shopView',[0]) }}"
-                                       class="btn btn-primary btn-block">{{translate('Visit_Store')}}</a>
+                                    <a href="{{ route('vendor-shop',['slug' => getInHouseShopConfig(key:'slug')]) }}"
+                                       class="btn btn-primary btn-block text-capitalize">
+                                        {{ translate('visit_store') }}
+                                    </a>
                                 </div>
                             </div>
                         </div>
+
+                        @include('theme-views.layouts.partials.modal._chat-with-seller',['shop'=>0, 'user_type' => 'admin'])
                     @endif
                 </div>
             </div>
-
-            <!-- Similar Products From Other Stores -->
-            <div class="py-4 mt-3">
-                <div class="d-flex justify-content-between gap-3 mb-4">
-                    <h2>{{translate('similar_Products_From_Other_Stores')}}</h2>
-                    <div class="swiper-nav d-flex gap-2 align-items-center">
-                        <div class="swiper-button-prev top-rated-nav-prev position-static rounded-10"></div>
-                        <div class="swiper-button-next top-rated-nav-next position-static rounded-10"></div>
+            @if (count($relatedProducts)>0)
+                <div class="py-4 mt-3">
+                    <div class="d-flex justify-content-between gap-3 mb-4">
+                        @if($web_config['business_mode'] == 'multi')
+                            <h2 class="text-capitalize">{{translate('similar_products_from_other_stores')}}</h2>
+                        @else
+                            <h2 class="text-capitalize">{{translate('similar_products')}}</h2>
+                        @endif
+                        <div class="swiper-nav d-flex gap-2 align-items-center">
+                            <div class="swiper-button-prev top-rated-nav-prev position-static rounded-10"></div>
+                            <div class="swiper-button-next top-rated-nav-next position-static rounded-10"></div>
+                        </div>
                     </div>
-                </div>
-                <div class="swiper-container">
-                    <!-- Swiper -->
-                    <div class="position-relative">
-                        <div class="swiper" data-swiper-loop="false" data-swiper-margin="20" data-swiper-autoplay="true"
-                             data-swiper-pagination-el="null" data-swiper-navigation-next=".top-rated-nav-next"
-                             data-swiper-navigation-prev=".top-rated-nav-prev"
-                             data-swiper-breakpoints='{"0": {"slidesPerView": "1"}, "320": {"slidesPerView": "2"}, "992": {"slidesPerView": "3"}, "1200": {"slidesPerView": "4"}, "1400": {"slidesPerView": "5"}}'>
-                            <div class="swiper-wrapper">
-                                @if (count($relatedProducts)>0)
-                                    @foreach($relatedProducts as $key=>$product)
+                    <div class="swiper-container">
+                        <div class="position-relative">
+                            <div class="swiper" data-swiper-loop="false" data-swiper-margin="20" data-swiper-autoplay="true"
+                                 data-swiper-pagination-el="null" data-swiper-navigation-next=".top-rated-nav-next"
+                                 data-swiper-navigation-prev=".top-rated-nav-prev"
+                                 data-swiper-breakpoints='{"0": {"slidesPerView": "1"}, "320": {"slidesPerView": "2"}, "992": {"slidesPerView": "3"}, "1200": {"slidesPerView": "4"}, "1400": {"slidesPerView": "5"}}'>
+                                <div class="swiper-wrapper">
+                                    @foreach($relatedProducts as $key=>$relatedProduct)
                                         <div class="swiper-slide">
-                                            @include('theme-views.partials._similar-product-large-card',['product'=>$product])
+                                            @include('theme-views.partials._similar-product-large-card',['product'=>$relatedProduct])
                                         </div>
                                     @endforeach
-                                @else
-                                    <div class="card w-100 px-3 py-4">
-                                        <h5 class="text-muted">{{translate('no_similar_products_found')}}</h5>
-                                    </div>
-                                @endif
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            @endif
+
+            @if($product?->preview_file_full_url['path'])
+                @include('theme-views.partials._product-preview-modal', ['previewFileInfo' => $previewFileInfo])
+            @endif
         </div>
     </main>
 
-    <!-- End Main Content -->
+    @include("theme-views.product._product-details-sticky", ['productDetails' => $product])
 @endsection
 
 @push('script')
-
-    <script>
-        $('.remove-mask-img').on('click', function(){
-            $('.show-more--content').removeClass('active')
-        })
-    </script>
-
-    <script>
-        getVariantPrice();
-    </script>
-
-    <script src="{{ theme_asset('assets/js/lightbox.min.js') }}"></script>
+    <script src="{{ theme_asset('assets/js/product-details.js') }}"></script>
     <script src="{{ theme_asset('assets/plugins/easyzoom/easyzoom.min.js') }}"></script>
     <script>
+        'use strict';
         $(".easyzoom").each(function () {
             $(this).easyZoom();
+        });
+        getVariantPrice(".add-to-cart-details-form");
+        getVariantPrice(".add-to-cart-sticky-form");
+
+        $(document).ready(function () {
+            $('#review_tab_trigger').on('click', function() {
+                $('#reviews-tab').tab('show');
+
+                const target = document.querySelector('#scroll-into-view-wrapper');
+                const offset = 150;
+                const topPos = target.getBoundingClientRect().top + window.scrollY - offset;
+
+                window.scrollTo({
+                    top: topPos,
+                    behavior: 'smooth'
+                });
+            });
         });
 
     </script>

@@ -1,197 +1,169 @@
-<!-- Register Modal -->
-<div class="modal fade"
-     id="registerModal"
-     tabindex="-1"
-     aria-hidden="true"
->
+<div class="modal fade max-z-index-for-auth-modal" id="registerModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-0 pb-0">
-                <button
-                    type="button"
-                    class="btn-close"
-                    data-bs-dismiss="modal"
-                    aria-label="Close"
-                ></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body px-4 px-lg-5">
                 <div class="mb-4 text-center">
-                    <img
-                        width="200"
-                        src="{{asset("storage/app/public/company")."/".$web_config['web_logo']->value}}"
-                        onerror="this.src='{{theme_asset('assets/img/image-place-holder-2_1.png')}}'"
-                        alt=""
-                        class="dark-support"
-                    />
+                    <img width="200" alt="" class="dark-support"
+                         src="{{ getStorageImages(path: $web_config['web_logo'], type: 'logo') }}">
                 </div>
                 <div class="mb-4">
                     <h2 class="mb-2">{{ translate('sign_up') }}</h2>
                     <p class="text-muted">
-                        {{ translate('login_to_your_account.') }} {{ translate('Don’t_have_account') }}?
-                        <span
-                            class="text-primary fw-bold"
-                            data-bs-toggle="modal"
-                            data-bs-target="#loginModal">
+                        {{ translate('login_to_your_account.') }} {{ translate('Do_n’t_have_account') }}?
+                        <span class="text-primary link-hover-base fw-bold" data-bs-toggle="modal" data-bs-target="#loginModal">
                             {{ translate('login') }}
                         </span>
                     </p>
                 </div>
-
-                <form action="{{ route('customer.auth.sign-up') }}" method="POST" id="customer_form" enctype="multipart/form-data">
+                <form action="{{ route('customer.auth.sign-up') }}" method="POST" id="customer-form"
+                      enctype="multipart/form-data">
                     @csrf
-                    <div class="custom-scrollbar" style="--height: 45vh;">
+                    <div class="custom-scrollbar height-45vh">
                         <div class="row">
                             <div class="col-sm-6">
                                 <div class="form-group mb-4">
-                                    <label for="f_name"> {{ translate('First_Name') }}</label>
-                                    <input
-                                        type="text"
-                                        id="f_name"
-                                        name="f_name"
-                                        class="form-control"
-                                        placeholder="{{ translate('Ex') }}: Jhone"
-                                        value="{{old('f_name')}}"
-                                        required
-                                    />
+                                    <label class="text-capitalize" for="f_name"> {{ translate('first_name') }}</label>
+                                    <input type="text" id="f_name" name="f_name" class="form-control"
+                                           placeholder="{{ translate('ex') . ':' . translate('Jhone') }}"
+                                           value="{{ old('f_name') }}" required/>
                                 </div>
                             </div>
                             <div class="col-sm-6">
                                 <div class="form-group mb-4">
-                                    <label for="l_name">{{ translate('Last_Name') }}</label>
-                                    <input
-                                        type="text"
-                                        id="l_name"
-                                        name="l_name"
-                                        value="{{old('l_name')}}"
-                                        class="form-control"
-                                        placeholder="{{ translate('Ex') }}: Doe"
-                                        required
-                                    />
+                                    <label class="text-capitalize" for="l_name">{{ translate('last_name') }}</label>
+                                    <input type="text" id="l_name" name="l_name" value="{{ old('l_name') }}"
+                                           class="form-control"
+                                           placeholder="{{ translate('ex') . ':' . translate('doe') }}" required/>
                                 </div>
                             </div>
                             <div class="col-sm-6">
                                 <div class="form-group mb-4">
                                     <label for="r_email">{{ translate('email') }}</label>
-                                    <input
-                                        type="text"
-                                        id="r_email"
-                                        value="{{old('email')}}"
-                                        name="email"
-                                        class="form-control"
-                                        placeholder="{{ translate('enter_email_or_phone_number') }}"
-                                        autocomplete="off"
-                                        required
-                                    />
+                                    <input type="text" id="r_email" value="{{ old('email') }}" name="email"
+                                           class="form-control"
+                                           placeholder="{{ translate('enter_email_or_phone_number') }}"
+                                           autocomplete="off"
+                                           required/>
                                 </div>
                             </div>
                             <div class="col-sm-6">
                                 <div class="form-group mb-4">
                                     <label for="phone">{{ translate('phone') }}</label>
-                                    <input
-                                        type="number"
-                                        id="phone"
-                                        value="{{old('phone')}}"
-                                        name="phone"
-                                        class="form-control"
-                                        placeholder="{{ translate('enter_phone_number') }}"
-                                        required
-                                    />
+                                    <input type="tel" id="phone" value="{{ old('phone') }}"
+                                           class="form-control phone-input-with-country-picker" name="phone"
+                                           placeholder="{{ translate('enter_phone_number') }}" required/>
                                 </div>
                             </div>
                             <div class="col-sm-6">
                                 <div class="mb-4">
-                                    <label for="password">{{ translate('password') }}</label>
+                                    @php($randomLabelId=rand(1111, 9999))
+                                    <label for="password-{{ $randomLabelId }}">
+                                        {{ translate('password') }}
+                                        <span class="text-danger mx-1 password-error"></span>
+                                    </label>
                                     <div class="input-inner-end-ele">
-                                        <input
-                                            type="password"
-                                            id="password"
-                                            name="password"
-                                            class="form-control"
-                                            placeholder="{{ translate('minimum_8_characters_long') }}"
-                                            autocomplete="off"
-                                            required
-                                        />
+                                        <input type="password" id="password-{{ $randomLabelId }}" name="password"
+                                               class="form-control"
+                                               placeholder="{{ translate('minimum_8_characters_long') }}"
+                                               autocomplete="off" required/>
                                         <i class="bi bi-eye-slash-fill togglePassword"></i>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-sm-6">
                                 <div class="mb-4">
-                                    <label for="confirm_password">{{ translate('Confirm_Password') }}</label>
+                                    <label class="text-capitalize"
+                                           for="confirm_password-{{ $randomLabelId }}">
+                                        {{ translate('confirm_password') }}
+                                    </label>
                                     <div class="input-inner-end-ele">
-                                        <input
-                                            type="password"
-                                            id="confirm_password"
-                                            class="form-control"
-                                            name="con_password"
-                                            placeholder="{{ translate('minimum_8_characters_long') }}"
-                                            autocomplete="off"
-                                            required
-                                        />
+                                        <input type="password" id="confirm_password-{{ $randomLabelId }}"
+                                               class="form-control" name="con_password"
+                                               placeholder="{{ translate('minimum_8_characters_long') }}"
+                                               autocomplete="off" required/>
                                         <i class="bi bi-eye-slash-fill togglePassword"></i>
                                     </div>
                                 </div>
                             </div>
-
                             @if ($web_config['ref_earning_status'])
-                            <div class="col-sm-12">
-                                <div class="mb-4">
-                                    <div class="form-group">
-                                        <label class="form-label form--label text-capitalize" for="referral_code">{{ translate('refer_code') }} <small class="text-muted">({{ translate('optional') }})</small></label>
-                                        <input type="text" id="referral_code" class="form-control"
-                                        name="referral_code" placeholder="{{ translate('use_referral_code') }}">
+                                <div class="col-sm-12">
+                                    <div class="mb-4">
+                                        <div class="form-group">
+                                            <label class="form-label form--label text-capitalize"
+                                                   for="referral_code">{{ translate('refer_code') }} <small
+                                                    class="text-muted">({{ translate('optional') }})</small></label>
+                                            <input type="text" id="referral_code" class="form-control"
+                                                   name="referral_code"
+                                                   placeholder="{{ translate('use_referral_code') }}">
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
                             @endif
                         </div>
 
-                        @if($web_config['recaptcha']['status'] == 1)
-                            <div class="d-flex justify-content-center">
-                                <div id="recaptcha_element_customer_regi" class="w-100 mt-2" data-type="image"></div>
+                        @php($recaptcha = getWebConfig(name: 'recaptcha'))
+
+                        @if ($web_config['firebase_otp_verification'] && $web_config['firebase_otp_verification']['status'])
+                            <div class="generate-firebase-auth-recaptcha" id="firebase-auth-recaptcha-{{ rand(111, 999) }}"></div>
+                        @elseif(isset($recaptcha) && $recaptcha['status'] == 1)
+                            <div class="dynamic-default-and-recaptcha-section">
+                                <input type="hidden" name="g-recaptcha-response" class="render-grecaptcha-response"
+                                       data-action="customer_auth" data-input="#register-default-captcha-section"
+                                       data-default-captcha="#register-default-captcha-section">
+
+                                <div class="default-captcha-container d-none" id="register-default-captcha-section"
+                                     data-placeholder="{{ translate('enter_captcha_value') }}"
+                                     data-base-url="{{ route('g-recaptcha-session-store') }}"
+                                     data-session="{{ 'default_recaptcha_id_customer_auth' }}">
+                                </div>
                             </div>
                         @else
-                            <div class="d-flex gap-3 justify-content-center py-2 mt-4 mb-3">
-                                <div class="">
-                                    <input type="text" class="form-control border __h-40" name="default_recaptcha_value_customer_regi" value=""
-                                        placeholder="{{ translate('Enter_captcha_value') }}" autocomplete="off">
-                                </div>
-                                <div class="input-icons rounded bg-white">
-                                    <a onclick="re_captcha_customer_regi();" class="d-flex align-items-center align-items-center">
-                                        <img src="{{ URL('/customer/auth/code/captcha/1?captcha_session_id=default_recaptcha_id_customer_regi') }}" class="input-field rounded __h-40" id="customer_regi_recaptcha_id">
-                                        <i class="bi bi-arrow-repeat icon cursor-pointer p-2"></i>
-                                    </a>
-                                </div>
+                            <div class="default-captcha-container"
+                                 data-placeholder="{{ translate('enter_captcha_value') }}"
+                                 data-base-url="{{ route('g-recaptcha-session-store') }}"
+                                 data-session="{{ 'default_recaptcha_id_customer_auth' }}">
                             </div>
                         @endif
+
                         <div class="d-flex justify-content-center mt-4">
-                            <label for="agree" class="d-flex gap-1 align-items-center mb-0">
-                                <input type="checkbox" id="inputCheckd" required/>
-                                {{translate('i_agree_with_the')}} <a href="{{route('terms')}}" class="text-info">{{ translate('Terms_&_Conditions') }}</a>
+                            <label for="input-checked" class="d-flex gap-1 align-items-center mb-0 user-select-none">
+                                <input type="checkbox" id="input-checked" required/>
+                                {{ translate('i_agree_with_the') }}
+                                <a href="{{ route('business-page.view', ['slug' => 'terms-and-conditions']) }}"
+                                   class="text-info text-capitalize">
+                                    {{ translate('terms_&_conditions') }}
+                                </a>
                             </label>
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-center mt-4 mb-3">
-                        <button type="submit" id="sign-up" class="btn btn-primary px-5" disabled>{{ translate('Sign_Up') }}</button>
+                        <button type="submit" id="customer-sign-up-btn" class="btn btn-primary px-5 text-capitalize"
+                                disabled>{{ translate('sign_up') }}</button>
                     </div>
                 </form>
 
-                @if($web_config['social_login_text'])
+                @if ($web_config['social_login_text'])
                     <p class="text-center text-muted">{{ translate('or_continue_with') }}</p>
                 @endif
-                <div class="d-flex justify-content-center gap-3 align-items-center flex-wrap pb-3" >
-                    @foreach ($web_config['socials_login'] as $socialLoginService)
-                        @if (isset($socialLoginService) && $socialLoginService['status']==true)
-                            <a href="{{route('customer.auth.service-login', $socialLoginService['login_medium'])}}">
-                                <img
-                                    width="35"
-                                    src="{{ theme_asset('assets/img/svg/'.$socialLoginService['login_medium'].'.svg') }}"
-                                    alt=""
-                                    class="dark-support"/>
-                            </a>
-                        @endif
-                    @endforeach
+
+                <div class="d-flex justify-content-center gap-3 align-items-center flex-wrap pb-3">
+                    @if (isset($web_config['customer_login_options']['social_login']) &&
+                            $web_config['customer_login_options']['social_login']
+                    )
+                        @foreach ($web_config['customer_social_login_options'] as $socialLoginServiceKey => $socialLoginService)
+                            @if ($socialLoginService && $socialLoginServiceKey != 'apple')
+                                <a href="{{ route('customer.auth.service-login', $socialLoginServiceKey) }}">
+                                    <img width="35"
+                                         src="{{ theme_asset('assets/img/svg/' . $socialLoginServiceKey . '.svg') }}"
+                                         alt="" class="dark-support"/>
+                                </a>
+                            @endif
+                        @endforeach
+                    @endif
                 </div>
             </div>
         </div>
@@ -199,92 +171,69 @@
 </div>
 
 @push('script')
-    <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallbackCustomerRegi&render=explicit" async defer></script>
-
     <script>
-        $('#inputCheckd').change(function () {
+        "use strict";
+        $('#input-checked').change(function () {
             if ($(this).is(':checked')) {
-                $('#sign-up').removeAttr('disabled');
+                $('#customer-sign-up-btn').removeAttr('disabled');
             } else {
-                $('#sign-up').attr('disabled', 'disabled');
+                $('#customer-sign-up-btn').attr('disabled', 'disabled');
             }
-
         });
-
-        @if($web_config['recaptcha']['status'] == '1')
-            var onloadCallbackCustomerRegi = function () {
-                let reg_id = grecaptcha.render('recaptcha_element_customer_regi', {
-                    'sitekey': '{{ \App\CPU\Helpers::get_business_settings('recaptcha')['site_key'] }}'
-                });
-                $('#recaptcha_element_customer_regi').attr('data-reg-id', reg_id);
-            };
-
-            function recaptcha_f(){
-                let response = grecaptcha.getResponse($('#recaptcha_element_customer_regi').attr('data-reg-id'));
-                if (response.length === 0) {
-                    return false;
-                }else{
-                    return true;
-                }
-            }
-        @else
-            function re_captcha_customer_regi() {
-                $url = "{{ URL('/customer/auth/code/captcha') }}";
-                $url = $url + "/" + Math.random()+'?captcha_session_id=default_recaptcha_id_customer_regi';
-                document.getElementById('customer_regi_recaptcha_id').src = $url;
-            }
-        @endif
-
-        $('#customer_form').submit(function(event) {
+        $('#customer-form').submit(function (event) {
             event.preventDefault();
-            let formData = $(this).serialize()
-            let recaptcha = true;
+            let formData = $(this).serialize();
 
-            @if($web_config['recaptcha']['status'] == '1')
-                recaptcha = recaptcha_f();
-            @endif
-
-            if(recaptcha === true) {
-                $.ajax({
-                    type: 'POST',
-                    url: $(this).attr('action'),
-                    data: formData,
-                    beforeSend: function () {
-                        $("#loading").addClass("d-grid");
-                    },
-                    success: function (data) {
-                        // return false;
-                        if (data.errors) {
-                            for (var i = 0; i < data.errors.length; i++) {
-                                toastr.error(data.errors[i], {
-                                    CloseButton: true,
-                                    ProgressBar: true
-                                });
-                            }
-                            @if($web_config['recaptcha']['status'] != '1')
-                                re_captcha_customer_regi()
-                            @endif
-                        } else {
-                            toastr.success(
-                                '{{translate("Customeer_Added_Successfully")}}!', {
-                                    CloseButton: true,
-                                    ProgressBar: true
-                            });
-                            if (data.redirect_url !== '') {
-                                window.location.href = data.redirect_url;
-                            } else {
-                                $('#registerModal').modal('hide');
-                                $('#loginModal').modal('show');
-                            }
+            $.ajax({
+                type: 'POST',
+                url: $(this).attr('action'),
+                data: formData,
+                beforeSend: function () {
+                    $("#loading").addClass("d-grid");
+                },
+                success: function (response) {
+                    if (response.errors) {
+                        for (let index = 0; index < response.errors.length; index++) {
+                            toastr.error(response.errors[index].message);
                         }
-                    },
-                    complete: function () {
-                        $("#loading").removeClass("d-grid");
-                    },
-                });
-            } else{
-                toastr.error("{{translate('Please_check_the_recaptcha')}}");
-            }
+                    } else if (response.error) {
+                        toastr.error(response.error);
+                    } else if (response.status === 1) {
+                        toastr.success(response.message);
+                    }
+
+                    if (response?.redirect_url) {
+                        window.location.href = response.redirect_url;
+                    }
+                },
+                error: function (xhr) {
+                    $("#loading").removeClass("d-grid");
+
+                    if (xhr.responseJSON && xhr.responseJSON.error) {
+                        toastr.error(xhr.responseJSON.error, {
+                            CloseButton: true,
+                            ProgressBar: true
+                        });
+                    } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                        $.each(xhr.responseJSON.errors, function (key, value) {
+                            toastr.error(value, {
+                                CloseButton: true,
+                                ProgressBar: true
+                            });
+                        });
+                    } else {
+                        toastr.error('An unexpected error occurred.', {
+                            CloseButton: true,
+                            ProgressBar: true
+                        });
+                    }
+                },
+                complete: function () {
+                    $("#loading").removeClass("d-grid");
+                }
+            });
         });
     </script>
+
+    <script src="{{ theme_asset('assets/js/password-strength.js') }}"></script>
 @endpush

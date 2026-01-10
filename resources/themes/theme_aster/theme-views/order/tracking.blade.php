@@ -1,290 +1,323 @@
+@php
+ use App\Models\OrderDetail;
+ use App\Utils\Helpers;
+ use App\Utils\ProductManager;
+ use function App\Utils\order_status_history;
+@endphp
 @extends('theme-views.layouts.app')
 
-@section('title', translate('Track_Order_Result ').' | '.$web_config['name']->value.' '.translate('ecommerce'))
+@section('title', translate('Track_Order_Result ').' | '.$web_config['company_name'].' '.translate('ecommerce'))
 
 @section('content')
-    <!-- Main Content -->
     <main class="main-content d-flex flex-column gap-3 py-3 mb-4">
         <div class="container">
             <div class="card h-100">
                 <div class="card-body py-4 px-sm-4">
-                    <div class="mt-4">
-                        <h4 class="text-center text-uppercase mb-5">{{ translate('Your_order') }} #{{ $orderDetails['id'] }} {{ translate('is') }}
-                            @if($orderDetails['order_status']=='failed' || $orderDetails['order_status']=='canceled')
-                                {{translate($orderDetails['order_status'] =='failed' ? 'Failed To Deliver' : $orderDetails['order_status'])}}
-                            @elseif($orderDetails['order_status']=='confirmed' || $orderDetails['order_status']=='processing' || $orderDetails['order_status']=='delivered')
-                                {{translate($orderDetails['order_status']=='processing' ? 'packaging' : $orderDetails['order_status'])}}
-                            @else
-                                {{translate($orderDetails['order_status'])}}
-                            @endif
-                        </h4>
-                        <div class="row justify-content-center">
-                            <div class="col-xl-10">
-                                <div id="timeline">
-                                    <div
-                                        @if($orderDetails['order_status']=='processing')
-                                            class="bar progress two"
-                                        @elseif($orderDetails['order_status']=='out_for_delivery')
-                                            class="bar progress three"
-                                        @elseif($orderDetails['order_status']=='delivered')
-                                            class="bar progress four"
-                                        @else
-                                            class="bar progress one"
-                                        @endif
-                                    ></div>
-                                    <div class="state">
-                                        <ul>
-                                            <li>
-                                                <div class="state-img">
-                                                    <img width="30" src="{{theme_asset('assets/img/icons/track1.png')}}" class="dark-support" alt="">
+                    <div class=" px-xxl-2 pt-xxl-2">
+                        <a href="{{ route('track-order.index') }}" class="d-flex align-items-center mb-4 fs-18 gap-2 text-primary">
+                            <i class="bi bi-chevron-left fs-16"></i> {{ translate('Back') }}
+                        </a>
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-md-3 gap-2 mb-4">
+                            <div class="flex-grow-1">
+                                <h5 class="mb-1 fs-16">{{translate('Order')}} #{{$orderDetails['id']}} </h5>
+                                <p class="fs-14">{{date('d M, Y h:i A',strtotime($orderDetails->created_at))}}</p>
+                            </div>
+                            <div class="d-flex flex-column gap-2">
+                                <div class="d-flex gap-3 align-items-center mt-1">
+                                    <p class="text-capitalize m-0 fs-14 fw-medium">{{ translate('Order status') }} :</p>
+                                    @if($orderDetails['order_status']=='failed' || $orderDetails['order_status']=='canceled')
+                                        <span class="text-center badge text-primary border-primary-1 text-bg-primary rounded-1 fw-normal fs-12 bg-opacity-10">
+                                        {{translate($orderDetails['order_status'] =='failed' ? 'failed_to_deliver' : $orderDetails['order_status'])}}
+                                    </span>
+                                    @elseif($orderDetails['order_status']=='confirmed' || $orderDetails['order_status']=='processing' || $orderDetails['order_status']=='delivered')
+                                        <span class="text-center badge text-primary border-primary-1 text-bg-primary rounded-1 fw-normal fs-12 bg-opacity-10">
+                                         {{translate($orderDetails['order_status']=='processing' ? 'packaging' : $orderDetails['order_status'])}}
+                                    </span>
+                                    @else
+                                        <span class="text-center badge text-primary border-primary-1 text-bg-primary rounded-1 fw-normal fs-12 bg-opacity-10">
+                                          {{translate($orderDetails['order_status'])}}
+                                    </span>
+                                    @endif
+                                </div>
+                                <div class="d-flex gap-3 align-items-center mt-1">
+                                    <p class="text-capitalize m-0 fs-14 fw-medium">{{ translate('Payment status') }} :</p>
+                                    @if($orderDetails['payment_status']=="paid")
+                                        <span class="text-center badge text-danger border-danger-1 text-bg-danger rounded-1 fw-normal fs-12 bg-opacity-10">
+                                        {{ translate('paid') }}
+                                    </span>
+                                    @else
+                                        <span class="text-center badge text-danger border-danger-1 text-bg-danger rounded-1 fw-normal fs-12 bg-opacity-10">
+                                        {{ translate('unpaid') }}
+                                    </span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <?php
+                            $trackOrderArray = \App\Utils\OrderManager::getTrackOrderStatusHistory(
+                                orderId: $orderDetails['id'],
+                                isOrderOnlyDigital: $isOrderOnlyDigital
+                            );
+
+                            $statusIcons = [
+                                'order_placed' => 'track-shopping-list.svg',
+                                'order_confirmed' => 'track2.svg',
+                                'preparing_for_shipment' => 'track3.svg',
+                                'order_is_on_the_way' => 'track4.svg',
+                                'order_delivered' => 'track8.svg',
+                                'order_canceled' => null,
+                                'order_returned' => null,
+                                'order_failed' => null,
+                            ];
+
+                            $terminalStatuses = ['order_canceled', 'order_returned', 'order_failed'];
+                            $activeTerminalStatus = null;
+
+                            foreach ($terminalStatuses as $terminalStatus) {
+                                if (isset($trackOrderArray['history'][$terminalStatus]) && $trackOrderArray['history'][$terminalStatus]['status']) {
+                                    $activeTerminalStatus = $terminalStatus;
+                                    break;
+                                }
+                            }
+
+                            if ($trackOrderArray['is_digital_order']) {
+                                $statusesToShow = ['order_placed', 'order_confirmed', 'order_delivered'];
+                            } else {
+                                $statusesToShow = ['order_placed', 'order_confirmed', 'preparing_for_shipment', 'order_is_on_the_way', 'order_delivered'];
+                            }
+
+                            if ($activeTerminalStatus) {
+                                $statusesToShow[] = $activeTerminalStatus;
+                            }
+                        ?>
+
+                        <div class="card py-2">
+                            <div class="card-body p-4 ps-3">
+                                <div class="traking-slide-wrap style-main d-flex justify-content-center direction-ltr">
+                                    <ul class="traking-slide-nav nav d-flex flex-nowrap text-nowrap">
+                                        @foreach($trackOrderArray['history'] as $statusKey => $statusData)
+                                            @continue(!in_array($statusKey, $statusesToShow))
+
+                                            <?php $isTerminalStatus = in_array($statusKey, $terminalStatuses); ?>
+
+                                            <li class="traking-item {{ $statusData['status'] ? 'active' : '' }} text-center w-240 position-relative z-1">
+                                                <div class="state-img d-center rounded-10 w-40 h-40 section-bg-cmn2 mb-15 mx-auto">
+                                                    @if($isTerminalStatus)
+                                                        <i class="bi bi-x-circle-fill fs-20"></i>
+                                                    @else
+                                                        <img width="20" class="svg" src="{{ theme_asset('assets/img/icons/' . $statusIcons[$statusKey]) }}" alt="icon">
+                                                    @endif
                                                 </div>
-                                                <div class="badge active">
-                                                    <span>1</span>
-                                                    <i class="bi bi-check"></i>
+
+                                                <div class="badge-check mb-15">
+                                                    @if($isTerminalStatus)
+                                                        <i class="bi bi-x-circle-fill fs-16"></i>
+                                                    @else
+                                                        <i class="bi bi-check-circle-fill fs-16"></i>
+                                                    @endif
                                                 </div>
-                                                <div>
-                                                    <div class="state-text">{{translate('Order_placed')}}</div>
-                                                    <div class="mt-2 fs-12">{{date('d M, Y h:i A',strtotime($orderDetails->created_at))}}</div>
-                                                </div>
-                                            </li>
-                                            <li>
-                                                <div class="state-img">
-                                                    <img width="30" src="{{theme_asset('assets/img/icons/track2.png')}}" class="dark-support" alt="">
-                                                </div>
-                                                <div class="{{($orderDetails['order_status']=='processing') || ($orderDetails['order_status']=='processed') || ($orderDetails['order_status']=='out_for_delivery') || ($orderDetails['order_status']=='delivered')?'badge active' : 'badge'}}">
-                                                    <span>2</span>
-                                                    <i class="bi bi-check"></i>
-                                                </div>
-                                                <div>
-                                                    <div class="state-text">{{translate('Packaging_order')}}</div>
-                                                    @if(($orderDetails['order_status']=='processing') || ($orderDetails['order_status']=='processed') || ($orderDetails['order_status']=='out_for_delivery') || ($orderDetails['order_status']=='delivered'))
-                                                        <div class="mt-2 fs-12">
-                                                            @if(\App\CPU\order_status_history($orderDetails['id'],'processing'))
-                                                            {{date('d M, Y h:i A',strtotime(\App\CPU\order_status_history($orderDetails['id'],'processing')))}}
-                                                            @endif
-                                                        </div>
+
+                                                <div class="contents">
+                                                    <h6 class="{{ $statusData['status'] ? 'text-dark' : 'text-muted' }} mb-1 fs-14">
+                                                        {{ translate($statusData['label']) }}
+                                                    </h6>
+
+                                                    @if($statusData['date_time'])
+                                                        <p class="fs-12 m-0">
+                                                            {{ $statusData['date_time']->format('h:i A, d M Y') }}
+                                                        </p>
                                                     @endif
 
-                                                </div>
-                                            </li>
+                                                    @if($statusKey === 'order_is_on_the_way' && $statusData['status'] && !$trackOrderArray['is_digital_order'])
+                                                        <p class="fs-12 mb-0 mt-1">{{ translate('Your deliveryman is coming') }}</p>
+                                                    @endif
 
-                                            <li>
-                                                <div class="state-img">
-                                                    <img width="30" src="{{theme_asset('assets/img/icons/track4.png')}}" class="dark-support" alt="">
+                                                    @if($isTerminalStatus && $statusData['status'])
+                                                        <a href="#0" class="fs-12 text-primary mb-0 mt-1">
+                                                            @if($statusKey === 'order_canceled')
+                                                                {{ translate('Order has been canceled') }}
+                                                            @elseif($statusKey === 'order_returned')
+                                                                {{ translate('Order has been returned') }}
+                                                            @elseif($statusKey === 'order_failed')
+                                                                {{ translate('Order processing failed') }}
+                                                            @endif
+                                                        </a>
+                                                    @endif
                                                 </div>
-                                                <div class="{{($orderDetails['order_status']=='out_for_delivery') || ($orderDetails['order_status']=='delivered')?'badge active' : 'badge'}}">
-                                                    <span>3</span>
-                                                    <i class="bi bi-check"></i>
-                                                </div>
-                                                <div class="state-text">{{translate('Order_is_on_the_way')}}</div>
-                                                @if(($orderDetails['order_status']=='out_for_delivery') || ($orderDetails['order_status']=='delivered'))
-                                                    <div class="mt-2 fs-12">
-                                                        @if(\App\CPU\order_status_history($orderDetails['id'],'out_for_delivery'))
-                                                            {{date('d M, Y h:i A',strtotime(\App\CPU\order_status_history($orderDetails['id'],'out_for_delivery')))}}
-                                                        @endif
-                                                    </div>
-                                                @endif
                                             </li>
-                                            <li>
-                                                <div class="state-img">
-                                                    <img width="30" src="{{theme_asset('assets/img/icons/track5.png')}}" class="dark-support" alt="">
-                                                </div>
-                                                <div class="{{($orderDetails['order_status']=='delivered')?'badge active' : 'badge'}}">
-                                                    <span>4</span>
-                                                    <i class="bi bi-check"></i>
-                                                </div>
-                                                <div class="state-text">{{translate('Order_Delivered')}}</div>
-                                                @if($orderDetails['order_status']=='delivered')
-                                                    <div class="mt-2 fs-12">
-                                                        @if(\App\CPU\order_status_history($orderDetails['id'], 'delivered'))
-                                                        {{date('d M, Y h:i A',strtotime(\App\CPU\order_status_history($orderDetails['id'], 'delivered')))}}
-                                                        @endif
-                                                    </div>
-                                                @endif
-                                            </li>
-                                        </ul>
+                                        @endforeach
+                                    </ul>
+
+                                    <div class="arrow-area">
+                                        <div class="button-prev align-items-center">
+                                            <button type="button"
+                                                    class="btn btn-click-prev mr-auto border-0 btn-primary rounded-circle p-2 d-center">
+                                                <i class="bi bi-chevron-left fs-14 lh-1"></i>
+                                            </button>
+                                        </div>
+                                        <div class="button-next align-items-center">
+                                            <button type="button"
+                                                    class="btn btn-click-next ms-auto border-0 btn-primary rounded-circle p-2 d-center">
+                                                <i class="bi bi-chevron-right fs-14 lh-1"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="mt-5 bg-light p-3 p-sm-4">
-
-                            <div class="d-flex justify-content-between">
-                                <h5 class="mb-4">{{ translate('order_details') }}</h5>
-                                <button class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#order_details">
-                                    <span class="media-body hover-primary text-nowrap">{{translate('view_order_details')}}</span>
-                                </button>
-                            </div>
-                            <div class="row gy-3 text-dark track-order-details-info">
-                                <div class="col-lg-6">
-                                    <div class="d-flex flex-column gap-3">
-                                        <div class="column-2">
-                                            <div>{{ translate('Order_ID') }}</div>
-
-                                            @if(auth('customer')->check())
-                                                <div class="fw-bold cursor-pointer" onclick="location.href='{{ route('account-order-details', ['id'=>$orderDetails->id]) }}'">{{ $orderDetails['id'] }}</div>
-                                            @else
-                                                <div class="fw-bold cursor-pointer" data-bs-toggle="modal" data-bs-target="#loginModal">{{ $orderDetails['id'] }}</div>
-                                            @endif
-                                        </div>
-                                        @if ($order_verification_status && $orderDetails->order_type == "default_type")
-                                            <div class="column-2">
-                                                <div>{{translate('verification_code')}}</div>
-                                                <div class="fw-bold cursor-pointer" >{{ $orderDetails['verification_code'] }}</div>
-                                            </div>
-                                        @endif
-                                        <div class="column-2">
-                                            <div>{{ translate('Order_Created_At') }}</div>
-                                            <div class="fw-bold">{{date('D, d M, Y ',strtotime($orderDetails['created_at']))}}</div>
-                                        </div>
-                                        @if($orderDetails->delivery_man_id && $orderDetails['order_status'] !="delivered")
-                                        <div class="column-2">
-                                            <div>{{ translate('Estimated_Delivery_Date') }}</div>
-                                            <div class="fw-bold">
-                                                @if($orderDetails['expected_delivery_date'])
-                                                {{date('D, d M, Y ',strtotime($orderDetails['expected_delivery_date']))}}
-                                                @endif
-                                            </div>
-                                        </div>
-                                        @endif
-                                    </div>
-                                </div>
-                                <div class="col-lg-6">
-                                    <div class="d-flex flex-column gap-3">
-                                        <div class="column-2">
-                                            <div>{{ translate('Order_Status') }}</div>
-                                            @if($orderDetails['order_status']=='failed' || $orderDetails['order_status']=='canceled')
-                                                <div class="fw-bold">
-                                                    {{translate($orderDetails['order_status'] =='failed' ? 'Failed To Deliver' : $orderDetails['order_status'])}}
-                                                </div>
-                                            @elseif($orderDetails['order_status']=='confirmed' || $orderDetails['order_status']=='processing' || $orderDetails['order_status']=='delivered')
-                                                <div class="fw-bold">
-                                                    {{translate($orderDetails['order_status']=='processing' ? 'packaging' : $orderDetails['order_status'])}}
-                                                </div>
-                                            @else
-                                                <div class="fw-bold">
-                                                    {{translate($orderDetails['order_status'])}}
-                                                </div>
-                                            @endif
-                                        </div>
-                                        <div class="column-2">
-                                            <div>{{ translate('Payment_Status') }}</div>
-                                            @if($orderDetails['payment_status']=="paid")
-                                            <div class="fw-bold">{{ translate('paid') }}</div>
-                                            @else
-                                                <div class="fw-bold">{{ translate('unpaid') }}</div>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="text-center mt-4 pb-2">
+                            <h4 class="text-center fs-18 text-uppercase mb-20">{{ translate('your_order') }}
+                                #{{ $orderDetails['id'] }} {{ translate('is') }}
+                                @if($orderDetails['order_status']=='failed' || $orderDetails['order_status']=='canceled')
+                                    {{translate($orderDetails['order_status'] =='failed' ? 'Failed To Deliver' : $orderDetails['order_status'])}}
+                                @elseif($orderDetails['order_status']=='confirmed' || $orderDetails['order_status']=='processing' || $orderDetails['order_status']=='delivered')
+                                    {{translate($orderDetails['order_status']=='processing' ? 'packaging' : $orderDetails['order_status'])}}
+                                @else
+                                    {{translate($orderDetails['order_status'])}}
+                                @endif
+                            </h4>
+                            <button class="btn btn-primary mx-auto" data-bs-toggle="modal"
+                                    data-bs-target="#order_details">
+                                <span
+                                    class="media-body text-nowrap">{{translate('view_order_details')}}</span>
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <!--Order Detials Modal  -->
-
-        @php($order = \App\Model\OrderDetail::where('order_id', $orderDetails->id)->get())
-
+        @php($order = OrderDetail::where('order_id', $orderDetails->id)->get())
         <div class="modal fade" id="order_details" tabindex="-1" aria-labelledby="order_details" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
                 <div class="modal-content">
-                    <div class="modal-header mx-3 border-0">
-                        <div>
-                            <h6 class="modal-title fs-5" id="reviewModalLabel">{{translate('order')}} #{{ $orderDetails['id']  }}</h6>
+                    <div class="modal-header align-items-start mx-3 border-0">
+                        <div class="d-flex w-100 flex-wrap me-4 align-items-center justify-content-between gap-md-3 gap-2 mb-4">
+                            <div class="flex-grow-1">
+                                <div>
+                                    <h6 class="modal-title fs-5" id="reviewModalLabel">{{translate('order')}}
+                                        #{{ $orderDetails['id']  }}</h6>
 
-                            @if ($order_verification_status && $orderDetails->order_type == "default_type")
-                                <h5 class="small">{{translate('verification_code')}} : {{ $orderDetails['verification_code'] }}</h5>
-                            @endif
+                                    @if ($order_verification_status && $orderDetails->order_type == "default_type")
+                                        <h5 class="small">{{translate('verification_code')}}
+                                            : {{ $orderDetails['verification_code'] }}</h5>
+                                    @endif
+                                </div>
+                                <p class="fs-14">{{date('D, d M, Y ',strtotime($orderDetails['created_at']))}}</p>
+                            </div>
+                            <div class="d-flex flex-column gap-2">
+                                <div class="d-flex gap-3 align-items-center mt-1">
+                                    <p class="text-capitalize m-0 fs-14 fw-medium">{{ translate('Order status') }} :</p>
+                                    @if($orderDetails['order_status']=='failed' || $orderDetails['order_status']=='canceled')
+                                        <span class="text-center badge text-primary border-primary-1 text-bg-primary rounded-1 fw-normal fs-12 bg-opacity-10">
+                                        {{translate($orderDetails['order_status'] =='failed' ? 'failed_to_deliver' : $orderDetails['order_status'])}}
+                                    </span>
+                                    @elseif($orderDetails['order_status']=='confirmed' || $orderDetails['order_status']=='processing' || $orderDetails['order_status']=='delivered')
+                                        <span class="text-center badge text-primary border-primary-1 text-bg-primary rounded-1 fw-normal fs-12 bg-opacity-10">
+                                         {{translate($orderDetails['order_status']=='processing' ? 'packaging' : $orderDetails['order_status'])}}
+                                    </span>
+                                    @else
+                                        <span class="text-center badge text-primary border-primary-1 text-bg-primary rounded-1 fw-normal fs-12 bg-opacity-10">
+                                          {{translate($orderDetails['order_status'])}}
+                                    </span>
+                                        @endif
+                                </div>
+                                <div class="d-flex gap-3 align-items-center mt-1">
+                                    <p class="text-capitalize m-0 fs-14 fw-medium">{{ translate('Payment status') }} :</p>
+                                    @if($orderDetails['payment_status']=="paid")
+                                    <span class="text-center badge text-danger border-danger-1 text-bg-danger rounded-1 fw-normal fs-12 bg-opacity-10">
+                                        {{ translate('paid') }}
+                                    </span>
+                                    @else
+                                        <span class="text-center badge text-danger border-danger-1 text-bg-danger rounded-1 fw-normal fs-12 bg-opacity-10">
+                                        {{ translate('unpaid') }}
+                                    </span>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
-                        <button type="button" class="btn-close " data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button class="close-custom-btn btn d-center border-0 fs-16 p-1 w-30 h-30 rounded-pill position-absolute top-0 end-0 m-2" type="button" data-bs-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
                     </div>
                     <div class="modal-body pt-0 px-sm-4">
-                        <div class="product-table-wrap">
+                        <div class="product-table-wrap rounded-2 overflow-hidden mb-20 border">
                             <div class="table-responsive">
-                                <table class="table text-capitalize text-start align-middle">
+                                <table class="table table-border m-0 text-capitalize text-start align-middle">
                                     <thead class="mb-3">
-                                        <tr>
-                                            <th class="min-w-300 text-nowrap">{{translate('product_details')}}</th>
-                                            <th>{{translate('QTY')}}</th>
-                                            <th class="text-end text-nowrap">{{translate('sub_total')}}</th>
-                                        </tr>
+                                    <tr>
+                                        <th class="min-w-300 section-bg-cmn2 text-nowrap">{{translate('product_details')}}</th>
+                                        <th class="text-nowrap section-bg-cmn2">{{translate('QTY')}}</th>
+                                        <th class="text-end text-nowrap section-bg-cmn2">{{translate('sub_total')}}</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        @php( $totalTax = 0)
-                                        @php($sub_total=0)
-                                        @php($total_tax=0)
-                                        @php($total_shipping_cost=0)
-                                        @php($total_discount_on_product=0)
-                                        @php($extra_discount=0)
-                                        @php($coupon_discount=0)
-                                        @foreach($order as $key=>$order_details)
-                                            @php($productDetails = App\Model\Product::where('id', $order_details->product_id)->first())
+                                    @php($sub_total=0)
+                                    @php($total_shipping_cost=0)
+                                    @php($total_discount_on_product=0)
+                                    @php($extra_discount=0)
+                                    @php($coupon_discount=0)
+                                    @foreach($order as $key => $orderDetail)
+                                        @php($productDetails = $orderDetails?->product ?? json_decode($orderDetail->product_details) )
                                         <tr>
-                                            <td >
+                                            <td>
                                                 <div class="media align-items-center gap-3">
-                                                    <img class="rounded border"
-                                                        src="{{\App\CPU\ProductManager::product_image_path('thumbnail')}}/{{$productDetails['thumbnail']}}"
-                                                        onerror="this.src='{{asset('public/assets/front-end/img/image-place-holder.png')}}'" width="100px"                                                src="{{\App\CPU\ProductManager::product_image_path('thumbnail')}}/{{$productDetails['thumbnail']}}"
-                                                        alt="Image Description">
-                                                    <div >
-                                                        <h6 class="title-color mb-2">{{Str::limit($productDetails['name'],30)}}</h6>
+                                                    <img class="rounded border" alt="{{ translate('product') }}"
+                                                         src="{{ getStorageImages(path: $orderDetail?->productAllStatus?->thumbnail_full_url, type: 'product') }}"
+                                                         width="100px">
+                                                    <div class="get-view-by-onclick" data-link="{{route('product',$productDetails->slug)}}">
+                                                        <a href="{{route('product',$productDetails->slug)}}">
+                                                            <h6 class="title-color mb-2">{{Str::limit($productDetails->name,30)}}</h6>
+                                                        </a>
                                                         <div class="d-flex flex-column">
                                                             <small>
                                                                 <strong>{{translate('unit_price')}} :</strong>
-                                                                {{\App\CPU\BackEndHelper::set_symbol(\App\CPU\BackEndHelper::usd_to_currency($order_details['price']))}}
-                                                                @if ($order_details->tax_model =='include')
-                                                                    ({{translate('tax_incl.')}})
-                                                                @else
-                                                                    ({{translate('tax').":".($productDetails->tax)}}{{$productDetails->tax_type ==="percent" ? '%' :''}})
-                                                                @endif
+                                                                {{ webCurrencyConverter($orderDetail['price']) }}
                                                             </small>
-                                                            @if ($order_details->variant)
-                                                                <small><strong>{{translate('variation')}} :</strong> {{$order_details['variant']}}</small>
+                                                            @if ($orderDetail->variant)
+                                                                <small><strong>{{translate('variation')}}
+                                                                        :</strong> {{$orderDetail['variant']}}</small>
                                                             @endif
                                                         </div>
                                                     </div>
-                                                    @if($order_details->product && $orderDetails->payment_status == 'paid' && $order_details->product->digital_product_type == 'ready_product')
-                                                        <a onclick="digital_product_download('{{ route('digital-product-download', $order_details->id) }}')" href="javascript:"
-                                                           class="btn btn-primary btn-sm rounded-pill mb-1"
+                                                    <span class="d-none get-digital-product-download-url" data-action="{{ route('digital-product-download', $orderDetail->id) }}"></span>
+                                                    @if($orderDetails->payment_status == 'paid' && $productDetails->digital_product_type == 'ready_product')
+                                                        <a  href="javascript:"
+                                                           class="btn btn-primary btn-sm rounded-pill mb-1 digital-product-download"
                                                            data-bs-toggle="tooltip"
                                                            data-bs-placement="bottom"
-                                                           data-bs-title="{{translate('Download')}}">
+                                                           data-bs-title="{{translate('download')}}">
                                                             <i class="bi bi-download"></i>
                                                         </a>
-                                                    @elseif($order_details->product && $orderDetails->payment_status == 'paid' && $order_details->product->digital_product_type == 'ready_after_sell')
-                                                        @if($order_details->digital_file_after_sell)
-                                                            <a onclick="digital_product_download('{{ route('digital-product-download', $order_details->id) }}')" href="javascript:"
-                                                               class="btn btn-primary btn-sm rounded-pill mb-1"
+                                                    @elseif($orderDetails->payment_status == 'paid' && $productDetails->digital_product_type == 'ready_after_sell')
+                                                        @if($orderDetail->digital_file_after_sell)
+                                                            <a  href="javascript:"
+                                                               class="btn btn-primary btn-sm rounded-pill mb-1 digital-product-download"
                                                                data-bs-toggle="tooltip"
                                                                data-bs-placement="bottom"
-                                                               data-bs-title="{{translate('Download')}}">
+                                                               data-bs-title="{{translate('download')}}">
                                                                 <i class="bi bi-download"></i>
                                                             </a>
                                                         @else
-                                                            <span class="btn btn-success btn-sm mb-1 opacity-half cursor-auto"
-                                                                  data-bs-toggle="tooltip"
-                                                                  data-bs-placement="bottom"
-                                                                  data-bs-title="{{translate('Product_not_uploaded_yet')}}">
-                                                                            <i class="bi bi-download"></i>
-                                                                        </span>
+                                                            <span class="btn btn-success btn-sm mb-1 opacity-half cursor-auto" data-bs-toggle="tooltip" data-bs-placement="bottom"
+                                                                data-bs-title="{{translate('product_not_uploaded_yet')}}">
+                                                                <i class="bi bi-download"></i>
+                                                            </span>
                                                         @endif
                                                     @endif
                                                 </div>
                                             </td>
                                             <td>
-                                               {{$order_details->qty}}
+                                                {{$orderDetail->qty}}
                                             </td>
                                             <td class="text-end">
-                                                {{\App\CPU\Helpers::currency_converter($order_details['price']*$order_details['qty'])}}
+                                                {{webCurrencyConverter($orderDetail['price']*$orderDetail['qty'])}}
                                             </td>
                                         </tr>
-                                            @php($sub_total+=$order_details['price']*$order_details['qty'])
-                                            @php($total_tax+=$order_details['tax'])
-                                            @php($total_discount_on_product+=$order_details['discount'])
-                                        @endforeach
+                                        @php($sub_total+=$orderDetail['price']*$orderDetail['qty'])
+                                        @php($total_discount_on_product+=$orderDetail['discount'])
+                                    @endforeach
                                     </tbody>
 
                                 </table>
@@ -293,64 +326,71 @@
                         </div>
                         @php($total_shipping_cost=$orderDetails['shipping_cost'])
                         <?php
-                            if ($orderDetails['extra_discount_type'] == 'percent') {
-                                $extra_discount = ($sub_total / 100) * $orderDetails['extra_discount'];
-                            } else {
-                                $extra_discount = $orderDetails['extra_discount'];
-                            }
-                            if(isset($orderDetails['discount_amount'])){
-                                $coupon_discount =$orderDetails['discount_amount'];
-                            }
+                        if ($orderDetails['extra_discount_type'] == 'percent') {
+                            $extra_discount = ($sub_total / 100) * $orderDetails['extra_discount'];
+                        } else {
+                            $extra_discount = $orderDetails['extra_discount'];
+                        }
+                        if (isset($orderDetails['discount_amount'])) {
+                            $coupon_discount = $orderDetails['discount_amount'];
+                        }
                         ?>
-
-                        <div class="bg-light rounded border p3">
+                        <div class="bg-light rounded border p3 mb-2">
                             <div class="table-responsive">
-                                <table class="table __table text-end table-align-middle text-capitalize">
+                                <table class="table __table table-borderless m-0 table-align-middle text-capitalize">
                                     <thead>
-                                        <tr>
-                                            <th class="text-muted text-nowrap">{{translate('sub_total')}}</th>
-                                            @if ($orderDetails['order_type'] == 'default_type')
-                                                <th class="text-muted">{{translate('shipping')}}</th>
+                                    <tr>
+                                        <th class="text-dark text-nowrap fw-normal">{{translate('sub_total')}}</th>
+                                        @if ($orderDetails['order_type'] == 'default_type')
+                                            <th class="text-dark text-nowrap fw-normal">{{translate('shipping')}}</th>
+                                        @endif
+                                        @if($orderDetails['tax_model'] == 'exclude')
+                                            <th class="text-dark text-nowrap fw-normal">{{ translate('tax') }}</th>
+                                        @endif
+                                        <th class="text-dark text-nowrap fw-normal">{{translate('discount')}}</th>
+                                        <th class="text-dark text-nowrap fw-normal">{{translate('coupon_discount')}}</th>
+                                        @if ($orderDetails['order_type'] == 'POS')
+                                            <th class="text-dark text-nowrap fw-normal">{{translate('extra_discount')}}</th>
+                                        @endif
+                                        <th class="text-dark text-nowrap fw-normal">{{translate('total')}}
+                                            @if ($orderDetails->tax_model =='include')
+                                                <small> ({{translate('tax_incl.')}})</small>
                                             @endif
-                                            <th class="text-muted">{{translate('tax')}}</th>
-                                            <th class="text-muted">{{translate('discount')}}</th>
-                                            <th class="text-muted text-nowrap">{{translate('coupon_discount')}}</th>
-                                            @if ($orderDetails['order_type'] == 'POS')
-                                                <th class="text-muted text-nowrap">{{translate('extra_discount')}}</th>
-                                            @endif
-                                            <th class="text-muted">{{translate('total')}}</th>
-                                        </tr>
+                                        </th>
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td class="text-dark">
-                                                {{\App\CPU\Helpers::currency_converter($sub_total)}}
+                                    <tr>
+                                        <td class="text-dark text-nowrap fw-bold">
+                                            {{webCurrencyConverter($sub_total)}}
+                                        </td>
+                                        @if ($orderDetails['order_type'] == 'default_type')
+                                            <td class="text-dark text-nowrap fw-bold">
+                                                {{webCurrencyConverter($orderDetails['is_shipping_free'] ? $total_shipping_cost-$orderDetails['extra_discount']:$total_shipping_cost)}}
                                             </td>
-                                            @if ($orderDetails['order_type'] == 'default_type')
-                                                <td class="text-dark">
-                                                    {{\App\CPU\Helpers::currency_converter($orderDetails['is_shipping_free'] ? $total_shipping_cost-$orderDetails['extra_discount']:$total_shipping_cost)}}
-                                                </td>
 
-                                            @endif
+                                        @endif
 
-                                            <td class="text-dark">
-                                                {{\App\CPU\Helpers::currency_converter($total_tax)}}
+                                        @if($orderDetails['tax_model'] == 'exclude')
+                                            <td class="text-dark text-nowrap fw-bold">
+                                                {{ webCurrencyConverter($orderDetails['total_tax_amount']) }}
                                             </td>
-                                            <td class="text-dark">
-                                                -{{\App\CPU\Helpers::currency_converter($total_discount_on_product)}}
+                                        @endif
+                                        <td class="text-dark text-nowrap fw-bold">
+                                            -{{webCurrencyConverter($total_discount_on_product)}}
+                                        </td>
+                                        <td class="text-dark text-nowrap fw-bold">
+                                            - {{webCurrencyConverter($coupon_discount)}}
+                                        </td>
+                                        @if ($orderDetails['order_type'] == 'POS')
+                                            <td class="text-dark text-nowrap fw-bold">
+                                                - {{webCurrencyConverter($extra_discount)}}
                                             </td>
-                                            <td class="text-dark">
-                                                - {{\App\CPU\Helpers::currency_converter($coupon_discount)}}
-                                            </td>
-                                            @if ($orderDetails['order_type'] == 'POS')
-                                                <td class="text-dark">
-                                                    - {{\App\CPU\Helpers::currency_converter($extra_discount)}}
-                                                </td>
-                                            @endif
-                                            <td class="text-dark">
-                                                {{\App\CPU\Helpers::currency_converter($sub_total+$total_tax+$total_shipping_cost-($orderDetails->discount)-$total_discount_on_product - $coupon_discount - $extra_discount)}}
-                                            </td>
-                                        </tr>
+                                        @endif
+                                        <td class="text-dark text-nowrap fw-bold">
+                                            {{webCurrencyConverter($sub_total+$orderDetails['total_tax_amount']+$total_shipping_cost-($orderDetails->discount)-$total_discount_on_product - $coupon_discount - $extra_discount)}}
+                                        </td>
+                                    </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -359,223 +399,21 @@
                 </div>
             </div>
         </div>
-        <!-- End Order Details Modal  -->
     </main>
-    <!-- End Main Content -->
-
-
-    <!-- Modal -->
-    <div class="modal fade __sign-in-modal" id="digital_product_order_otp_verify" tabindex="-1"
-    aria-labelledby="digital_product_order_otp_verifyLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-0">
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
+    <div class="modal fade __sign-in-modal" id="digital-product-order-otp-verify-modal" tabindex="-1"
+         aria-labelledby="digital_product_order_otp_verifyLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                </div>
             </div>
         </div>
     </div>
-    </div>
-
 @endsection
 
-
 @push('script')
-<script>
-    function digital_product_download(link)
-    {
-        $.ajax({
-            type: "GET",
-            url: link,
-            responseType: 'blob',
-            beforeSend: function () {
-                $("#loading").addClass("d-grid");
-            },
-            success: function (data) {
-                if (data.status == 1 && data.file_path) {
-                    const a = document.createElement('a');
-                    a.href = data.file_path;
-                    a.download = data.file_name;
-                    a.style.display = 'none';
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(data.file_path);
-
-                } else if(data.status == 2) {
-                   $('#order_details').modal('hide');
-                   $('#digital_product_order_otp_verify .modal-body').empty().html(data.view);
-                   $('#digital_product_order_otp_verify').modal('show');
-
-                   let new_counter = $(".verifyCounter");
-                    let new_seconds = new_counter.data('second');
-                    function new_tick() {
-                        let m = Math.floor(new_seconds / 60);
-                        let s = new_seconds % 60;
-                        new_seconds--;
-                        new_counter.html(m + ":" + (s < 10 ? "0" : "") + String(s));
-                        if (new_seconds > 0) {
-                            setTimeout(new_tick, 1000);
-                            $('.resend-otp-button').attr('disabled', true);
-                            $(".resend_otp_custom").slideDown();
-                        }else {
-                            $('.resend-otp-button').removeAttr('disabled');
-                            $(".verifyCounter").html("0:00");
-                            $(".resend_otp_custom").slideUp();
-                        }
-                    }
-                   new_tick();
-                   otp_verify_events();
-                }else if(data.status == 0) {
-                    toastr.error(data.message);
-                    $('#digital_product_order_otp_verify').modal('hide');
-                }
-            },
-            error: function () {
-
-            },
-            complete: function () {
-                $("#loading").removeClass("d-grid");
-            },
-        });
-    }
-
-    // ==== Start Otp Verification Js ====
-    function otp_verify_events()
-    {
-        $(".otp-form .submit-btn").attr("disabled", true);
-        $(".otp-form .submit-btn").addClass("disabled");
-        $(".otp-form *:input[type!=hidden]:first").focus();
-        let otp_fields = $(".otp-form .otp-field"),
-        otp_value_field = $(".otp-form .otp-value");
-        otp_fields.on("input", function (e) {
-                $(this).val($(this).val().replace(/[^0-9]/g, ""));
-                let otp_value = "";
-                otp_fields.each(function () {
-                    let field_value = $(this).val();
-                    if (field_value != "") otp_value += field_value;
-                });
-                otp_value_field.val(otp_value);
-                if (otp_value.length === 4) {
-                    $(".otp-form .submit-btn").attr("disabled", false);
-                    $(".otp-form .submit-btn").removeClass("disabled");
-                } else {
-                    $(".otp-form .submit-btn").attr("disabled", true);
-                    $(".otp-form .submit-btn").addClass("disabled");
-                }
-            })
-            .on("keyup", function (e) {
-                let key = e.keyCode || e.charCode;
-                if (key == 8 || key == 46 || key == 37 || key == 40) {
-                    $(this).prev().focus();
-                } else if (key == 38 || key == 39 || $(this).val() != "") {
-                    $(this).next().focus();
-                }
-            })
-            .on("paste", function (e) {
-                let paste_data = e.originalEvent.clipboardData.getData("text");
-                let paste_data_splitted = paste_data.split("");
-                $.each(paste_data_splitted, function (index, value) {
-                    otp_fields.eq(index).val(value);
-                });
-            });
-    }
-    // ==== End Otp Verification Js ====
-
-    function download_otp_verify(){
-        let formData = $('.digital_product_download_otp_verify');
-
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-            }
-        });
-
-        $.ajax({
-            type: "post",
-            url: formData.attr('action'),
-            data: formData.serialize(),
-            beforeSend: function () {
-                $("#loading").addClass("d-grid");
-            },
-            success: function (data) {
-
-                if (data.status == 1) {
-                    $('.verify-message').addClass('text-success').removeClass('text-danger');
-                    if(data.file_path){
-                        const a = document.createElement('a');
-                        a.href = data.file_path;
-                        a.download = data.file_name;
-                        a.style.display = 'none';
-                        document.body.appendChild(a);
-                        a.click();
-                        window.URL.revokeObjectURL(data.file_path);
-                    }
-                    $('#digital_product_order_otp_verify').modal('hide');
-                }else{
-                    $('.verify-message').addClass('text-danger').removeClass('text-success');
-                }
-                $('.verify-message').html(data.message).fadeIn();
-            },
-            error: function (error) {
-
-            },
-            complete: function () {
-                $("#loading").removeClass("d-grid");
-            },
-        });
-    };
-
-    function download_resend_otp_verify(){
-        $('input.otp-field').val('');
-        $('.verify-message').fadeOut(300).empty();
-        let formData = $('.digital_product_download_otp_verify');
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-            }
-        });
-        $.ajax({
-            url: "{{ route('digital-product-download-otp-reset') }}",
-            method: 'POST',
-            data: formData.serialize(),
-            beforeSend: function () {
-                $("#loading").addClass("d-grid");
-            },
-            success: function (data) {
-                if (data.status == 1) {
-                    // Countdown
-                    let new_counter = $(".verifyCounter");
-                    let new_seconds = data.new_time;
-                    function new_tick() {
-                        let m = Math.floor(new_seconds / 60);
-                        let s = new_seconds % 60;
-                        new_seconds--;
-                        new_counter.html(m + ":" + (s < 10 ? "0" : "") + String(s));
-                        if (new_seconds > 0) {
-                            setTimeout(new_tick, 1000);
-                            $('.resend-otp-button').attr('disabled', true);
-                            $(".resend_otp_custom").slideDown();
-                        }
-                        else {
-                            $('.resend-otp-button').removeAttr('disabled');
-                            $(".verifyCounter").html("0:00");
-                            $(".resend_otp_custom").slideUp();
-                        }
-                    }
-                    new_tick();
-
-                    toastr.success(data.message);
-                } else {
-                    toastr.error(data.message);
-                }
-            },
-            complete: function () {
-                $("#loading").removeClass("d-grid");
-            },
-        });
-    };
-
-</script>
+    <script src="{{ theme_asset('assets/js/tracking-page.js') }}"></script>
 @endpush
-

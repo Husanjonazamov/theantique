@@ -2,85 +2,64 @@
 
 namespace App\Http\Controllers\Web;
 
+use App\Contracts\Repositories\BusinessPageRepositoryInterface;
+use App\Contracts\Repositories\BusinessSettingRepositoryInterface;
+use App\Contracts\Repositories\HelpTopicRepositoryInterface;
+use App\Contracts\Repositories\RobotsMetaContentRepositoryInterface;
 use App\Http\Controllers\Controller;
-use App\Model\BusinessSetting;
-use App\Model\HelpTopic;
-use Illuminate\Http\Request;
+use App\Http\Requests\Request;
+use Brian2694\Toastr\Facades\Toastr;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class PageController extends Controller
 {
     public function __construct(
-        private BusinessSetting $business_settings,
-    ) {
-
-    }
-    public function helpTopic()
+        private readonly BusinessSettingRepositoryInterface   $businessSettingRepo,
+        private readonly HelpTopicRepositoryInterface         $helpTopicRepo,
+        private readonly RobotsMetaContentRepositoryInterface $robotsMetaContentRepo,
+        private readonly BusinessPageRepositoryInterface      $businessPageRepo,
+    )
     {
-        $helps = HelpTopic::Status()->latest()->get();
-        $page_title_banner = $this->business_settings->where('type', 'banner_faq_page')->whereJsonContains('value', ['status' => '1'])->first('value');
-        return view(VIEW_FILE_NAMES['faq'], compact('helps','page_title_banner'));
     }
 
-    public function contacts()
+    public function getPageView(Request $request): View|RedirectResponse
     {
-        $recaptcha = \App\CPU\Helpers::get_business_settings('recaptcha');
-        return view(VIEW_FILE_NAMES['contacts'],compact('recaptcha'));
-    }
-
-    public function about_us()
-    {
-        $about_us = BusinessSetting::where('type', 'about_us')->first();
-        $page_title_banner = $this->business_settings->where('type', 'banner_about_us')->whereJsonContains('value', ['status' => '1'])->first('value');
-        return view(VIEW_FILE_NAMES['about_us'], [
-            'about_us' => $about_us,
-            'page_title_banner' => $page_title_banner,
-        ]);
-    }
-
-    public function termsand_condition()
-    {
-        $page_title_banner = $this->business_settings->where('type', 'banner_terms_conditions')->whereJsonContains('value', ['status' => '1'])->first('value');
-        $terms_condition = BusinessSetting::where('type', 'terms_condition')->first();
-        return view(VIEW_FILE_NAMES['terms_conditions_page'], compact('terms_condition','page_title_banner'));
-    }
-
-    public function privacy_policy()
-    {
-        $page_title_banner = $this->business_settings->where('type', 'banner_privacy_policy')->whereJsonContains('value', ['status' => '1'])->first('value');
-        $privacy_policy = BusinessSetting::where('type', 'privacy_policy')->first();
-        return view(VIEW_FILE_NAMES['privacy_policy_page'], compact('privacy_policy','page_title_banner'));
-    }
-
-    public function refund_policy()
-    {
-        $refund_policy = json_decode(BusinessSetting::where('type', 'refund-policy')->first()->value);
-        if(!$refund_policy->status){
-            return back();
+        $filter = ['slug' => $request['slug']];
+        if (!($request->has('source') && $request->source == 'admin')) {
+            $filter += ['status' => 1];
         }
-        $refund_policy = $refund_policy->content;
-        $page_title_banner = $this->business_settings->where('type', 'banner_refund_policy')->whereJsonContains('value', ['status' => '1'])->first('value');
-        return view(VIEW_FILE_NAMES['refund_policy_page'], compact('refund_policy','page_title_banner'));
+        $businessPage = $this->businessPageRepo->getFirstWhere(params: $filter, relations: ['banner']);
+        if (!$businessPage) {
+            Toastr::error(translate('Page_not_found'));
+            return redirect()->route('home');
+        }
+        $robotsMetaContentData = $this->robotsMetaContentRepo->getFirstWhere(params: ['page_name' => $request['slug']]);
+        if (!$robotsMetaContentData) {
+            $robotsMetaContentData = $this->robotsMetaContentRepo->getFirstWhere(params: ['page_name' => 'default']);
+        }
+        return view(VIEW_FILE_NAMES['business_page'], compact('businessPage', 'robotsMetaContentData'));
     }
 
-    public function return_policy()
+    public function getContactView(): View
     {
-        $return_policy = json_decode(BusinessSetting::where('type', 'return-policy')->first()->value);
-        if(!$return_policy->status){
-            return back();
+        $robotsMetaContentData = $this->robotsMetaContentRepo->getFirstWhere(params: ['page_name' => 'contacts']);
+        if (!$robotsMetaContentData) {
+            $robotsMetaContentData = $this->robotsMetaContentRepo->getFirstWhere(params: ['page_name' => 'default']);
         }
-        $return_policy = $return_policy->content;
-        $page_title_banner = $this->business_settings->where('type', 'banner_return_policy')->whereJsonContains('value', ['status' => '1'])->first('value');
-        return view(VIEW_FILE_NAMES['return_policy_page'], compact('return_policy','page_title_banner'));
+        $recaptcha = getWebConfig(name: 'recaptcha');
+        return view(VIEW_FILE_NAMES['contacts'], compact('recaptcha', 'robotsMetaContentData'));
     }
 
-    public function cancellation_policy()
+    public function getHelpTopicView(): View
     {
-        $cancellation_policy = json_decode(BusinessSetting::where('type', 'cancellation-policy')->first()->value);
-        if(!$cancellation_policy->status){
-            return back();
+        $robotsMetaContentData = $this->robotsMetaContentRepo->getFirstWhere(params: ['page_name' => 'helpTopic']);
+        if (!$robotsMetaContentData) {
+            $robotsMetaContentData = $this->robotsMetaContentRepo->getFirstWhere(params: ['page_name' => 'default']);
         }
-        $cancellation_policy = $cancellation_policy->content;
-        $page_title_banner = $this->business_settings->where('type', 'banner_cancellation_policy')->whereJsonContains('value', ['status' => '1'])->first('value');
-        return view(VIEW_FILE_NAMES['cancellation_policy_page'], compact('cancellation_policy','page_title_banner'));
+        $helps = $this->helpTopicRepo->getListWhere(orderBy: ['id' => 'desc'], filters: ['status' => 1, 'type' => 'default'], dataLimit: 'all');
+        $pageTitleBanner = $this->businessSettingRepo->whereJsonContains(params: ['type' => 'banner_faq_page'], value: ['status' => '1']);
+        return view(VIEW_FILE_NAMES['faq'], compact('helps', 'pageTitleBanner', 'robotsMetaContentData'));
     }
+
 }

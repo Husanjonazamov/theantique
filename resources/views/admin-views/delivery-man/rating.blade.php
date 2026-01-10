@@ -1,47 +1,39 @@
-@extends('layouts.back-end.app')
+@extends('layouts.admin.app')
 
 @section('title', translate('delivery_Man_Review'))
 
 @section('content')
-    <div class="content container-fluid"
-         style="text-align: {{Session::get('direction') === "rtl" ? 'right' : 'left'}};">
-        <!-- Page Header -->
+    <div class="content container-fluid">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-10 mb-3">
-            <!-- Page Title -->
             <div class="">
                 <h2 class="h1 mb-0 text-capitalize d-flex align-items-center gap-2">
-                    <img src="{{asset('/public/assets/back-end/img/deliveryman.png')}}" width="20" alt="">
-                    {{$delivery_man['f_name']. ' '. $delivery_man['l_name']}}
+                    <img src="{{dynamicAsset(path: 'public/assets/back-end/img/deliveryman.png')}}" width="20" alt="">
+                    {{$deliveryMan['f_name']. ' '. $deliveryMan['l_name']}}
                 </h2>
             </div>
-            <!-- End Page Title -->
 
             <div class="d-flex justify-content-end flex-wrap gap-10">
-                <a href="{{url()->previous()}}" class="btn btn--primary">
-                    <i class="tio-back-ui"></i> {{translate('back')}}
+                <a href="{{ route('admin.delivery-man.list') }}" class="btn btn-primary gap-1">
+                    <i class="fi fi-rr-angle-left fs-10"></i> {{translate('back')}}
                 </a>
             </div>
         </div>
-
-        <!-- Card -->
         <div class="card">
-            <!-- Body -->
             <div class="card-body my-3">
                 <div class="row align-items-md-center gx-md-5">
                     <div class="col-md-auto mb-3 mb-md-0">
                         <div class="d-flex align-items-center">
                             <img
-                                class="avatar avatar-xxl avatar-4by3 {{Session::get('direction') === "rtl" ? 'ml-4' : 'mr-4'}}"
-                                onerror="this.src='{{asset('public/assets/front-end/img/image-place-holder.png')}}'"
-                                src="{{asset('storage/app/public/delivery-man')}}/{{$delivery_man['image']}}"
-                                alt="Image Description">
+                                class="avatar avatar-xxl avatar-4by3 {{Session::get('direction') === "rtl" ? 'ms-4' : 'me-4'}}"
+                                src="{{ getStorageImages(path:$deliveryMan->image_full_url , type: 'backend-basic') }}"
+                                alt="{{translate('image_description')}}">
                             <div class="d-block">
-                                <h4 class="display-2 text-dark mb-0">
-                                    {{number_format($average_setting, 2, '.', ' ')}}
+                                <h4 class="display-4 fw-semibold text-dark mb-0">
+                                    {{number_format($averageRating, 2, '.', ' ')}}
                                 </h4>
                                 <p> {{translate('of')}} {{$reviews->count()?? 0}} {{translate('reviews')}}
                                     <span
-                                        class="badge badge-soft-dark badge-pill {{Session::get('direction') === "rtl" ? 'mr-1' : 'ml-1'}}"></span>
+                                        class="badge badge-soft-dark badge-pill {{Session::get('direction') === "rtl" ? 'me-1' : 'ms-1'}}"></span>
                                 </p>
                             </div>
                         </div>
@@ -49,166 +41,142 @@
 
                     <div class="col-md">
                         <ul class="list-unstyled list-unstyled-py-2 mb-0">
-                            <!-- Review Ratings -->
-                            <li class="d-flex align-items-center font-size-sm">
-                                <span
-                                    class="{{Session::get('direction') === "rtl" ? 'ml-3' : 'mr-3'}}">{{translate('5')}} {{ translate('star') }}</span>
+                            <li class="d-flex align-items-center gap-3">
+                                <span>{{translate('5')}} {{ translate('star') }}</span>
                                 <div class="progress flex-grow-1">
                                     <div class="progress-bar" role="progressbar"
                                          style="width: {{$total==0?0:($five/$total)*100}}%;"
                                          aria-valuenow="{{$total==0?0:($five/$total)*100}}"
                                          aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
-                                <span class="{{Session::get('direction') === "rtl" ? 'mr-3' : 'ml-3'}}">{{$five}}</span>
+                                <span>{{$five}}</span>
                             </li>
-                            <!-- End Review Ratings -->
-
-                            <!-- Review Ratings -->
-                            <li class="d-flex align-items-center font-size-sm">
-                                <span
-                                    class="{{Session::get('direction') === "rtl" ? 'ml-3' : 'mr-3'}}">{{translate('4')}} {{ translate('star') }}</span>
+                            <li class="d-flex align-items-center gap-3">
+                                <span>{{translate('4')}} {{ translate('star') }}</span>
                                 <div class="progress flex-grow-1">
                                     <div class="progress-bar" role="progressbar"
                                          style="width: {{$total==0?0:($four/$total)*100}}%;"
                                          aria-valuenow="{{$total==0?0:($four/$total)*100}}"
                                          aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
-                                <span class="{{Session::get('direction') === "rtl" ? 'mr-3' : 'ml-3'}}">{{$four}}</span>
+                                <span>{{$four}}</span>
                             </li>
-                            <!-- End Review Ratings -->
-
-                            <!-- Review Ratings -->
-                            <li class="d-flex align-items-center font-size-sm">
-                                <span
-                                    class="{{Session::get('direction') === "rtl" ? 'ml-3' : 'mr-3'}}">{{translate('3')}} {{ translate('star') }}</span>
+                            <li class="d-flex align-items-center gap-3">
+                                <span>{{translate('3')}} {{ translate('star') }}</span>
                                 <div class="progress flex-grow-1">
                                     <div class="progress-bar" role="progressbar"
                                          style="width: {{$total==0?0:($three/$total)*100}}%;"
                                          aria-valuenow="{{$total==0?0:($three/$total)*100}}"
                                          aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
-                                <span
-                                    class="{{Session::get('direction') === "rtl" ? 'mr-3' : 'ml-3'}}">{{$three}}</span>
+                                <span>{{$three}}</span>
                             </li>
-                            <!-- End Review Ratings -->
-
-                            <!-- Review Ratings -->
-                            <li class="d-flex align-items-center font-size-sm">
-                                <span
-                                    class="{{Session::get('direction') === "rtl" ? 'ml-3' : 'mr-3'}}">{{translate('2')}} {{ translate('star') }}</span>
+                            <li class="d-flex align-items-center gap-3">
+                                <span>{{translate('2')}} {{ translate('star') }}</span>
                                 <div class="progress flex-grow-1">
                                     <div class="progress-bar" role="progressbar"
                                          style="width: {{$total==0?0:($two/$total)*100}}%;"
                                          aria-valuenow="{{$total==0?0:($two/$total)*100}}"
                                          aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
-                                <span class="{{Session::get('direction') === "rtl" ? 'mr-3' : 'ml-3'}}">{{$two}}</span>
+                                <span>{{$two}}</span>
                             </li>
-                            <!-- End Review Ratings -->
-
-                            <!-- Review Ratings -->
-                            <li class="d-flex align-items-center font-size-sm">
-                                <span
-                                    class="{{Session::get('direction') === "rtl" ? 'ml-3' : 'mr-3'}}">{{translate('1')}} {{ translate('star') }}</span>
+                            <li class="d-flex align-items-center gap-3">
+                                <span>{{translate('1')}} {{ translate('star') }}</span>
                                 <div class="progress flex-grow-1">
                                     <div class="progress-bar" role="progressbar"
                                          style="width: {{$total==0?0:($one/$total)*100}}%;"
                                          aria-valuenow="{{$total==0?0:($one/$total)*100}}"
                                          aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
-                                <span class="{{Session::get('direction') === "rtl" ? 'mr-3' : 'ml-3'}}">{{$one}}</span>
+                                <span>{{$one}}</span>
                             </li>
-                            <!-- End Review Ratings -->
                         </ul>
                     </div>
 
                 </div>
             </div>
-            <!-- End Body -->
         </div>
-        <!-- End Card -->
 
-        <div class="card card-body mt-3">
-            <div class="row border-bottom pb-3 align-items-center mb-20">
-                <div class="col-sm-4 col-md-6 col-lg-8 mb-2 mb-sm-0"></div>
-                <div class="col-sm-8 col-md-6 col-lg-4">
-                    <!-- Search -->
-                    <form action="{{ url()->current() }}" method="GET">
-                        <div class="input-group input-group-merge input-group-custom">
-                            <div class="input-group-prepend">
-                                <div class="input-group-text">
-                                    <i class="tio-search"></i>
+        <div class="card mt-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-end">
+                    <div class="flex-grow-1 max-w-300 min-w-100-mobile">
+                        <form action="{{ url()->current() }}" method="GET">
+                            <div class="input-group">
+                                <input id="datatableSearch_" type="search" name="searchValue" class="form-control"
+                                           placeholder="{{ translate('search_by_Order_ID') }}"
+                                           aria-label="Search orders" value="{{ request('searchValue') }}" required>
+                                <div class="input-group-append search-submit">
+                                    <button type="submit">
+                                        <i class="fi fi-rr-search"></i>
+                                    </button>
                                 </div>
                             </div>
-                            <input id="datatableSearch_" type="search" name="search" class="form-control"
-                                   placeholder="{{ translate('search_by_Order_ID') }}"
-                                   aria-label="Search orders" value="{{ $search }}" required>
-                            <button type="submit" class="btn btn--primary">{{ translate('search') }}</button>
-                        </div>
-                    </form>
-                    <!-- End Search -->
+                        </form>
+                    </div>
                 </div>
+
+                <form action="{{ url()->current() }}" method="GET">
+                    <div class="row gy-3 align-items-end">
+
+                        <div class="col-xl-3 col-sm-6">
+                            <div>
+                                <label for="from" class="form-label">{{ translate('from') }}</label>
+                                <input type="date" name="from_date" id="from_date" value="{{ request('from_date') }}"
+                                       class="form-control"
+                                       title="{{ translate('from_date') }}">
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-sm-6">
+                            <div>
+                                <label for="to_date" class="form-label">{{ translate('to') }}</label>
+                                <input type="date" name="to_date" id="to_date" value="{{ request('to_date') }}"
+                                       class="form-control"
+                                       title="{{ ucfirst(translate('to_date')) }}">
+                            </div>
+                        </div>
+
+                        <div class="col-xl-3 col-sm-6">
+                            <div class="select-wrapper">
+                                <select class="form-select" name="rating">
+                                    <option value="" selected>
+                                        --{{ translate('select_Rating') }}--
+                                    </option>
+                                    <option
+                                        value="1" {{ request('rating') == 1 ? 'selected': '' }}>{{ translate('1') }}</option>
+                                    <option
+                                        value="2" {{ request('rating') == 2 ? 'selected': '' }}>{{ translate('2') }}</option>
+                                    <option
+                                        value="3" {{ request('rating') == 3 ? 'selected': '' }}>{{ translate('3') }}</option>
+                                    <option
+                                        value="4" {{ request('rating') == 4 ? 'selected': '' }}>{{ translate('4') }}</option>
+                                    <option
+                                        value="5" {{ request('rating') == 5 ? 'selected': '' }}>{{ translate('5') }}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-sm-6">
+                            <div class="d-flex justify-content-end align-items-center gap-2">
+                                <button id="filter" type="submit" class="btn btn-primary flex-grow-1 filter">
+                                    <i class="fi fi-rr-bars-filter fs-10"></i>
+                                    {{ translate('filter') }}
+                                </button>
+                                <a href="{{ url()->current() }}" class="btn btn-secondary flex-grow-1">
+                                    {{ translate('reset') }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </div>
-
-            <form action="{{ url()->current() }}" method="GET">
-                <div class="row gy-3 align-items-end">
-
-                    <div class="col-md-3">
-                        <div>
-                            <label for="from" class="title-color d-flex">{{ translate('from') }}</label>
-                            <input type="date" name="from_date" id="from_date" value="{{ $from_date }}"
-                                   class="form-control"
-                                   title="{{ translate('from_date') }}">
-                        </div>
-                    </div>
-
-                    <div class="col-md-3">
-                        <div>
-                            <label for="to_date" class="title-color d-flex">{{ translate('to') }}</label>
-                            <input type="date" name="to_date" id="to_date" value="{{ $to_date }}"
-                                   class="form-control"
-                                   title="{{ ucfirst(translate('to_date')) }}">
-                        </div>
-                    </div>
-
-                    <div class="col-md-3">
-                        <div>
-                            <select class="form-control" name="rating">
-                                <option value="" selected>
-                                    --{{ translate('select_Rating') }}--
-                                </option>
-                                <option
-                                    value="1" {{ $rating==1 ? 'selected': '' }}>{{ translate('1') }}</option>
-                                <option
-                                    value="2" {{ $rating==2 ? 'selected': '' }}>{{ translate('2') }}</option>
-                                <option
-                                    value="3" {{ $rating==3 ? 'selected': '' }}>{{ translate('3') }}</option>
-                                <option
-                                    value="4" {{ $rating==4 ? 'selected': '' }}>{{ translate('4') }}</option>
-                                <option
-                                    value="5" {{ $rating==5 ? 'selected': '' }}>{{ translate('5') }}</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div>
-                            <button id="filter" type="submit" class="btn btn--primary btn-block filter">
-                                <i class="tio-filter-list nav-icon"></i>
-                                {{ translate('filter') }}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </form>
         </div>
 
-        <!-- Card -->
         <div class="card mt-3">
-            <!-- Table -->
             <div class="table-responsive datatable-custom">
                 <table
-                    class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100"
-                    style="text-align: {{Session::get('direction') === "rtl" ? 'right' : 'left'}};">
+                    class="table table-hover table-borderless align-middle w-100">
                     <thead class="thead-light thead-50 text-capitalize">
                     <tr>
                         <th>{{translate('SL')}}</th>
@@ -220,49 +188,47 @@
                     </thead>
 
                     <tbody>
-                    @forelse($reviews as $key=>$review)
+                    @foreach($reviews as $key=> $review)
                         <tr>
                             <td>
                                 {{$reviews->firstItem()+$key}}
                             </td>
                             <td>
-                                <a class="title-color"
+                                <a class="text-dark text-hover-primary"
                                    href="{{ $review->order_id ? route('admin.orders.details',['id'=>$review->order_id]) : ''}}">{{ $review->order_id }}</a>
                             </td>
                             <td>
-                                <a class="d-flex align-items-center"
+                                <a class="d-flex align-items-center gap-3"
                                    href="{{route('admin.customer.view',[$review['customer_id']])}}">
                                     <div class="avatar avatar-circle">
                                         <img
                                             class="avatar-img"
-                                            onerror="this.src='{{asset('public/assets/front-end/img/image-place-holder.png')}}'"
-                                            src="{{asset('storage/app/public/profile/'.$review->customer->image)}}"
-                                            alt="Image Description">
+                                            src="{{ getStorageImages(path:$review?->customer->image_full_url, type: 'backend-basic') }}"
+                                            alt="{{ ('image_description')}}">
                                     </div>
-                                    <div class="{{Session::get('direction') === "rtl" ? 'mr-3' : 'ml-3'}}">
-                                    <span class="d-block h5 text-hover-primary mb-0">{{$review->customer['f_name']." ".$review->customer['l_name']}} <i
-                                            class="tio-verified text-primary" data-toggle="tooltip" data-placement="top"
-                                            title="Verified Customer"></i></span>
+                                    <div>
+                                    <span class="d-block h4 text-hover-primary mb-0">{{$review?->customer['f_name']." ".$review?->customer['l_name']}} <i
+                                            class="fi fi-sr-badge-check text-primary fs-12" data-bs-toggle="tooltip" data-bs-placement="top"
+                                            data-bs-title="{{ translate('Verified_Customer') }}"></i></span>
                                         <span
-                                            class="d-block font-size-sm text-body">{{$review->customer->email??""}}</span>
+                                            class="d-block fs-14 text-body">{{$review?->customer->email??""}}</span>
                                     </div>
                                 </a>
                             </td>
                             <td>
                                 <div class="text-wrap">
                                     <div class="d-flex mb-2">
-                                        <label class="badge badge-soft-info">
-                                            <span>{{$review->rating}} <i class="tio-star"></i> </span>
+                                        <label class="badge text-bg-info badge-info">
+                                            <span>{{$review->rating }} <i class="fi fi-sr-star fs-10"></i> </span>
                                         </label>
                                     </div>
                                     <div class="content p-0">
                                         @if(strlen($review['comment']) > 200))
                                             {{ substr($review['comment'], 0, 200) }}
-                                            <span id="show-more-{{$review->id}}" data-id="{{$review->id}}" onclick="toggle_btn(this)">...<a href="javascript:void(0)">{{ translate('show_more') }}</a></span>
-
+                                            <span id="show-more-{{$review->id}}" data-id="{{$review->id}}" class="toggle-btn">...<a href="javascript:">{{ translate('show_more') }}</a></span>
                                             <span id="show-more-content-{{$review->id}}" class="show-more-content">
                                             {{substr($review['comment'], 200)}}
-                                            <span id="show-less-{{$review->id}}" data-id="{{$review->id}}" onclick="toggle_btn(this)"><a href="javascript:void(0)">{{ translate('show_less') }}</a></span>
+                                            <span id="show-less-{{$review->id}}" data-id="{{$review->id}}" class="toggle-btn"><a href="javascript:">{{ translate('show_less') }}</a></span>
                                         @else
                                             {{ $review['comment'] }}
                                         @endif
@@ -274,76 +240,23 @@
                                 {{date('d M Y H:i:s',strtotime($review['updated_at']))}}
                             </td>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="4">
-                                <div class="text-center p-4">
-                                    <img class="mb-3 w-160"
-                                         src="{{asset('public/assets/back-end')}}/svg/illustrations/sorry.svg"
-                                         alt="Image Description">
-                                    <p class="mb-0">{{translate('no_data_to_show')}}</p>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforelse
+                    @endforeach
                     </tbody>
                 </table>
             </div>
-            <!-- End Table -->
 
             <div class="table-responsive mt-4">
                 <div class="px-4 d-flex justify-content-lg-end">
-                    <!-- Pagination -->
                     {{ $reviews->links() }}
                 </div>
             </div>
+            @if(count($reviews)==0)
+                @include('layouts.admin.partials._empty-state',['text'=>'no_review_found'],['image'=>'default'])
+            @endif
         </div>
-        <!-- End Card -->
     </div>
 @endsection
 
 @push('script_2')
-    <script>
-        $('#from_date,#to_date').change(function () {
-            let fr = $('#from_date').val();
-            let to = $('#to_date').val();
-            if(fr != ''){
-                $('#to_date').attr('required','required');
-            }
-            if(to != ''){
-                $('#from_date').attr('required','required');
-            }
-            if (fr != '' && to != '') {
-                if (fr > to) {
-                    $('#from_date').val('');
-                    $('#to_date').val('');
-                    toastr.error('Invalid date range!', Error, {
-                        CloseButton: true,
-                        ProgressBar: true
-                    });
-                }
-            }
-
-        })
-    </script>
-
-    <script>
-        $("[class^=show-more-content]").hide();
-        function toggle_btn(t) {
-            let show_more = "#show-more-" + $(t).attr('data-id')
-            let show_less = "#show-less-" + $(t).attr('data-id')
-            let show_more_content = "#show-more-content-" + $(t).attr('data-id')
-
-            if($(show_more).is(":visible")){
-                $(show_more_content).show(100);
-                $(show_less).show(100);
-                $(t).hide(100);
-            }else if($(show_less).is(":visible")){
-                $(show_more_content).hide(100);
-                $(show_more).show(100);
-                $(t).hide(100);
-            }
-        }
-
-    </script>
+    <script src="{{dynamicAsset(path: 'public/assets/back-end/js/admin/deliveryman.js')}}"></script>
 @endpush

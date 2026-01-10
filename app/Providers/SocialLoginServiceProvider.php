@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\CPU\Helpers;
+use Exception;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 
@@ -23,10 +23,10 @@ class SocialLoginServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function boot()
+    public function boot(): void
     {
         try {
-            $socialLoginServices =  Helpers::get_business_settings('social_login');
+            $socialLoginServices = getWebConfig(name: 'social_login');
 
             if ($socialLoginServices) {
                 foreach ($socialLoginServices as $socialLoginService) {
@@ -47,6 +47,21 @@ class SocialLoginServiceProvider extends ServiceProvider
                     }
                 }
             }
-        }catch(\Exception $exception){}
+        } catch (Exception $exception) {
+        }
+        try {
+            if (env('FORCE_HTTPS')) {
+                $googleRedirect = Config::get('services.google.redirect');
+                $facebookRedirect = Config::get('services.facebook.redirect');
+
+                if ($googleRedirect) {
+                    Config::set('services.google.redirect', str_replace('http://', 'https://', $googleRedirect));
+                }
+                if ($facebookRedirect) {
+                    Config::set('services.facebook.redirect', str_replace('http://', 'https://', $facebookRedirect));
+                }
+            }
+        } catch (Exception $exception) {
+        }
     }
 }

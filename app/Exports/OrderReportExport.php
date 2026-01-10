@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Exports;
+
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromView;
@@ -15,12 +16,14 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
-class OrderReportExport implements FromView, ShouldAutoSize, WithStyles,WithColumnWidths ,WithHeadings, WithEvents
+class OrderReportExport implements FromView, ShouldAutoSize, WithStyles, WithColumnWidths, WithHeadings, WithEvents
 {
     use Exportable;
+
     protected $data;
 
-    public function __construct($data) {
+    public function __construct($data)
+    {
         $this->data = $data;
     }
 
@@ -40,18 +43,19 @@ class OrderReportExport implements FromView, ShouldAutoSize, WithStyles,WithColu
         ];
     }
 
-    public function styles(Worksheet $sheet) {
+    public function styles(Worksheet $sheet)
+    {
         $sheet->getStyle('A1:A2')->getFont()->setBold(true);
-        $sheet->getStyle('A3:I3')->getFont()->setBold(true)->getColor()
-        ->setARGB('FFFFFF');
+        $sheet->getStyle('A3:K3')->getFont()->setBold(true)->getColor()
+            ->setARGB('FFFFFF');
 
 
-        $sheet->getStyle('A3:I3')->getFill()->applyFromArray([
+        $sheet->getStyle('A3:K3')->getFill()->applyFromArray([
             'fillType' => 'solid',
             'rotation' => 0,
             'color' => ['rgb' => '063C93'],
         ]);
-        $sheet->getStyle('I4:I'.$this->data['orders']->count() + 4)->getFill()->applyFromArray([
+        $sheet->getStyle('K4:K' . ($this->data['orders']->count() + 3))->getFill()->applyFromArray([
             'fillType' => 'solid',
             'rotation' => 0,
             'color' => ['rgb' => 'FFF9D1'],
@@ -60,7 +64,7 @@ class OrderReportExport implements FromView, ShouldAutoSize, WithStyles,WithColu
         $sheet->setShowGridlines(false);
         return [
             // Define the style for cells with data
-            'A1:I'.$this->data['orders']->count() + 4 => [
+            'A1:K' . ($this->data['orders']->count() + 3) => [
                 'borders' => [
                     'allBorders' => [
                         'borderStyle' => Border::BORDER_THIN,
@@ -74,32 +78,33 @@ class OrderReportExport implements FromView, ShouldAutoSize, WithStyles,WithColu
     public function registerEvents(): array
     {
         return [
-            AfterSheet::class => function(AfterSheet $event) {
-                $event->sheet->getStyle('A1:I1') // Adjust the range as per your needs
-                    ->getAlignment()
+            AfterSheet::class => function (AfterSheet $event) {
+                $event->sheet->getStyle('A1:K1') // Adjust the range as per your needs
+                ->getAlignment()
                     ->setHorizontal(Alignment::HORIZONTAL_CENTER)
                     ->setVertical(Alignment::VERTICAL_CENTER);
-                $event->sheet->getStyle('A3:I'.$this->data['orders']->count() + 4) // Adjust the range as per your needs
-                    ->getAlignment()
+                $event->sheet->getStyle('A3:K' . ($this->data['orders']->count() + 3)) // Adjust the range as per your needs
+                ->getAlignment()
                     ->setHorizontal(Alignment::HORIZONTAL_CENTER)
                     ->setVertical(Alignment::VERTICAL_CENTER);
-                $event->sheet->getStyle('A2:I2') // Adjust the range as per your needs
-                    ->getAlignment()
+                $event->sheet->getStyle('A2:K2') // Adjust the range as per your needs
+                ->getAlignment()
                     ->setHorizontal(Alignment::HORIZONTAL_LEFT)
                     ->setVertical(Alignment::VERTICAL_CENTER);
 
-                    $event->sheet->mergeCells('A1:G1');
-                    $event->sheet->mergeCells('A2:B2');
-                    $event->sheet->mergeCells('C2:I2');
-                    $event->sheet->getRowDimension(2)->setRowHeight(80);
-                    $event->sheet->getDefaultRowDimension()->setRowHeight(30);
+                $event->sheet->mergeCells('A1:K1');
+                $event->sheet->mergeCells('A2:B2');
+                $event->sheet->mergeCells('C2:K2');
+                $event->sheet->getRowDimension(2)->setRowHeight(80);
+                $event->sheet->getDefaultRowDimension()->setRowHeight(30);
             },
         ];
     }
+
     public function headings(): array
     {
         return [
-           '1'
+            '1'
         ];
     }
 }

@@ -1,15 +1,12 @@
 @extends('layouts.front-end.app')
 
-@section('title',translate('support_Ticket'))
+@section('title', translate('support_Ticket'))
 
 @section('content')
-    <!-- Page Content-->
-    <div class="container py-4 rtl" style="text-align: {{Session::get('direction') === "rtl" ? 'right' : 'left'}};">
+    <div class="container py-4 rtl text-align-direction">
         <div class="row">
-            <!-- Sidebar-->
             @include('web-views.partials._profile-aside')
 
-            <!-- Content  -->
             <section class="col-lg-9">
                 <div class="d-flex align-items-center justify-content-end mb-3 d-lg-none">
                     <button class="profile-aside-btn btn btn--primary px-2 rounded px-2 py-1">
@@ -24,23 +21,23 @@
                         <div class="bg-section rounded d-flex gap-2 align-items-start justify-content-between p-3 ">
                             <div class="support_ticket_head-media media flex-wrap gap-2 gap-sm-3">
                                 <div class="rounded-circle overflow-hidden">
-                                    <img onerror="this.src='{{ asset('public/assets/front-end/img/image-place-holder.png') }}'"
-                                    src="{{asset('storage/app/public/profile')}}/{{\App\CPU\customer_info()->image}}" class="rounded other-store-logo" width="50"  alt="img/products">
+                                    <img class="rounded other-store-logo aspect-1 object-cover" width="50"  alt="{{ translate('product') }}"
+                                         src="{{ getStorageImages(path: \App\Utils\customer_info()->image_full_url, type: 'avatar') }}">
                                 </div>
                                 <div class="media-body">
                                     <div class="d-flex flex-column">
                                         <div class="d-flex gap-2 align-items-center">
-                                            <h6 class="text-capitalize m-0">{{ \App\CPU\customer_info()->f_name }} {{ \App\CPU\customer_info()->l_name }}</h6>
+                                            <h6 class="text-capitalize m-0 fs-14 font-semibold">{{ \App\Utils\customer_info()->f_name }} {{ \App\Utils\customer_info()->l_name }}</h6>
                                             <div class="d-none d-sm-block">
                                                 <span
                                                     @if($ticket->priority == 'Urgent')
-                                                        class="badge badge-danger rounded text-capitalize"
+                                                        class="py-2 badge badge-danger rounded text-capitalize"
                                                     @elseif($ticket->priority == 'High')
-                                                        class="badge badge-warning rounded text-capitalize"
+                                                        class="py-2 badge badge-warning rounded text-capitalize"
                                                     @elseif($ticket->priority == 'Medium')
-                                                        class="badge badge-success rounded text-capitalize"
+                                                        class="py-2 badge badge-success rounded text-capitalize"
                                                     @else
-                                                        class="badge badge-info rounded text-capitalize"
+                                                        class="py-2 badge badge-info rounded text-capitalize"
                                                     @endif
                                                     >{{ translate($ticket->type) }}</span>
                                             </div>
@@ -65,11 +62,17 @@
                                                 </span>
                                             </div>
                                         </div>
+                                        @if($ticket?->subject)
+                                            <div class="d-flex align-items-start gap-2 gap-md-3 fs-14 mt-2">
+                                                <div class="text-nowrap">{{ translate('subject') }}:</div>
+                                                <span class="text-info fw-semibold">{{ ucwords($ticket->subject) }}</span>
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
                             @if($ticket->status != 'close')
-                                <a href="{{route('support-ticket.close',[$ticket['id']])}}" class="btn btn-outline-danger d-none d-sm-inline-block">{{ translate('close_this_ticket') }}</a>
+                                <a href="{{route('support-ticket.close',[$ticket['id']])}}" class="btn btn-sm fs-14 font-semibold text-capitalize btn-outline-danger d-none d-sm-inline-block">{{ translate('close_this_ticket') }}</a>
                                 <a href="{{route('support-ticket.close',[$ticket['id']])}}" class="btn btn-outline-danger btn-sm d-sm-none">{{ translate('close') }}</a>
                             @endif
                         </div>
@@ -80,14 +83,12 @@
                         @foreach($ticket->conversations as $conversation)
 
                             @if($conversation['admin_id'])
-                                @php($admin=\App\Model\Admin::where('id',$conversation['admin_id'])->first())
+                                @php($admin=\App\Models\Admin::where('id',$conversation['admin_id'])->first())
                                 <div class="media gap-3">
                                     <div class="media-body d-flex">
 
-                                        <img class="rounded-circle __img-40 mt-2" style="text-align: {{Session::get('direction') === "rtl" ? 'left' : 'right'}};"
-                                            onerror="this.src='{{asset('public/assets/front-end/img/image-place-holder.png')}}'"
-                                            src="{{asset('storage/app/public/admin/'.$admin['image'])}}"
-                                            alt=""/>
+                                        <img class="rounded-circle __img-40 mt-2 text-align-direction" alt=""
+                                             src="{{ getStorageImages(path: $admin->image_full_url, type: 'avatar') }}">
                                         <div class="mx-1 __incoming-msg">
 
                                             @if ($conversation['admin_message'])
@@ -96,15 +97,14 @@
                                             </div>
                                             @endif
 
-                                            @if ($conversation['attachment'] !=null && count(json_decode($conversation['attachment'])) > 0)
+                                            @if ($conversation['attachment'] !=null && count($conversation->attachment_full_url) > 0)
                                                 <div class="row g-2 flex-wrap mt-3 justify-content-start">
-                                                    @foreach (json_decode($conversation['attachment']) as $key => $photo)
+                                                    @foreach ($conversation->attachment_full_url as $key => $photo)
                                                         <div class="col-sm-6 col-md-4 position-relative img_row{{$key}}">
-                                                            <a data-lightbox="mygallery" href="{{asset("storage/app/public/support-ticket/".$photo)}}"
+                                                            <a data-lightbox="mygallery" href="{{$photo['path']}}"
                                                                class="aspect-1 overflow-hidden d-block border rounded">
-                                                                <img onerror="this.src=' {{asset('public/assets/front-end/img/image-place-holder.png')}}'"
-                                                                     src="{{asset('storage/app/public/support-ticket')}}/{{$photo}}" class="img-fit"
-                                                                     alt="img">
+                                                                <img class="img-fit" alt="{{ translate('ticket') }}"
+                                                                     src="{{ getStorageImages(path: $photo, type: 'product') }}">
                                                             </a>
                                                         </div>
                                                     @endforeach
@@ -119,7 +119,7 @@
                                     </div>
                                 </div>
                             @else
-                                <div class="media  ">
+                                <div class="media">
                                     <div class="media-body __outgoing-msg">
                                         @if ($conversation['customer_message'])
                                             <div class="d-flex justify-content-end">
@@ -127,15 +127,14 @@
                                             </div>
                                         @endif
 
-                                        @if ($conversation['attachment'] !=null && count(json_decode($conversation['attachment'])) > 0)
+                                        @if ($conversation['attachment'] !=null && count($conversation->attachment_full_url) > 0)
                                             <div class="row g-2 flex-wrap mt-3 justify-content-end">
-                                                @foreach (json_decode($conversation['attachment']) as $key => $photo)
+                                                @foreach ($conversation->attachment_full_url as $key => $photo)
                                                     <div class="col-sm-6 col-md-4 position-relative img_row{{$key}}">
-                                                        <a data-lightbox="mygallery" href="{{asset("storage/app/public/support-ticket/".$photo)}}"
+                                                        <a data-lightbox="mygallery" href="{{$photo['path']}}"
                                                            class="aspect-1 overflow-hidden d-block border rounded">
-                                                            <img onerror="this.src=' {{asset('public/assets/front-end/img/image-place-holder.png')}}'"
-                                                                src="{{asset('storage/app/public/support-ticket')}}/{{$photo}}" class="img-fit"
-                                                            alt="img">
+                                                            <img class="img-fit" alt="{{ translate('ticket') }}"
+                                                                 src="{{ getStorageImages(path: $photo, type: 'product') }}">
                                                         </a>
                                                     </div>
                                                 @endforeach
@@ -158,15 +157,14 @@
                                     </div>
                                 @endif
 
-                                @if ($ticket['attachment'] !=null && count(json_decode($ticket['attachment'])) > 0)
+                                @if ($ticket['attachment'] != null && $ticket->attachment_full_url && count($ticket->attachment_full_url) > 0)
                                     <div class="row g-2 flex-wrap mt-3 justify-content-end">
-                                        @foreach (json_decode($ticket['attachment']) as $key => $photo)
+                                        @foreach ($ticket->attachment_full_url as $key => $photo)
                                             <div class="col-sm-6 col-md-4 position-relative img_row{{$key}}">
-                                                <a data-lightbox="mygallery" href="{{asset("storage/app/public/support-ticket/".$photo)}}"
+                                                <a data-lightbox="mygallery" href="{{$photo['path']}}"
                                                    class="aspect-1 overflow-hidden d-block border rounded">
-                                                    <img onerror="this.src=' {{asset('public/assets/front-end/img/image-place-holder.png')}}'"
-                                                         src="{{asset('storage/app/public/support-ticket')}}/{{$photo}}" class="img-fit"
-                                                         alt="img">
+                                                    <img class="img-fit" alt="{{ translate('ticket') }}"
+                                                         src="{{ getStorageImages(path: $photo, type: 'product') }}">
                                                 </a>
                                             </div>
                                         @endforeach
@@ -179,8 +177,9 @@
                         </div>
 
                     </div>
+                    @if($ticket->status != 'close')
                     <div class="card-footer py-0 px-0">
-                        <form class="needs-validation" href="{{route('support-ticket.comment',[$ticket['id']])}}" enctype="multipart/form-data"
+                        <form class="needs-validation form-advance-validation form-advance-inputs-validation form-advance-file-validation non-ajax-form-validate" href="{{route('support-ticket.comment',[$ticket['id']])}}" enctype="multipart/form-data"
                             method="post" novalidate>
                             @csrf
                             <div class="d-flex flex-wrap align-items-baseline">
@@ -190,7 +189,7 @@
                                             <path d="M18.1029 1.83203H3.89453C2.75786 1.83203 1.83203 2.75786 1.83203 3.89453V18.1029C1.83203 19.2395 2.75786 20.1654 3.89453 20.1654H18.1029C19.2395 20.1654 20.1654 19.2395 20.1654 18.1029V3.89453C20.1654 2.75786 19.2395 1.83203 18.1029 1.83203ZM3.89453 3.20703H18.1029C18.4814 3.20703 18.7904 3.51595 18.7904 3.89453V12.7642L15.2539 9.2277C15.1255 9.09936 14.9514 9.02603 14.768 9.02603H14.7653C14.5819 9.02603 14.405 9.09936 14.2776 9.23136L10.3204 13.25L8.65845 11.5945C8.53011 11.4662 8.35595 11.3929 8.17261 11.3929C7.9957 11.3654 7.81053 11.4662 7.6822 11.6009L3.20703 16.1705V3.89453C3.20703 3.51595 3.51595 3.20703 3.89453 3.20703ZM3.21253 18.1304L8.17903 13.0575L13.9375 18.7904H3.89453C3.52603 18.7904 3.22811 18.4952 3.21253 18.1304ZM18.1029 18.7904H15.8845L11.2948 14.2189L14.7708 10.6898L18.7904 14.7084V18.1029C18.7904 18.4814 18.4814 18.7904 18.1029 18.7904Z" fill="#1455AC"/>
                                             <path d="M8.12834 9.03012C8.909 9.03012 9.54184 8.39728 9.54184 7.61662C9.54184 6.83597 8.909 6.20312 8.12834 6.20312C7.34769 6.20312 6.71484 6.83597 6.71484 7.61662C6.71484 8.39728 7.34769 9.03012 8.12834 9.03012Z" fill="#1455AC"/>
                                         </svg>
-                                        <input type="file" id="f_p_v_up1" class="h-100 position-absolute w-100" hidden multiple accept="image/*">
+                                        <input type="file" id="f_p_v_up1" class="h-100 position-absolute w-100" data-max-size="{{ getFileUploadMaxSize() }}" hidden multiple accept="{{ getFileUploadFormats(skip: '.svg,.gif,.webp') }}">
                                     </label>
                                 </div>
                                 <div class="w-0 flex-grow-1">
@@ -209,6 +208,7 @@
                             </div>
                         </form>
                     </div>
+                    @endif
                 </div>
             </section>
         </div>
@@ -217,68 +217,5 @@
 @endsection
 
 @push('script')
-<script>
-    // $(document).on('ready', () => {
-    //     $('.__media-wrapper').scrollTop($(document).height());
-    // })
-
-    $(document).on('ready', () => {
-        let selectedFiles = [];
-
-        $("#f_p_v_up1").on('change', function () {
-            for (let i = 0; i < this.files.length; ++i) {
-                selectedFiles.push(this.files[i]);
-            }
-
-            // Display the selected files
-            displaySelectedFiles();
-        });
-
-        function displaySelectedFiles() {
-            const container = document.getElementById("selected-files-container");
-            container.innerHTML = ""; // Clear previous content
-            selectedFiles.forEach((file, index) => {
-                const input = document.createElement("input");
-                input.type = "file";
-                input.name = `image[${index}]`;
-                input.classList.add(`image_index${index}`);
-                input.hidden = true;
-                container.appendChild(input);
-                /*BlobPropertyBag :
-                / This type represents a collection of object properties and does not have an
-                / explicit JavaScript representation.
-                */
-                const blob = new Blob([file], { type: file.type });
-                const file_obj = new File([file],file.name);
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(file_obj);
-                input.files = dataTransfer.files;
-            });
-            $(".filearray").empty(); // Clear previous user input
-
-            for (let i = 0; i < selectedFiles.length; ++i) {
-                let filereader = new FileReader();
-                let $uploadDiv = jQuery.parseHTML("<div class='upload_img_box'><span class='img-clear'><i class='tio-clear'></i></span><img src='' width='40' alt=''></div>");
-
-                filereader.onload = function () {
-                    // Set the src attribute of the img tag within the created div
-                    $($uploadDiv).find('img').attr('src', this.result);
-                };
-
-                filereader.readAsDataURL(selectedFiles[i]);
-                $(".filearray").append($uploadDiv);
-
-                // Attach a click event handler to the "tio-clear" icon to remove the associated div and file from the array
-                $($uploadDiv).find('.img-clear').on('click', function () {
-                    $(this).closest('.upload_img_box').remove();
-                    // Remove the file from the selectedFiles array
-                    selectedFiles.splice(i, 1);
-                    $('.image_index'+i).remove();
-                });
-            }
-        }
-    });
-</script>
-
-
+    <script src="{{ theme_asset(path: 'public/assets/front-end/js/ticket-view.js') }}"></script>
 @endpush

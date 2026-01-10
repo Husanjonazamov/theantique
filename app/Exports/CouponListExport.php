@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Exports;
+
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromView;
@@ -10,17 +11,18 @@ use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
-use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
-class CouponListExport implements FromView, ShouldAutoSize, WithStyles,WithColumnWidths ,WithHeadings, WithEvents
+class CouponListExport implements FromView, ShouldAutoSize, WithStyles, WithColumnWidths, WithHeadings, WithEvents
 {
     use Exportable;
+
     protected $data;
 
-    public function __construct($data) {
+    public function __construct($data)
+    {
         $this->data = $data;
     }
 
@@ -39,10 +41,11 @@ class CouponListExport implements FromView, ShouldAutoSize, WithStyles,WithColum
         ];
     }
 
-    public function styles(Worksheet $sheet) {
+    public function styles(Worksheet $sheet): array
+    {
         $sheet->getStyle('A1:A3')->getFont()->setBold(true);
         $sheet->getStyle('A3:M3')->getFont()->setBold(true)->getColor()
-        ->setARGB('FFFFFF');
+            ->setARGB('FFFFFF');
 
         $sheet->getStyle('A3:M3')->getFill()->applyFromArray([
             'fillType' => 'solid',
@@ -53,7 +56,7 @@ class CouponListExport implements FromView, ShouldAutoSize, WithStyles,WithColum
         $sheet->setShowGridlines(false);
         return [
             // Define the style for cells with data
-            'A1:M'.$this->data['coupon']->count() + 3 => [
+            'A1:M' . ($this->data['coupon']->count() + 3) => [
                 'borders' => [
                     'allBorders' => [
                         'borderStyle' => Border::BORDER_THIN,
@@ -70,33 +73,35 @@ class CouponListExport implements FromView, ShouldAutoSize, WithStyles,WithColum
     public function registerEvents(): array
     {
         return [
-            AfterSheet::class => function(AfterSheet $event) {
+            AfterSheet::class => function (AfterSheet $event) {
                 $event->sheet->getStyle('A1:M1') // Adjust the range as per your needs
-                    ->getAlignment()
+                ->getAlignment()
                     ->setHorizontal(Alignment::HORIZONTAL_CENTER)
                     ->setVertical(Alignment::VERTICAL_CENTER);
-                $event->sheet->getStyle('A3:M'.$this->data['coupon']->count() + 3) // Adjust the range as per your needs
-                    ->getAlignment()
+                $event->sheet->getStyle('A3:M' . ($this->data['coupon']->count() + 3)) // Adjust the range as per your needs
+                ->getAlignment()
                     ->setHorizontal(Alignment::HORIZONTAL_CENTER)
                     ->setVertical(Alignment::VERTICAL_CENTER);
                 $event->sheet->getStyle('A2:M2') // Adjust the range as per your needs
-                    ->getAlignment()
+                ->getAlignment()
                     ->setHorizontal(Alignment::HORIZONTAL_LEFT)
                     ->setVertical(Alignment::VERTICAL_CENTER);
 
-                    $event->sheet->mergeCells('A1:M1');
-                    $event->sheet->mergeCells('A2:B2');
-                    $event->sheet->mergeCells('C2:M2');
-                    $event->sheet->mergeCells('D2:M2');
-                    $event->sheet->getDefaultRowDimension()->setRowHeight(30);
-                    $workSheet = $event->sheet->getDelegate();
+                $event->sheet->mergeCells('A1:M1');
+                $event->sheet->mergeCells('A2:B2');
+                $event->sheet->mergeCells('C2:M2');
+                $event->sheet->mergeCells('D2:M2');
+                $event->sheet->getDefaultRowDimension()->setRowHeight(30);
+                $event->sheet->getRowDimension(2)->setRowHeight(60);
+                $workSheet = $event->sheet->getDelegate();
             },
         ];
     }
+
     public function headings(): array
     {
         return [
-           '1'
+            '1'
         ];
     }
 }

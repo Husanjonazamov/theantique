@@ -1,120 +1,144 @@
-@extends('layouts.back-end.app')
+@extends('layouts.admin.app')
 
-@section('title',translate('customer_wallet'))
-
-@push('css_or_js')
-
-@endpush
-
+@section('title', translate('customer_wallet'))
 @section('content')
     <div class="content container-fluid">
-        <!-- Page Title -->
         <div class="mb-3 d-flex justify-content-between flex-wrap gap-3">
             <h2 class="h1 mb-0 text-capitalize d-flex align-items-center gap-2">
-                <img width="20" src="{{asset('/public/assets/back-end/img/admin-wallet.png')}}" alt="">
-                {{translate('wallet')}}
+                <img width="20" src="{{ dynamicAsset(path: 'public/assets/back-end/img/admin-wallet.png') }}"
+                    alt="">
+                {{ translate('wallet') }}
             </h2>
-            @if($customer_status == 1)
-                <button type="button" class="btn btn--primary" data-toggle="modal" data-target="#addFundModal">
-                    {{translate('add_Fund')}}
+            @if ($customerStatus == 1)
+                <button type="button" class="btn btn-primary text-capitalize" data-bs-toggle="modal"
+                    data-bs-target="#add-fund-modal">
+                    {{ translate('add_fund') }}
                 </button>
             @endif
         </div>
-        <!-- End Page Title -->
 
-        <div class="modal fade" id="addFundModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal fade" id="add-fund-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+            aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
-                    <div class="modal-header d-flex justify-content-between">
-                        <h5 class="modal-title" id="exampleModalLongTitle">{{translate('add_Fund')}}</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
+                    <div class="modal-header d-flex justify-content-between border-0">
+                        <h3 class="modal-title text-capitalize" id="exampleModalLongTitle">{{ translate('add_fund') }}</h3>
+                        <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <form action="{{route('admin.customer.wallet.add-fund')}}" method="post" enctype="multipart/form-data" id="add_fund">
+                        <form action="{{ route('admin.customer.wallet.add-fund') }}" method="post"
+                            enctype="multipart/form-data" id="add-fund" class="" novalidate="novalidate">
                             @csrf
-                            <div class="row">
-                                <div class="col-sm-6 col-12">
-                                    <div class="form-group">
-                                        <label class="input-label d-flex" for="customer">{{translate('customer')}}</label>
-                                        <select id='form-customer' name="customer_id" data-placeholder="{{translate('select_customer')}}" class="js-data-example-ajax form-control w-100" required>
-
+                            <div class="row g-4">
+                                <div class="col-sm-6">
+                                    <div class="form-group d-flex flex-column">
+                                        <label class="mb-2 d-flex" for="customer">{{ translate('customer') }}</label>
+                                        <select id='form-customer' name="customer_id"
+                                            data-placeholder="{{ translate('select_customer') }}"
+                                            class="get-customer-list-without-all-customer form-select" data-required-msg="{{ translate('customer_field_is_required')}}" required>
                                         </select>
                                     </div>
                                 </div>
                                 <div class="col-sm-6 col-12">
                                     <div class="form-group">
-                                        <label class="input-label d-flex" for="amount">{{translate('amount')}}</label>
-
-                                        <input type="number" class="form-control" name="amount" id="amount" step=".01" placeholder="{{translate('ex')}}: 500" required>
+                                        <label class="mb-2 d-flex" for="amount">{{ translate('amount') }}</label>
+                                        <input type="number" class="form-control" name="amount" id="amount"
+                                            step=".01" placeholder="{{ translate('ex') . ':' . '500' }}" data-required-msg="{{ translate('amount_field_is_required')}}" required>
+                                        <small id="amount_error" style="color: red; display: none;">Amount cannot be zero or
+                                            negative</small>
                                     </div>
                                 </div>
                                 <div class="col-12">
                                     <div class="form-group">
-                                        <label class="input-label d-flex align-items-center gap-1" for="referance">{{translate('reference')}} <small>({{translate('optional')}})</small></label>
-
-                                        <input type="text" class="form-control" name="referance" placeholder="{{translate('ex')}}: abc990" id="referance">
+                                        <label class="mb-2 d-flex align-items-center gap-1"
+                                            for="reference">{{ translate('reference') }}
+                                            <small>({{ translate('optional') }})</small></label>
+                                        <input type="text" class="form-control" name="reference"
+                                            placeholder="{{ translate('ex') . ':' . 'abc990' }}" id="reference">
                                     </div>
                                 </div>
                             </div>
-                            <div class="d-flex justify-content-end gap-3">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">{{translate('close')}}</button>
-                                <button type="submit" id="submit" class="btn btn--primary px-4">{{translate('submit')}}</button>
+                            <div class="d-flex justify-content-end gap-3 mt-4">
+                                <button type="button" class="btn btn-secondary"
+                                    data-bs-dismiss="modal">{{ translate('close') }}</button>
+                                <button type="submit" id="submit"
+                                    class="btn btn-primary">{{ translate('submit') }}</button>
                             </div>
                         </form>
                     </div>
-
                 </div>
             </div>
         </div>
 
-        <div class="card  mt-3">
+        <div class="card mt-3">
             <div class="card-header text-capitalize">
-                <h4 class="mb-0">{{translate('filter_options')}}</h4>
+                <h3 class="mb-0">{{ translate('filter_options') }}</h3>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-lg-12 pt-3">
-                        <form action="{{route('admin.customer.wallet.report')}}" method="get">
+                        <form action="{{ route('admin.customer.wallet.report') }}" method="get">
                             <div class="row">
                                 <div class="col-sm-6 col-12">
                                     <div class="mb-3">
-                                        <input type="date" name="from" id="from_date" value="{{request()->get('from')}}" class="form-control" title="{{ucfirst(translate('from_date'))}}">
+                                        <input type="date" name="from" id="start-date-time"
+                                            value="{{ request()->get('from') }}" class="form-control"
+                                            title="{{ ucfirst(translate('from_date')) }}">
                                     </div>
                                 </div>
                                 <div class="col-sm-6 col-12">
                                     <div class="mb-3">
-                                        <input type="date" name="to" id="to_date" value="{{request()->get('to')}}" class="form-control" title="{{ucfirst(translate('to_date'))}}">
+                                        <input type="date" name="to" id="end-date-time"
+                                            value="{{ request()->get('to') }}" class="form-control"
+                                            title="{{ ucfirst(translate('to_date')) }}">
                                     </div>
                                 </div>
                                 <div class="col-sm-6 col-12">
                                     <div class="mb-3">
                                         @php
-                                        $transaction_status=request()->get('transaction_type');
+                                            $transaction_status = request()->get('transaction_type');
                                         @endphp
-                                        <select name="transaction_type" id="" class="form-control" title="{{translate('select_transaction_type')}}">
-                                            <option value="">{{translate('all')}}</option>
-                                            <option value="add_fund_by_admin" {{isset($transaction_status) && $transaction_status=='add_fund_by_admin'?'selected':''}} >{{translate('add_fund_by_admin')}}</option>
-                                            <!-- <option value="add_fund" {{isset($transaction_status) && $transaction_status=='add_fund'?'selected':''}}>{{translate('add_fund_by_customer')}}</option> -->
-                                            <option value="order_refund" {{isset($transaction_status) && $transaction_status=='order_refund'?'selected':''}}>{{translate('refund_order')}}</option>
-                                            <option value="loyalty_point" {{isset($transaction_status) && $transaction_status=='loyalty_point'?'selected':''}}>{{translate('customer_loyalty_point')}}</option>
-                                            <option value="order_place" {{isset($transaction_status) && $transaction_status=='order_place'?'selected':''}}>{{translate('order_place')}}</option>
-                                        </select>
+                                        <div class="select-wrapper">
+                                            <select name="transaction_type" class="form-select"
+                                                title="{{ translate('select_transaction_type') }}">
+                                                <option value="">{{ translate('all') }}</option>
+                                                <option value="add_fund_by_admin"
+                                                    {{ isset($transaction_status) && $transaction_status == 'add_fund_by_admin' ? 'selected' : '' }}>
+                                                    {{ translate('add_fund_by_admin') }}</option>
+                                                <option value="add_fund"
+                                                    {{ isset($transaction_status) && $transaction_status == 'add_fund' ? 'selected' : '' }}>
+                                                    {{ translate('add_fund') }}</option>
+                                                <option value="order_refund"
+                                                    {{ isset($transaction_status) && $transaction_status == 'order_refund' ? 'selected' : '' }}>
+                                                    {{ translate('refund_order') }}</option>
+                                                <option value="loyalty_point"
+                                                    {{ isset($transaction_status) && $transaction_status == 'loyalty_point' ? 'selected' : '' }}>
+                                                    {{ translate('customer_loyalty_point') }}</option>
+                                                <option value="order_place"
+                                                    {{ isset($transaction_status) && $transaction_status == 'order_place' ? 'selected' : '' }}>
+                                                    {{ translate('order_place') }}</option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-sm-6 col-12">
                                     <div class="mb-3">
-                                        <select id='customer' name="customer_id" data-placeholder="{{translate('select_customer')}}" class="js-data-example-ajax form-control" title="{{translate('select_customer')}}">
-                                            @if (request()->get('customer_id') && $customer_info = \App\User::find(request()->get('customer_id')))
-                                                <option value="{{$customer_info->id}}" selected>{{$customer_info->f_name.' '.$customer_info->l_name}}({{$customer_info->phone}})</option>
-                                            @endif
+                                        <input type="hidden" id='customer-id' name="customer_id"
+                                            value="{{ request('customer_id') ?? 'all' }}">
+                                        <select
+                                            data-placeholder="
+                                                    @if ($customer == 'all') {{ translate('All_Customer') }}
+                                                    @else
+                                                        {{ $customer['name'] ?? $customer['f_name'] . ' ' . $customer['l_name'] . ' ' . '(' . $customer['phone'] . ')' }} @endif"
+                                            class="get-customer-list-by-ajax-request form-control form-ellipsis set-customer-value form-select">
+                                            <option value="all">{{ translate('All_Customer') }}</option>
                                         </select>
                                     </div>
                                 </div>
                             </div>
                             <div class="d-flex justify-content-end">
-                                <button type="submit" class="btn btn--primary px-4"><i class="tio-filter-list mr-1"></i>{{translate('filter')}}</button>
+                                <button type="submit" class="btn btn-primary">{{ translate('filter') }}</button>
                             </div>
                         </form>
                     </div>
@@ -124,7 +148,7 @@
         </div>
         <div class="card mt-3">
             <div class="card-header text-capitalize">
-                <h4 class="mb-0">{{translate('summary')}}</h4>
+                <h3 class="mb-0">{{ translate('summary') }}</h3>
             </div>
             <div class="card-body">
                 <div class="d-flex flex-wrap gap-3">
@@ -133,392 +157,170 @@
                         $debit = $data[0]->total_debit;
                         $balance = $credit - $debit;
                     @endphp
-                    <!--Debit earned-->
                     <div class="order-stats flex-grow-1">
                         <div class="order-stats__content">
-                            <i class="tio-atm"></i>
-                            <h6 class="order-stats__subtitle">{{translate('debit')}}</h6>
+                            <i class="fi fi-rr-deposit"></i>
+                            <h4 class="order-stats__subtitle">{{ translate('debit') }}</h4>
                         </div>
-                        <span class="order-stats__title fz-14 text--primary">
-                            {{\App\CPU\Helpers::currency_converter($debit)}}
+                        <span class="order-stats__title text-primary">
+                            {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $debit ?? 0)) }}
                         </span>
                     </div>
-                    <!--Debit earned End-->
-
-                    <!--credit earned-->
                     <div class="order-stats flex-grow-1">
                         <div class="order-stats__content">
-                            <i class="tio-money"></i>
-                            <h6 class="order-stats__subtitle">{{translate('credit')}}</h6>
+                            <i class="fi fi-rr-sack-dollar"></i>
+                            <h4 class="order-stats__subtitle">{{ translate('credit') }}</h4>
                         </div>
-                        <span class="order-stats__title fz-14 text-warning">
-                        {{\App\CPU\Helpers::currency_converter($credit)}}
+                        <span class="order-stats__title text-warning">
+                            {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $credit ?? 0)) }}
                         </span>
                     </div>
-                    <!--credit earned end-->
-
-                    <!--balance earned-->
                     <div class="order-stats flex-grow-1">
                         <div class="order-stats__content">
-                            <i class="tio-wallet"></i>
-                            <h6 class="order-stats__subtitle">{{translate('balance')}}</h6>
+                            <i class="fi fi-rr-wallet"></i>
+                            <h4 class="order-stats__subtitle">{{ translate('balance') }}</h4>
                         </div>
-                        <span class="order-stats__title fz-14 text-success">
-                            {{\App\CPU\Helpers::currency_converter($balance)}}
+                        <span class="order-stats__title text-success">
+                            {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $balance ?? 0)) }}
                         </span>
                     </div>
-                    <!--balance earned end-->
                 </div>
             </div>
 
         </div>
-
-        <!-- End Stats -->
-        <!-- Card -->
         <div class="card mt-3">
-            <!-- Header -->
-            <div class="card-header text-capitalize gap-2">
-                <h4 class="mb-0 text-nowrap ">
-                    {{translate('transactions')}}
-                    <span class="badge badge-soft-dark radius-50 fz-12 ml-1">{{$transactions->count()}}</span>
-                </h4>
-                <div class="d-flex justify-content-end">
-                    <div class="dropdown text-nowrap">
-                        <button type="button" class="btn btn-outline--primary" data-toggle="dropdown">
-                            <i class="tio-download-to"></i>
-                            {{translate('export')}}
-                            <i class="tio-chevron-down"></i>
-                        </button>
+            <div class="card-body">
+                <div class="d-flex justify-content-between gap-3 align-items-center mb-4">
+                    <h3 class="mb-0 text-nowrap text-capitalize d-flex gap-1 align-items-center">
+                        {{ translate('transactions') }}
+                        <span class="badge badge-info text-bg-info">{{ $transactions->total() }}</span>
+                    </h3>
 
-                        <ul class="dropdown-menu dropdown-menu-right">
-                            <li>
-                                <a type="submit" class="dropdown-item d-flex align-items-center gap-2 " href="{{route('admin.customer.wallet.export',['transaction_type'=>$transaction_status,'customer_id'=>request('customer_id'),'to'=>request('to'),'from'=>request('from')])}}">
-                                    <img width="14" src="{{asset('/public/assets/back-end/img/excel.png')}}" alt="">
-                                    {{translate('excel')}}
-                                </a>
-                            </li>
-                        </ul>
+                    <a type="button" class="btn btn-outline-primary"
+                        href="{{ route('admin.customer.wallet.export', ['transaction_type' => $transaction_status, 'customer_id' => request('customer_id'), 'to' => request('to'), 'from' => request('from')]) }}">
+                        <i class="fi fi-sr-inbox-in"></i>
+                        <span class="fs-12">{{ translate('export') }}</span>
+                    </a>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="datatable"
+                        class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table {{ Session::get('direction') === 'rtl' ? 'text-right' : 'text-left' }}">
+                        <thead class="thead-light thead-50 text-capitalize">
+                            <tr>
+                                <th>{{ translate('SL') }}</th>
+                                <th>{{ translate('transaction_ID') }}</th>
+                                <th>{{ translate('Customer') }}</th>
+                                <th>{{ translate('credit') }}</th>
+                                <th>{{ translate('debit') }}</th>
+                                <th>{{ translate('balance') }}</th>
+                                <th>{{ translate('transaction_type') }}</th>
+                                <th>{{ translate('reference') }}</th>
+                                <th class="text-center">{{ translate('created_at') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($transactions as $key => $transaction)
+                                <tr>
+                                    <td>{{ $transactions->firstItem() + $key }}</td>
+                                    <td>{{ $transaction['transaction_id'] }}</td>
+                                    <td>
+                                        <a href="{{ route('admin.customer.view', ['user_id' => $transaction['user_id']]) }}"
+                                            class="text-dark text-hover-primary">{{ Str::limit($transaction['user'] ? $transaction?->user->f_name . ' ' . $transaction?->user->l_name : translate('not_found'), 20) }}</a>
+                                    </td>
+                                    <td>
+                                        {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $transaction['credit'])) }}
+                                        @if ($transaction['transaction_type'] == 'add_fund' && $transaction['admin_bonus'] > 0)
+                                            <span class="text-sm badge badge-soft-success">
+                                                +
+                                                {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $transaction['admin_bonus'])) }}
+                                                {{ translate('admin_bonus') }}
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td>{{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $transaction['debit'])) }}
+                                    </td>
+
+                                    <td>
+                                        {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $transaction['balance'])) }}
+                                    </td>
+
+                                    <td>
+                                        <span
+                                            class="badge badge-soft-{{ $transaction['transaction_type'] == 'order_refund'
+                                                ? 'danger'
+                                                : ($transaction['transaction_type'] == 'loyalty_point'
+                                                    ? 'warning'
+                                                    : ($transaction['transaction_type'] == 'order_place'
+                                                        ? 'info'
+                                                        : 'success')) }}">
+                                            {{ translate($transaction['transaction_type']) }}
+                                        </span>
+                                    </td>
+                                    <td>{{ translate(str_replace('_', ' ', $transaction['reference'])) }}</td>
+                                    <td class="text-center">
+                                        {{ date('Y/m/d ' . config('timeformat'), strtotime($transaction['created_at'])) }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-responsive mt-4">
+                    <div class="px-4 d-flex justify-content-lg-end">
+                        {!! $transactions->links() !!}
                     </div>
                 </div>
+                @if (count($transactions) == 0)
+                    @include(
+                        'layouts.admin.partials._empty-state',
+                        ['text' => 'no_data_found'],
+                        ['image' => 'default']
+                    )
+                @endif
             </div>
-            <!-- End Header -->
-
-            <!-- Table -->
-            <div class="table-responsive">
-                <table id="datatable"
-                    class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table {{Session::get('direction') === "rtl" ? 'text-right' : 'text-left'}}">
-                    <thead class="thead-light thead-50 text-capitalize">
-                        <tr>
-                            <th>{{translate('SL')}}</th>
-                            <th>{{translate('transaction_ID')}}</th>
-                            <th>{{translate('Customer')}}</th>
-                            <th>{{translate('credit')}}</th>
-                            <th>{{translate('debit')}}</th>
-                            <th>{{translate('balance')}}</th>
-                            <th>{{translate('transaction_type')}}</th>
-                            <th>{{translate('reference')}}</th>
-                            <th class="text-center">{{translate('created_at')}}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    @foreach($transactions as $k=>$wt)
-                        <tr>
-                            <td >{{$k+$transactions->firstItem()}}</td>
-                            <td>{{$wt->transaction_id}}</td>
-                            <td><a href="{{route('admin.customer.view',['user_id'=>$wt->user_id])}}" class="title-color hover-c1">{{Str::limit($wt->user?$wt->user->f_name.' '.$wt->user->l_name:translate('not_found'),20,'...')}}</a></td>
-                            <td>{{\App\CPU\Helpers::currency_converter($wt->credit)}}</td>
-                            <td>{{\App\CPU\Helpers::currency_converter($wt->debit)}}</td>
-                            <td>{{\App\CPU\Helpers::currency_converter($wt->balance)}}</td>
-                            <td>
-                                <span class="badge badge-soft-{{$wt->transaction_type=='order_refund'
-                                    ?'danger'
-                                    :($wt->transaction_type=='loyalty_point'?'warning'
-                                        :($wt->transaction_type=='order_place'
-                                            ?'info'
-                                            :'success'))
-                                    }}">
-                                    {{translate($wt->transaction_type)}}
-                                </span>
-                            </td>
-                            <td>{{translate(str_replace('_',' ',$wt->reference)) }}</td>
-                            <td class="text-center">{{date('Y/m/d '.config('timeformat'), strtotime($wt->created_at))}}</td>
-                        </tr>
-                    @endforeach
-                    </tbody>
-                </table>
-            </div>
-            <!-- End Body -->
-
-            <div class="table-responsive mt-4">
-                <div class="px-4 d-flex justify-content-lg-end">
-                    <!-- Pagination -->
-                    {!!$transactions->links()!!}
-                </div>
-            </div>
-
-            @if(count($transactions)==0)
-                <div class="text-center p-4">
-                    <img class="mb-3 w-160" src="{{asset('public/assets/back-end')}}/svg/illustrations/sorry.svg" alt="Image Description">
-                    <p class="mb-0">{{ translate('no_data_to_show')}}</p>
-                </div>
-            @endif
-
         </div>
-        <!-- End Card -->
     </div>
 @endsection
 
 @push('script')
-
-@endpush
-
-@push('script_2')
     <script>
-        $(document).on('ready', function () {
-            $('.js-data-example-ajax').select2({
-                ajax: {
-                    url: '{{route('admin.customer.customer-list-search')}}',
-                    data: function (params) {
-                        return {
-                            q: params.term, // search term
-                            all:true,
-                            page: params.page
-                        };
-                    },
-                    processResults: function (data) {
-                        return {
-                        results: data
-                        };
-                    },
-                    __port: function (params, success, failure) {
-                        var $request = $.ajax(params);
+        'use strict';
 
-                        $request.then(success);
-                        $request.fail(failure);
+        let errorTimeout;
 
-                        return $request;
-                    }
-                }
-            });
-
-            // INITIALIZATION OF FLATPICKR
-            // =======================================================
-            $('.js-flatpickr').each(function () {
-                $.HSCore.components.HSFlatpickr.init($(this));
-            });
-
-
-            // INITIALIZATION OF NAV SCROLLER
-            // =======================================================
-            $('.js-nav-scroller').each(function () {
-                new HsNavScroller($(this)).init()
-            });
-
-
-            // INITIALIZATION OF DATERANGEPICKER
-            // =======================================================
-            $('.js-daterangepicker').daterangepicker();
-
-            $('.js-daterangepicker-times').daterangepicker({
-                timePicker: true,
-                startDate: moment().startOf('hour'),
-                endDate: moment().startOf('hour').add(32, 'hour'),
-                locale: {
-                    format: 'M/DD hh:mm A'
-                }
-            });
-
-            var start = moment();
-            var end = moment();
-
-            function cb(start, end) {
-                $('#js-daterangepicker-predefined .js-daterangepicker-predefined-preview').html(start.format('MMM D') + ' - ' + end.format('MMM D, YYYY'));
+        $("#amount").on('input', function() {
+            const value = parseFloat($(this).val());
+            if (isNaN(value) || value <= 0) {
+                $(this).val('');
+                $("#amount_error").fadeIn(200);
+                clearTimeout(errorTimeout);
+                errorTimeout = setTimeout(function() {
+                    $("#amount_error").fadeOut(500);
+                }, 1000);
+            } else {
+                $("#amount_error").fadeOut(300);
             }
-
-            $('#js-daterangepicker-predefined').daterangepicker({
-                startDate: start,
-                endDate: end,
-                ranges: {
-                    'Today': [moment(), moment()],
-                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
-                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-                    'This Month': [moment().startOf('month'), moment().endOf('month')],
-                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
-                }
-            }, cb);
-
-            cb(start, end);
-
-
-            // INITIALIZATION OF CHARTJS
-            // =======================================================
-            $('.js-chart').each(function () {
-                $.HSCore.components.HSChartJS.init($(this));
-            });
-
-            var updatingChart = $.HSCore.components.HSChartJS.init($('#updatingData'));
-
-            // Call when tab is clicked
-            $('[data-toggle="chart"]').click(function (e) {
-                let keyDataset = $(e.currentTarget).attr('data-datasets')
-
-                // Update datasets for chart
-                updatingChart.data.datasets.forEach(function (dataset, key) {
-                    dataset.data = updatingChartDatasets[keyDataset][key];
-                });
-                updatingChart.update();
-            })
-
-
-            // INITIALIZATION OF MATRIX CHARTJS WITH CHARTJS MATRIX PLUGIN
-            // =======================================================
-            function generateHoursData() {
-                var data = [];
-                var dt = moment().subtract(365, 'days').startOf('day');
-                var end = moment().startOf('day');
-                while (dt <= end) {
-                    data.push({
-                        x: dt.format('YYYY-MM-DD'),
-                        y: dt.format('e'),
-                        d: dt.format('YYYY-MM-DD'),
-                        v: Math.random() * 24
-                    });
-                    dt = dt.add(1, 'day');
-                }
-                return data;
-            }
-
-            $.HSCore.components.HSChartMatrixJS.init($('.js-chart-matrix'), {
-                data: {
-                    datasets: [{
-                        label: 'Commits',
-                        data: generateHoursData(),
-                        width: function (ctx) {
-                            var a = ctx.chart.chartArea;
-                            return (a.right - a.left) / 70;
-                        },
-                        height: function (ctx) {
-                            var a = ctx.chart.chartArea;
-                            return (a.bottom - a.top) / 10;
-                        }
-                    }]
-                },
-                options: {
-                    tooltips: {
-                        callbacks: {
-                            title: function () {
-                                return '';
-                            },
-                            label: function (item, data) {
-                                var v = data.datasets[item.datasetIndex].data[item.index];
-
-                                if (v.v.toFixed() > 0) {
-                                    return '<span class="font-weight-bold">' + v.v.toFixed() + ' hours</span> on ' + v.d;
-                                } else {
-                                    return '<span class="font-weight-bold">No time</span> on ' + v.d;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        xAxes: [{
-                            position: 'bottom',
-                            type: 'time',
-                            offset: true,
-                            time: {
-                                unit: 'week',
-                                round: 'week',
-                                displayFormats: {
-                                    week: 'MMM'
-                                }
-                            },
-                            ticks: {
-                                "labelOffset": 20,
-                                "maxRotation": 0,
-                                "minRotation": 0,
-                                "fontSize": 12,
-                                "fontColor": "rgba(22, 52, 90, 0.5)",
-                                "maxTicksLimit": 12,
-                            },
-                            gridLines: {
-                                display: false
-                            }
-                        }],
-                        yAxes: [{
-                            type: 'time',
-                            offset: true,
-                            time: {
-                                unit: 'day',
-                                parser: 'e',
-                                displayFormats: {
-                                    day: 'ddd'
-                                }
-                            },
-                            ticks: {
-                                "fontSize": 12,
-                                "fontColor": "rgba(22, 52, 90, 0.5)",
-                                "maxTicksLimit": 2,
-                            },
-                            gridLines: {
-                                display: false
-                            }
-                        }]
-                    }
-                }
-            });
-
-
-            // INITIALIZATION OF CLIPBOARD
-            // =======================================================
-            $('.js-clipboard').each(function () {
-                var clipboard = $.HSCore.components.HSClipboard.init(this);
-            });
-
-
-            // INITIALIZATION OF CIRCLES
-            // =======================================================
-            $('.js-circle').each(function () {
-                var circle = $.HSCore.components.HSCircles.init($(this));
-            });
         });
-    </script>
 
-    <script>
-        $('#from_date,#to_date').change(function () {
-            let fr = $('#from_date').val();
-            let to = $('#to_date').val();
-            if (fr != '' && to != '') {
-                if (fr > to) {
-                    $('#from_date').val('');
-                    $('#to_date').val('');
-                    toastr.error('Invalid date range!', Error, {
-                        CloseButton: true,
-                        ProgressBar: true
-                    });
-                }
-            }
 
-        })
-    </script>
 
-    <script>
-        $('#add_fund').on('submit', function (e) {
-
+        $('#add-fund').on('submit', function(e) {
             e.preventDefault();
-            var formData = new FormData(this);
-
+            let formData = new FormData(this);
             Swal.fire({
-                title: "{{translate('are_you_sure')}} ?",
-                text: '{{translate("you_want_to_add_fund")}} '+$('#amount').val()+' {{\App\CPU\Helpers::currency_code().' '.translate("to")}} '+$('#form-customer option:selected').text()+'{{translate("to_wallet")}}',
-                type: 'info',
+                title: "{{ translate('are_you_sure') . '?' }} ",
+                text: '{{ translate('you_want_to_add_fund') }} ' + $('#amount').val() +
+                    ' {{ getCurrencyCode(type: 'default') . ' ' . translate('to') }} ' + $(
+                        '#form-customer option:selected').text() + '{{ translate('to_wallet') }}',
+                icon: "warning",
                 showCancelButton: true,
-                cancelButtonColor: 'default',
-                confirmButtonColor: 'primary',
-                cancelButtonText: '{{translate("no")}}',
-                confirmButtonText: '{{translate("add")}}',
+                confirmButtonColor: '#377dff',
+                cancelButtonColor: '#dd3333',
+                cancelButtonText: '{{ translate('no') }}',
+                confirmButtonText: '{{ translate('add') }}',
                 reverseButtons: true
-            }).then((result) => {
+            }).then(result => {
                 if (result.value) {
                     $.ajaxSetup({
                         headers: {
@@ -526,55 +328,32 @@
                         }
                     });
                     $.post({
-                        url: '{{route('admin.customer.wallet.add-fund')}}',
+                        url: '{{ route('admin.customer.wallet.add-fund') }}',
                         data: formData,
                         cache: false,
                         contentType: false,
                         processData: false,
-                        success: function (data) {
+                        success: function(data) {
+                            console.log(data);
                             if (data.errors) {
-                                for (var i = 0; i < data.errors.length; i++) {
-                                    toastr.error(data.errors[i].message, {
-                                        CloseButton: true,
-                                        ProgressBar: true
-                                    });
-                                }
-                            } else {
-                                toastr.success('{{translate("fund_added_successfully")}}', {
-                                    CloseButton: true,
-                                    ProgressBar: true
+                                $.each(data.errors, function(i, err) {
+                                    setTimeout(function() {
+                                        toastMagic.error(err.message);
+                                    }, 500 * (i + 1));
                                 });
-                                location.reload();
+                            } else {
+                                toastMagic.success(
+                                    '{{ translate('fund_added_successfully') }}');
+                                setTimeout(() => {
+                                    location.reload()
+                                }, 500);
                             }
+                        },
+                        complete: function () {
                         }
                     });
                 }
             })
         })
-
-        $('.js-data-example-ajax').select2({
-            ajax: {
-                url: '{{route('admin.customer.customer-list-search')}}',
-                data: function (params) {
-                    return {
-                        q: params.term, // search term
-                        page: params.page
-                    };
-                },
-                processResults: function (data) {
-                    return {
-                        results: data
-                    };
-                },
-                __port: function (params, success, failure) {
-                    var $request = $.ajax(params);
-
-                    $request.then(success);
-                    $request.fail(failure);
-
-                    return $request;
-                }
-            }
-        });
     </script>
 @endpush

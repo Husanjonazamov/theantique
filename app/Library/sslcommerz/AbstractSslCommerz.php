@@ -41,7 +41,6 @@ abstract class AbstractSslCommerz implements SslCommerzInterface
      * @param $data
      * @param array $header
      * @param bool $setLocalhost
-     * @return bool|string
      */
     public function callToApi($data, $header = [], $setLocalhost = false)
     {
@@ -84,7 +83,7 @@ abstract class AbstractSslCommerz implements SslCommerzInterface
      * @param string $pattern
      * @return false|mixed|string
      */
-    public function formatResponse($response, $type = 'checkout', $pattern = 'json')
+    public function formatResponse($response, string $type = 'checkout', string $pattern = 'json'): mixed
     {
         $sslcz = json_decode($response, true);
 
@@ -111,13 +110,12 @@ abstract class AbstractSslCommerz implements SslCommerzInterface
     }
 
     /**
-     * @param $url
+     * @param string $url
      * @param bool $permanent
      */
-    public function redirect($url, $permanent = false)
+    public function redirect(string $url, bool $permanent = false): void
     {
         header('Location: ' . $url, true, $permanent ? 301 : 302);
-
         exit();
     }
 }

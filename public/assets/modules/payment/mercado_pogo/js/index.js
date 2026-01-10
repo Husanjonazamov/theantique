@@ -54,7 +54,6 @@ function loadCardForm() {
             onFormMounted: error => {
                 if (error)
                     return console.warn("Form Mounted handling error: ", error);
-                console.log("Form mounted");
             },
             onSubmit: event => {
                 event.preventDefault();

@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Model\Attribute;
-use App\Model\ProductCompare;
-use App\Model\BusinessSetting;
+use App\Models\Attribute;
+use App\Models\ProductCompare;
 use Illuminate\Http\Request;
 
 
@@ -19,7 +18,7 @@ class CompareController extends Controller
     public function index(){
         $attributes = [];
         $compare_lists = $this->product_compare->with('product')->whereHas('product')->where('user_id', auth('customer')->id())->get();
-        if(theme_root_path()=='theme_fashion' || theme_root_path() == 'theme_all_purpose'){
+        if(theme_root_path()=='theme_fashion') {
             $attributes = Attribute::all();
         }
         return view(VIEW_FILE_NAMES['account_compare_list'], compact('compare_lists','attributes'));

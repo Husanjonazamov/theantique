@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers\Payment_Methods;
 
-use App\Model\PaymentRequest;
+use App\Models\PaymentRequest;
 use App\Models\User;
 use App\Traits\Processor;
-use Illuminate\Http\Request;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Routing\Redirector;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Contracts\Foundation\Application;
 
 class SslCommerzPaymentController extends Controller
 {

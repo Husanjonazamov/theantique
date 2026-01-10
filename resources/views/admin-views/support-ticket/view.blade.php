@@ -1,61 +1,55 @@
-@extends('layouts.back-end.app')
+@php use Carbon\Carbon; @endphp
+@extends('layouts.admin.app')
+
 @section('title', translate('support_Ticket'))
-@push('css_or_js')
-    <!-- Custom styles for this page -->
-    <link href="{{asset('public/assets/back-end')}}/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
-    <link href="{{asset('public/assets/back-end/css/croppie.css')}}" rel="stylesheet">
-@endpush
 
 @section('content')
     <div class="content container-fluid">
-        <!-- Page Title -->
         <div class="mb-3">
             <h2 class="h1 mb-0 text-capitalize d-flex align-items-center gap-2">
-                <img width="20" src="{{asset('/public/assets/back-end/img/support_ticket.png')}}" alt="">
+                <img width="20" src="{{dynamicAsset(path: 'public/assets/back-end/img/support_ticket.png')}}" alt="">
                 {{translate('support_ticket')}}
                 <span class="badge badge-soft-dark radius-50 fz-14">{{ $tickets->total() }}</span>
             </h2>
         </div>
-        <!-- End Page Title -->
 
         <div class="row mt-20">
             <div class="col-md-12">
                 <div class="">
-                    <div class="px-3 py-4 mb-3 border-bottom">
+                    <div class="py-3 mb-3 border-bottom">
                         <div class="d-flex flex-wrap justify-content-between gap-3 align-items-center">
                             <div class="">
-                                <!-- Search -->
                                 <form action="{{ url()->current() }}" method="GET">
-                                    <div class="input-group input-group-merge input-group-custom">
-                                        <div class="input-group-prepend">
-                                            <div class="input-group-text">
-                                                <i class="tio-search"></i>
+                                    <div class="form-group">
+                                        <div class="input-group">
+                                            <input type="search" value="{{ request('searchValue') }}" name="searchValue" class="form-control min-w-300" placeholder="{{translate('search_ticket_by_subject_or_status').'...'}}">
+                                            <div class="input-group-append search-submit">
+                                                <button type="submit">
+                                                    <i class="fi fi-rr-search"></i>
+                                                </button>
                                             </div>
                                         </div>
-                                        <input id="datatableSearch_" type="search" name="search" class="form-control"
-                                               placeholder="{{translate('search_Ticket_by_Subject_or_status')}}..."
-                                               aria-label="Search orders" value="{{ $search }}">
-                                        <button type="submit"
-                                                class="btn btn--primary">{{translate('search')}}</button>
                                     </div>
                                 </form>
-                                <!-- End Search -->
                             </div>
                             <div class="">
                                 <div class="d-flex flex-wrap flex-sm-nowrap gap-3 justify-content-end">
                                     @php($priority=request()->has('priority')?request()->input('priority'):'')
-                                    <select class="form-control border-color-c1 w-160"
-                                            onchange="filter_tickets('priority',this.value)">
+                                    <select class="form-select w-160 fs-12 filter-tickets"
+                                            data-value="priority">
                                         <option value="all">{{translate('all_Priority')}}</option>
-                                        <option value="low" {{$priority=='low'?'selected':''}}>{{translate('low')}}</option>
-                                        <option value="medium" {{$priority=='medium'?'selected':''}}>{{translate('medium')}}</option>
-                                        <option value="high" {{$priority=='high'?'selected':''}}>{{translate('high')}}</option>
-                                        <option value="urgent" {{$priority=='urgent'?'selected':''}}>{{translate('urgent')}}</option>
+                                        <option
+                                            value="low" {{$priority=='low'?'selected':''}}>{{translate('low')}}</option>
+                                        <option
+                                            value="medium" {{$priority=='medium'?'selected':''}}>{{translate('medium')}}</option>
+                                        <option
+                                            value="high" {{$priority=='high'?'selected':''}}>{{translate('high')}}</option>
+                                        <option
+                                            value="urgent" {{$priority=='urgent'?'selected':''}}>{{translate('urgent')}}</option>
                                     </select>
 
-                                    @php($status=request()->has('status')?request()->input('status'):'')
-                                    <select class="form-control border-color-c1 w-160"
-                                            onchange="filter_tickets('status',this.value)">
+                                    @php($status=request()->has('status') ? request()->input('status'):'')
+                                    <select class="form-select w-160 fs-12 filter-tickets" data-value="status">
                                         <option value="all">{{translate('all_Status')}}</option>
                                         <option value="open" {{$status=='open'?'selected':''}}>{{translate('open')}}</option>
                                         <option value="close" {{$status=='close'?'selected':''}}>{{translate('close')}}</option>
@@ -64,55 +58,71 @@
                             </div>
                         </div>
                     </div>
-
-                    @foreach($tickets as $key =>$ticket)
+                    @foreach($tickets as $key => $ticket)
                         <div class="border-bottom mb-3 pb-3">
                             <div class="card">
-                                <div
-                                    class="card-body align-items-center d-flex flex-wrap justify-content-between gap-3 border-bottom">
+                                <div class="card-body align-items-center d-flex flex-wrap justify-content-between gap-3 border-bottom">
                                     <div class="media gap-3">
-                                        <img class="avatar avatar-lg"
-                                             src="{{asset('storage/app/public/profile')}}/{{$ticket->customer->image??""}}"
-                                             onerror="this.src='{{asset('public/assets/back-end/img/image-place-holder.png')}}'"
-                                             alt="">
+                                        @if($ticket->customer)
+                                        <img width="50" class="rounded" src="{{ getStorageImages(path: $ticket->customer->image_full_url??"", type: 'backend-profile') }}" alt="">
+
                                         <div class="media-body">
-                                            <h6 class="mb-0 {{Session::get('direction') === "rtl" ? 'text-right' : 'text-left'}}">{{$ticket->customer->f_name??""}} {{$ticket->customer->l_name??""}}</h6>
-                                            <div class="mb-2 fz-12 {{Session::get('direction') === "rtl" ? 'text-right' : 'text-left'}}">{{$ticket->customer->email??""}}</div>
+                                            <h5 class="mb-0">{{$ticket->customer->f_name??""}} {{$ticket->customer->l_name??""}}</h5>
+                                            <div class="mb-2 fs-12">{{$ticket->customer->email??""}}</div>
                                             <div class="d-flex flex-wrap gap-2 align-items-center">
-                                                <span
-                                                    class="badge-soft-danger fz-12 font-weight-bold px-2 radius-50">{{translate(str_replace('_',' ',$ticket->priority))}}</span>
-                                                <span
-                                                    class="badge-soft-info fz-12 font-weight-bold px-2 radius-50">{{translate(str_replace('_',' ',$ticket->status))}}</span>
-                                                <h6 class="mb-0">{{translate(str_replace('_',' ',$ticket->type))}}</h6>
-                                                <div class="text-nowrap {{Session::get('direction') === "rtl" ? 'pr-9' : 'pl-9'}}">
-                                                    @if ($ticket->created_at->diffInDays(\Carbon\Carbon::now()) < 7)
-                                                        {{ date('D h:i:A',strtotime($ticket->created_at)) }}
-                                                    @else
-                                                        {{ date('d M Y h:i:A',strtotime($ticket->created_at)) }}
-                                                    @endif
-                                                </div>
+                                                <span class="badge text-bg-danger badge-danger badge-sm">
+                                                    {{ translate(str_replace('_',' ',$ticket->priority)) }}
+                                                </span>
+                                                <span class="badge text-bg-info badge-info badge-sm">
+                                                    {{ translate(str_replace('_',' ', $ticket->status)) }}
+                                                </span>
+                                                <h6 class="mb-0">
+                                                    {{ translate(str_replace('_',' ',$ticket->type)) }}
+                                                </h6>
+                                            </div>
+                                            <div class="text-nowrap fs-12 mt-2">
+                                                @if ($ticket->created_at->diffInDays(Carbon::now()) < 7)
+                                                    {{ date('D h:i:A',strtotime($ticket->created_at)) }}
+                                                @else
+                                                    {{ date('d M Y h:i:A',strtotime($ticket->created_at)) }}
+                                                @endif
                                             </div>
                                         </div>
+                                        @else
+                                            <h6>{{ translate('customer_not_found').'!' }}</h6>
+                                        @endif
                                     </div>
 
-                                    <form action="{{route('admin.support-ticket.status')}}" method="post" id="support_ticket{{$ticket['id']}}_form" class="support_ticket_form">
+                                    <form action="{{route('admin.support-ticket.status')}}" method="post"
+                                          id="support-ticket-{{ $ticket['id'] }}-form" class="no-reload-form">
                                         @csrf
-                                        <input type="hidden" name="id" value="{{$ticket['id']}}">
-                                        <label class="switcher mx-auto">
-                                            <input type="checkbox" class="switcher_input" id="support_ticket{{$ticket['id']}}" name="status" value="{{ $ticket['status'] == 'open' ? 'close':'open' }}" {{ $ticket['status'] == 'open' ? 'checked':'' }} onclick="toogleStatusModal(event,'support_ticket{{$ticket['id']}}','support-ticket-on.png','support-ticket-off.png','{{translate('Want_to_Turn_ON_Support_Ticket_Status')}}','{{translate('Want_to_Turn_OFF_Support_Ticket_Status')}}',`<p>{{translate('if_enabled_this_support_ticket_will_be_active')}}</p>`,`<p>{{translate('if_disabled_this_support_ticket_will_be_inactive')}}</p>`)">
+                                        <input type="hidden" name="id" value="{{ $ticket['id'] }}">
+                                        <label class="switcher ms-auto">
+                                            <input
+                                                class="switcher_input custom-modal-plugin"
+                                                type="checkbox" name="status"
+                                                value="{{ $ticket['status'] == 'open' ? 'close' : 'open' }}"
+                                                {{ $ticket['status'] == 'open' ? 'checked':'' }}
+                                                data-modal-type="input-change-form"
+                                                data-modal-form="#support-ticket-{{ $ticket['id'] }}-form"
+                                                data-on-image="{{ dynamicAsset(path: 'public/assets/new/back-end/img/modal/support-ticket-on.png') }}"
+                                                data-off-image="{{ dynamicAsset(path: 'public/assets/new/back-end/img/modal/support-ticket-off.png') }}"
+                                                data-on-title="{{ translate('Want_to_Turn_ON_Support_Ticket_Status').'?' }}"
+                                                data-off-title="{{ translate('Want_to_Turn_OFF_Support_Ticket_Status').'?' }}"
+                                                data-on-message="<p>{{ translate('if_enabled_this_support_ticket_will_be_active') }}</p>"
+                                                data-off-message="<p>{{ translate('if_disabled_this_support_ticket_will_be_inactive') }}</p>">
                                             <span class="switcher_control"></span>
                                         </label>
                                     </form>
                                 </div>
-                                <div
-                                    class="card-body align-items-center d-flex flex-wrap flex-md-nowrap justify-content-between gap-4">
-                                    <div>
+                                <div class="card-body align-items-center d-flex flex-wrap flex-md-nowrap justify-content-between gap-4">
+                                    <div class="fs-12">
                                         {{$ticket->description}}
                                     </div>
                                     <div class="text-nowrap">
-                                        <a class="btn btn--primary"
+                                        <a class="btn btn-primary"
                                            href="{{route('admin.support-ticket.singleTicket',$ticket['id'])}}">
-                                            <i class="tio-open-in-new"></i> {{translate('view')}}
+                                           <i class="fi fi-rr-arrow-up-right-from-square"></i> {{translate('view')}}
                                         </a>
                                     </div>
                                 </div>
@@ -123,83 +133,17 @@
 
                 <div class="table-responsive mt-4">
                     <div class="px-4 d-flex justify-content-lg-end">
-                        <!-- Pagination -->
                         {{$tickets->links()}}
                     </div>
                 </div>
-
                 @if(count($tickets)==0)
-                    <div class="text-center p-4">
-                        <img class="mb-3 w-160"
-                             src="{{asset('public/assets/back-end')}}/svg/illustrations/sorry.svg"
-                             alt="Image Description">
-                        <p class="mb-0">{{translate('no_data_to_show')}}</p>
-                    </div>
+                    @include('layouts.admin.partials._empty-state',['text'=>'no_support_ticket_found'],['image'=>'default'])
                 @endif
             </div>
         </div>
-    @endsection
+    </div>
+@endsection
 
-    @push('script')
-        <!-- Page level plugins -->
-            <script src="{{asset('public/assets/back-end')}}/vendor/datatables/jquery.dataTables.min.js"></script>
-            <script
-                src="{{asset('public/assets/back-end')}}/vendor/datatables/dataTables.bootstrap4.min.js"></script>
-
-            <script>
-                // Call the dataTables jQuery plugin
-                $(document).ready(function () {
-                    $('#dataTable').DataTable();
-                });
-            </script>
-
-            <!-- Page level custom scripts -->
-            <script src="{{asset('public/assets/back-end/js/croppie.js')}}"></script>
-            <script>
-                $('.support_ticket_form').on('submit', function(event){
-                    event.preventDefault();
-
-                    $.ajaxSetup({
-                        headers: {
-                            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-                        }
-                    });
-                    $.ajax({
-                        url: $(this).attr('action'),
-                        method: 'POST',
-                        data: $(this).serialize(),
-                        success: function (data) {
-                            toastr.success("{{translate('status_updated_successfully')}}");
-                        }
-                    });
-                });
-
-                function filter_tickets(param, value) {
-                    let text = window.location;
-                    let redirect_to = '';
-                    let polished = removeURLParameter(text.toString(), param);
-                    if (polished.includes('?')) {
-                        redirect_to = polished + '&' + param + '=' + value;
-                    } else {
-                        redirect_to = polished + '?' + param + '=' + value;
-                    }
-
-                    location.href = redirect_to;
-                }
-
-                function removeURLParameter(url, parameter) {
-                    var urlparts = url.split('?');
-                    if (urlparts.length >= 2) {
-                        var prefix = encodeURIComponent(parameter) + '=';
-                        var pars = urlparts[1].split(/[&;]/g);
-                        for (var i = pars.length; i-- > 0;) {
-                            if (pars[i].lastIndexOf(prefix, 0) !== -1) {
-                                pars.splice(i, 1);
-                            }
-                        }
-                        return urlparts[0] + (pars.length > 0 ? '?' + pars.join('&') : '');
-                    }
-                    return url;
-                }
-            </script>
-    @endpush
+@push('script')
+    <script src="{{dynamicAsset(path: 'public/assets/back-end/js/admin/support-tickets.js')}}"></script>
+@endpush

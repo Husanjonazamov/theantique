@@ -1,351 +1,288 @@
-@extends('layouts.back-end.app')
+@extends('layouts.admin.app')
 
 @section('title', translate('product_List'))
 
-@push('css_or_js')
-
-@endpush
-
 @section('content')
-<div class="content container-fluid">
-    <!-- Page Title -->
-    <div class="mb-3">
-        <h2 class="h1 mb-0 text-capitalize d-flex gap-2">
-            <img src="{{asset('/public/assets/back-end/img/inhouse-product-list.png')}}" alt="">
-            @if($type == 'in_house')
-                {{translate('in_House_Product_List')}}
-            @elseif($type == 'seller')
-                {{translate('seller_Product_List')}}
-            @endif
-            <span class="badge badge-soft-dark radius-50 fz-14 ml-1">{{ $pro->total() }}</span>
-        </h2>
-    </div>
-    <!-- End Page Title -->
-    <!-- Filter -->
-    <div class="card">
-        <div class="card-body">
-            <form action="{{ route('admin.product.list',['type'=>request('type')])}}"  method="GET">
-                <input type="hidden" value="{{ request('status') }}" name="status">
-                <div class="row gx-2">
-                    <div class="col-12">
-                        <h4 class="mb-3">{{translate('filter_Products')}}</h4>
-                    </div>
-                    @if (request('type') == 'seller')
-                        <div class="col-sm-6 col-lg-4 col-xl-3">
-                            <div class="form-group">
-                                <label class="title-color" for="store">{{translate('store')}}</label>
-                                <select name="seller_id"  class="form-control text-capitalize">
-                                    <option value=""  selected>{{translate('all_store')}}</option>
-                                    @foreach ($sellers as $seller)
-                                        <option value="{{$seller->id}}"{{request('seller_id')==$seller->id ? 'selected' :''}}>
-                                            {{ $seller->shop->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                    @endif
-                    <div class="col-sm-6 col-lg-4 col-xl-3">
-                        <div class="form-group">
-                            <label class="title-color" for="store">{{translate('brand')}}</label>
-                            <select name="brand_id"  class="js-select2-custom form-control text-capitalize">
-                                <option value="" selected>{{translate('all_brand')}}</option>
-                                @foreach ($brands as $brand)
-                                    <option value="{{$brand->id}}" {{request('brand_id')==$brand->id ? 'selected' :''}}>{{ $brand->default_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
+    <div class="content container-fluid">
 
-                    <div class="col-sm-6 col-lg-4 col-xl-3">
-                        <div class="form-group">
-                            <label for="name" class="title-color">{{ translate('category') }}</label>
-                            <select class="js-select2-custom form-control" name="category_id" onchange="getRequest('{{ url('/') }}/admin/product/get-categories?parent_id='+this.value,'sub-category-select','select')">
-                                <option value="{{ old('category_id') }}" selected disabled>{{ translate('select_category') }}</option>
-                                @foreach ($categories as $category)
-                                    <option value="{{ $category['id'] }}"
-                                        {{ request('category_id') == $category['id'] ? 'selected' : '' }}>
-                                        {{ $category['defaultName'] }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 col-lg-4 col-xl-3">
-                        <div class="form-group">
-                            <label for="name" class="title-color">{{ translate('sub_Category') }}</label>
-                            <select class="js-select2-custom form-control" name="sub_category_id"
-                                    id="sub-category-select"
-                                    onchange="getRequest('{{ url('/') }}/admin/product/get-categories?parent_id='+this.value,'sub-sub-category-select','select')">
-                                    <option value="{{request('sub_category_id') != null ? request('sub_category_id') : null}}" selected {{request('sub_category_id') != null ? '' : 'disabled'}}>{{request('sub_category_id') != null ? $sub_category['defaultName']: translate('select_Sub_Category') }}</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 col-lg-4 col-xl-3">
-                        <div class="form-group">
-                            <label for="name" class="title-color">{{ translate('sub_Sub_Category') }}</label>
-                            <select class="js-select2-custom form-control" name="sub_sub_category_id"
-                                    id="sub-sub-category-select">
-                                    <option value="{{request('sub_sub_category_id') != null ? request('sub_sub_category_id') : null}}" selected {{request('sub_sub_category_id') != null ? '' : 'disabled'}}>{{request('sub_sub_category_id') != null ? $sub_sub_category['defaultName'] : translate('select_Sub_Sub_Category') }}</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        <div class="d-flex gap-3 justify-content-end">
-                            <a href="{{ route('admin.product.list',['type'=>request('type')])}}" class="btn btn-secondary px-5">
-                                {{translate('reset')}}
-                            </a>
-                            <button type="submit" class="btn btn--primary px-5" onclick="formUrlChange(this)" data-action="{{ url()->current() }}">
-                                {{translate('show_data')}}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </form>
+        <div class="mb-3">
+            <h2 class="h1 mb-0 text-capitalize d-flex align-items-center gap-2">
+                <img src="{{ dynamicAsset(path: 'public/assets/new/back-end/img/inhouse-product-list.png') }}" alt="">
+                @if ($type == 'in_house')
+                    {{ translate('in_House_Product_List') }}
+                @elseif($type == 'seller')
+                    {{ translate('vendor_Product_List') }}
+                @endif
+                <span class="badge text-dark bg-body-secondary fw-semibold rounded-50">{{ $products->total() }}</span>
+            </h2>
         </div>
-    </div>
-    <!-- End Filter -->
 
-    <div class="row mt-20">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="px-3 py-4">
-                    <div class="row align-items-center">
-                        <div class="col-lg-4">
-                            <!-- Search -->
-                            <form action="{{ url()->current() }}" method="GET">
-                                <div class="input-group input-group-custom input-group-merge">
-                                    <div class="input-group-prepend">
-                                        <div class="input-group-text">
-                                            <i class="tio-search"></i>
+        <div class="row mt-20">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="px-3 py-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                            <div class="min-w-300 min-w-100-mobile">
+                                <form action="{{ url()->current() }}" method="get">
+                                    <input type="hidden" value="{{ request('request_status') }}" name="request_status">
+                                    <input type="hidden" value="{{ request('status') }}" name="status">
+                                    <div class="input-group">
+                                        <input id="datatableSearch_" type="search" name="searchValue"
+                                               class="form-control"
+                                               placeholder="{{ translate('search_by_Product_Name') }}"
+                                               aria-label="Search orders" value="{{ request('searchValue') }}">
+                                        <div class="input-group-append search-submit">
+                                            <button type="submit">
+                                                <i class="fi fi-rr-search"></i>
+                                            </button>
                                         </div>
                                     </div>
-                                    <input id="datatableSearch_" type="search" name="search" class="form-control"
-                                           placeholder="{{translate('search_Product_Name')}}" aria-label="Search orders"
-                                           value="{{ request('search') }}" >
-                                    <input type="hidden" value="{{ request('status') }}" name="status">
-                                    <button type="submit" class="btn btn--primary">{{translate('search')}}</button>
-                                </div>
-                            </form>
-                            <!-- End Search -->
-                        </div>
-                        <div class="col-lg-8 mt-3 mt-lg-0 d-flex flex-wrap gap-3 justify-content-lg-end">
-
-                                <div>
-                                    <button type="button" class="btn btn-outline--primary" data-toggle="dropdown">
-                                        <i class="tio-download-to"></i>
-                                        {{translate('export')}}
-                                        <i class="tio-chevron-down"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-right">
-                                        <li>
-                                            <a class="dropdown-item" href="{{ route('admin.product.export-excel',['type'=>request('type')])}}?brand_id={{request('brand_id')}}&search={{ request('search') }}&category_id={{request('category_id')}}&sub_category_id={{request('sub_category_id')}}&sub_sub_category_id={{request('sub_sub_category_id')}}&seller_id={{request('seller_id')}}&status={{request('status')}}">
-                                                <img width="14" src="{{asset('/public/assets/back-end/img/excel.png')}}" alt="">
-                                                {{translate('excel')}}
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            @if($type == 'in_house')
-                                <a href="{{route('admin.product.stock-limit-list',['in_house'])}}" class="btn btn-info">
-                                    <span class="text">{{translate('limited_Sotcks')}}</span>
-                                </a>
-                                <a href="{{route('admin.product.add-new')}}" class="btn btn--primary">
-                                    <i class="tio-add"></i>
-                                    <span class="text">{{translate('add_new_product')}}</span>
-                                </a>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-
-                <div class="table-responsive">
-                    <table id="datatable" style="text-align: {{Session::get('direction') === "rtl" ? 'right' : 'left'}};" class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100">
-                        <thead class="thead-light thead-50 text-capitalize">
-                            <tr>
-                                <th>{{translate('SL')}}</th>
-                                <th>{{translate('product Name')}}</th>
-                                <th class="text-right">{{translate('product Type')}}</th>
-                                <th class="text-right">{{translate('purchase_price')}}</th>
-                                <th class="text-right">{{translate('selling_price')}}</th>
-                                <th class="text-center">{{translate('show_as_featured')}}</th>
-                                <th class="text-center">{{translate('active_status')}}</th>
-                                <th class="text-center">{{translate('action')}}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        @foreach($pro as $k=>$p)
-                            <tr>
-                                <th scope="row">{{$pro->firstItem()+$k}}</th>
-                                <td>
-                                    <a href="{{route('admin.product.view',[$p['id']])}}" class="media align-items-center gap-2">
-                                        <img src="{{\App\CPU\ProductManager::product_image_path('thumbnail')}}/{{$p['thumbnail']}}"
-                                             onerror="this.src='{{asset('/public/assets/back-end/img/brand-logo.png')}}'"class="avatar border" alt="">
-                                        <span class="media-body title-color hover-c1">
-                                            {{\Illuminate\Support\Str::limit($p['name'],20)}}
-                                        </span>
+                                </form>
+                            </div>
+                            <div class="d-flex flex-wrap gap-3 justify-content-lg-end">
+                                <div class="dropdown">
+                                    <a type="button" class="btn btn-outline-primary"
+                                       href="{{ route('admin.products.export-excel', [
+                                                'type' => request('type'),
+                                                'request_status' => request('request_status'),
+                                                'searchValue' => request('searchValue'),
+                                                'seller_id' => request('seller_id'),
+                                                'filter_sort_by' => request('filter_sort_by'),
+                                                'filter_product_types' => request('filter_product_types'),
+                                                'product_status' => request('product_status'),
+                                                'filter_brand_ids' => request('filter_brand_ids'),
+                                                'filter_category_ids' => request('filter_category_ids'),
+                                            ]) }}">
+                                        <i class="fi fi-sr-inbox-in"></i>
+                                        <span class="fs-12">{{ translate('export') }}</span>
                                     </a>
-                                </td>
-                                <td class="text-right">
-                                    {{translate(str_replace('_',' ',$p['product_type']))}}
-                                </td>
-                                <td class="text-right">
-                                    {{\App\CPU\BackEndHelper::set_symbol(\App\CPU\BackEndHelper::usd_to_currency($p['purchase_price']))}}
-                                </td>
-                                <td class="text-right">
-                                    {{\App\CPU\BackEndHelper::set_symbol(\App\CPU\BackEndHelper::usd_to_currency($p['unit_price']))}}
-                                </td>
-                                <td class="text-center">
+                                </div>
 
-                                    @php($product_name = str_replace("'",'`',$p['name']))
-                                    <form action="{{route('admin.product.featured-status')}}" method="post" id="product_featured{{$p['id']}}_form" class="product_featured_form">
-                                        @csrf
-                                        <input type="hidden" name="id" value="{{$p['id']}}">
-                                        <label class="switcher mx-auto">
-                                            <input type="checkbox" class="switcher_input" id="product_featured{{$p['id']}}" name="status" value="1" {{ $p['featured'] == 1 ? 'checked':'' }}
-                                                onclick="toogleStatusModal(event,'product_featured{{$p['id']}}',
-                                                'product-status-on.png','product-status-off.png',
-                                                '{{translate('Want_to_Add')}} {{$product_name}} {{translate('to_the_featured_section')}}',
-                                                '{{translate('Want_to_Remove')}} {{$product_name}} {{translate('to_the_featured_section')}}',
-                                                `<p>{{translate('if_enabled_this_product_will_be_shown_in_the_featured_product_on_the_website_and_customer_app')}}</p>`,
-                                                `<p>{{translate('if_disabled_this_product_will_be_removed_from_the_featured_product_section_of_the_website_and_customer_app')}}</p>`)">
-                                            <span class="switcher_control"></span>
-                                        </label>
-                                    </form>
+                                <div class="position-relative">
+                                    <buton type="btn" class="btn btn-primary" data-bs-toggle="offcanvas"
+                                           data-bs-target="#offcanvasProductFilter">
+                                        <i class="fi fi-sr-settings-sliders d-flex"></i> {{ translate('Filter') }}
+                                    </buton>
+                                    @if(!empty(request('filter_sort_by')) || !empty(request('filter_product_types')) || !empty(request('product_status')) || !empty(request('filter_shop_ids')) || !empty(request('filter_brand_ids')) || !empty(request('filter_category_ids')))
+                                        <div
+                                            class="position-absolute top-n1 inset-inline-end-n1 btn-circle bg-danger border border-white border-2"
+                                            style="--size: 12px;"></div>
+                                    @endif
+                                </div>
 
-                                </td>
-                                <td class="text-center">
-                                    <form action="{{route('admin.product.status-update')}}" method="post" id="product_status{{$p['id']}}_form" class="product_status_form">
-                                        @csrf
-                                        <input type="hidden" name="id" value="{{$p['id']}}">
-                                        <label class="switcher mx-auto">
-                                            <input type="checkbox" class="switcher_input" id="product_status{{$p['id']}}" name="status" value="1" {{ $p['status'] == 1 ? 'checked':'' }}
-                                                onclick="toogleStatusModal(event,'product_status{{$p['id']}}',
-                                                'product-status-on.png','product-status-off.png',
-                                                '{{translate('Want_to_Turn_ON')}} {{$product_name}} {{translate('status')}}',
-                                                '{{translate('Want_to_Turn_OFF')}} {{$product_name}} {{translate('status')}}',
-                                                `<p>{{translate('if_enabled_this_product_will_be_available_on_the_website_and_customer_app')}}</p>`,
-                                                `<p>{{translate('if_disabled_this_product_will_be_hidden_from_the_website_and_customer_app')}}</p>`)">
-                                            <span class="switcher_control"></span>
-                                        </label>
-                                    </form>
-                                </td>
-                                <td>
-                                    <div class="d-flex justify-content-center gap-2">
-                                        <a class="btn btn-outline-info btn-sm square-btn" title="{{ translate('barcode') }}"
-                                            href="{{ route('admin.product.barcode', [$p['id']]) }}">
-                                            <i class="tio-barcode"></i>
-                                        </a>
-                                        <a class="btn btn-outline-info btn-sm square-btn" title="View" href="{{route('admin.product.view',[$p['id']])}}">
-                                            <i class="tio-invisible"></i>
-                                        </a>
-                                        <a class="btn btn-outline--primary btn-sm square-btn"
-                                            title="{{translate('edit')}}"
-                                            href="{{route('admin.product.edit',[$p['id']])}}">
-                                            <i class="tio-edit"></i>
-                                        </a>
-                                        <a class="btn btn-outline-danger btn-sm square-btn" href="javascript:"
-                                            title="{{translate('delete')}}"
-                                            onclick="form_alert('product-{{$p['id']}}','{{translate('want_to_delete_this_item?')}}')">
-                                            <i class="tio-delete"></i>
-                                        </a>
+                                @if ($type == 'in_house')
+                                    <a href="{{ route('admin.products.add') }}" class="btn btn-primary">
+                                        <i class="fi fi-sr-add"></i>
+                                        <span class="text">{{ translate('Add_New_Product') }}</span>
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table id="datatable"
+                               class="table table-hover table-borderless table-thead-bordered align-middle">
+                            <thead class="text-capitalize">
+                            <tr>
+                                <th>{{ translate('SL') }}</th>
+                                <th>{{ translate('product Name') }}</th>
+                                <th class="text-center">{{ translate('product Type') }}</th>
+                                <th class="text-center">{{ translate('unit_price') }}</th>
+                                <th class="text-center">{{ translate('stock') }}</th>
+                                @if ($productWiseTax)
+                                    <th class="text-center">{{ translate('Vat/Tax') }}</th>
+                                @endif
+                                <th>
+                                    <div class="d-flex justify-content-center">
+                                        <div>
+                                            <div class="d-flex gap-2">
+                                                <span>{{ translate('show_as_featured') }} </span>
+                                                <span class="tooltip-icon" data-bs-toggle="tooltip"
+                                                      data-bs-placement="top"
+                                                      aria-label="{{ translate('Highlight_this_product_on_the_homepage_by_marking_it_as_featured') }}"
+                                                      data-bs-title="{{ translate('Highlight_this_product_on_the_homepage_by_marking_it_as_featured') }}">
+                                                        <i class="fi fi-sr-info"></i>
+                                                    </span>
+                                            </div>
+                                            <div>{{ translate('on_homepage') }}</div>
+                                        </div>
                                     </div>
-                                    <form action="{{route('admin.product.delete',[$p['id']])}}"
-                                            method="post" id="product-{{$p['id']}}">
-                                        @csrf @method('delete')
-                                    </form>
-                                </td>
+                                </th>
+                                <th class="text-center">{{ translate('status') }}
+
+                                </th>
+                                <th class="text-center">{{ translate('action') }}</th>
                             </tr>
-                        @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                            @foreach ($products as $key => $product)
+                                <tr>
+                                    <th scope="row">{{ $products->firstItem() + $key }}</th>
+                                    <td>
+                                        <a href="{{ route('admin.products.view', ['addedBy' => $product['added_by'] == 'seller' ? 'vendor' : 'in-house', 'id' => $product['id']]) }}"
+                                           class="media align-items-center gap-2">
+                                            <img
+                                                src="{{ getStorageImages(path: $product->thumbnail_full_url, type: 'backend-product') }}"
+                                                class="avatar border object-fit-cover" alt="">
+                                            <div>
+                                                <div
+                                                    class="d-flex gap-2 align-items-center lh-1 w-max-content text-wrap line-1 max-w-300 min-w-130 text-dark text-hover-primary">
+                                                    <div class="media-body text-dark line-1 text-hover-primary"
+                                                         data-bs-toggle="tooltip" title="{{ $product['name'] }}">
+                                                        {{ Str::limit($product['name'], 20) }}
+                                                    </div>
+                                                    @if ($product?->clearanceSale)
+                                                        <span class="text-secondary" data-bs-toggle="tooltip"
+                                                              title="{{ translate('Clearance_Sale') }}">
+                                                                <i class="fi fi-sr-bahai"></i>
+                                                            </span>
+                                                    @endif
+                                                </div>
+                                                <div class="d-flex gap-2 align-items-center lh-1 mt-2">
+                                                    <div class="text-body">
+                                                        {{ translate('Id') }} # {{$product['id']}}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </td>
+                                    <td class="text-center">
+                                        {{ translate(str_replace('_', ' ', $product['product_type'])) }}
+                                    </td>
+                                    <td class="text-center">
+                                        {{ setCurrencySymbol(amount: usdToDefaultCurrency(amount: $product['unit_price']), currencyCode: getCurrencyCode()) }}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-2 align-items-center lh-1">
+                                            @if ($product['product_type'] === 'physical')
+                                                <span>{{ $product->current_stock }}</span>
+                                                @if ($product->current_stock <= 0)
+                                                    <span class="text-danger-dark fs-18"
+                                                          data-bs-toggle="tooltip"
+                                                          title="{{ translate('Out_of_Stock') }}">
+                                                        <i class="fi fi-sr-exclamation"></i>
+                                                    </span>
+                                                @elseif ($product->current_stock <= 20)
+                                                    <span class="text-warning-dark fs-18"
+                                                          data-bs-toggle="tooltip"
+                                                          title="{{ translate('Low_Stock') }}">
+                                                        <i class="fi fi-sr-exclamation"></i>
+                                                    </span>
+                                                @endif
+                                            @else
+                                                <span>-</span>
+                                            @endif
+                                        </div>
+                                    </td>
 
-                <div class="table-responsive mt-4">
-                    <div class="px-4 d-flex justify-content-lg-end">
-                        <!-- Pagination -->
-                        {{$pro->links()}}
-                    </div>
-                </div>
+                                    @if ($productWiseTax)
+                                        <td class="text-center">
+                                                <span class="">
+                                                    @forelse ($product?->taxVats as $key => $taxVat)
+                                                        <span>{{ $taxVat?->tax?->name }} :
+                                                            <span class="font-bold">
+                                                                ({{ $taxVat?->tax?->tax_rate }}%)
+                                                            </span>
+                                                        </span>
+                                                        <br>
+                                                    @empty
+                                                        <span>{{ translate('N/A') }}</span>
+                                                    @endforelse
+                                                </span>
+                                        </td>
+                                    @endif
+                                    @php
+                                        $isDisabled = request()->has('request_status') && request('request_status') === '0' || request('request_status') === '2';
+                                    @endphp
+                                    <td class="text-center">
+                                        <div class="" data-bs-toggle="{{ $isDisabled ? 'tooltip' : '' }}" title="{{ $isDisabled ? translate('Non approved products cannot be featured') : '' }}">
+                                            <input type="checkbox"
+                                                   class="product-status-checkbox form-check-input checkbox--input checkbox--input_lg"
+                                                   data-id="{{ $product['id'] }}"
+                                                   data-action="{{ route('admin.products.featured-status') }}"
+                                                {{ $product['featured'] == 1 ? 'checked' : '' }}
+                                                {{ $isDisabled ? 'disabled' : '' }}>
+                                        </div>
+                                    </td>
 
-                @if(count($pro)==0)
-                    <div class="text-center p-4">
-                        <img class="mb-3 w-160" src="{{asset('public/assets/back-end')}}/svg/illustrations/sorry.svg" alt="Image Description">
-                        <p class="mb-0">{{translate('no_data_to_show')}}</p>
+                                    <td class="text-center">
+                                        <form action="{{ route('admin.products.status-update') }}" method="post"
+                                              id="product-status{{ $product['id'] }}-form"
+                                              class="admin-product-status-form">
+                                            @csrf
+                                            <input type="hidden" name="id" value="{{ $product['id'] }}">
+                                            <label class="switcher mx-auto"
+                                                   for="products-status-update-{{ $product['id'] }}">
+                                                <input class="switcher_input custom-modal-plugin" type="checkbox"
+                                                       value="1" name="status"
+                                                       id="products-status-update-{{ $product['id'] }}"
+                                                       {{ $product['status'] == 1 ? 'checked' : '' }}
+                                                       data-modal-type="input-change-form"
+                                                       data-modal-form="#product-status{{ $product['id'] }}-form"
+                                                       data-on-image="{{ dynamicAsset(path: 'public/assets/new/back-end/img/modal/product-status-on.png') }}"
+                                                       data-off-image="{{ dynamicAsset(path: 'public/assets/new/back-end/img/modal/product-status-off.png') }}"
+                                                       data-on-title="{{ translate('Want_to_Turn_ON') . ' ' . str_replace("'", '`', $product['name']) . ' ' . translate('status') }}"
+                                                       data-off-title="{{ translate('Want_to_Turn_OFF') . ' ' . str_replace("'", '`', $product['name']) . ' ' . translate('status') }}"
+                                                       data-on-message="<p>{{ translate('if_enabled_this_product_will_be_available_on_the_website_and_customer_app') }}</p>"
+                                                       data-off-message="<p>{{ translate('if_disabled_this_product_will_be_hidden_from_the_website_and_customer_app') }}</p>">
+                                                <span class="switcher_control"></span>
+                                            </label>
+                                        </form>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <a class="btn top01 btn-outline-warning btn-outline-warning-dark icon-btn"
+                                               title="{{ translate('barcode') }}"
+                                               href="{{ route('admin.products.barcode', [$product['id']]) }}">
+                                                <i class="fi fi-sr-barcode"></i>
+                                            </a>
+                                            <a class="btn btn-outline-success top01 btn-outline-success-dark icon-btn"
+                                               title="View"
+                                               href="{{ route('admin.products.view', ['addedBy' => $product['added_by'] == 'seller' ? 'vendor' : 'in-house', 'id' => $product['id']]) }}">
+                                                <i class="fi fi-sr-eye"></i>
+                                            </a>
+                                            <a class="btn btn-outline-info top01 icon-btn"
+                                               title="{{ translate('edit') }}"
+                                               href="{{ route('admin.products.update', [$product['id']]) }}">
+                                                <i class="fi fi-sr-pencil"></i>
+                                            </a>
+                                            <span class="btn btn-outline-danger top01 icon-btn delete-data"
+                                                  title="{{ translate('delete') }}"
+                                                  data-id="product-{{ $product['id'] }}">
+                                                    <i class="fi fi-rr-trash"></i>
+                                                </span>
+                                        </div>
+                                        <form action="{{ route('admin.products.delete', [$product['id']]) }}"
+                                              method="post" id="product-{{ $product['id'] }}">
+                                            @csrf @method('delete')
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
                     </div>
-                @endif
+
+                    <div class="table-responsive mt-4">
+                        <div class="px-4 d-flex justify-content-lg-end">
+                            {{ $products->links() }}
+                        </div>
+                    </div>
+
+                    @if (count($products) == 0)
+                        @include(
+                            'layouts.admin.partials._empty-state',
+                            ['text' => 'no_product_found'],
+                            ['image' => 'default']
+                        )
+                    @endif
+                </div>
             </div>
         </div>
     </div>
-</div>
+    <span id="message-select-word" data-text="{{ translate('select') }}"></span>
+
+    @include('admin-views.product.partials.offcanvas._filter-offcanvas')
 @endsection
 
-@push('script')
-    <!-- Page level plugins -->
-    <script src="{{asset('public/assets/back-end')}}/vendor/datatables/jquery.dataTables.min.js"></script>
-    <script src="{{asset('public/assets/back-end')}}/vendor/datatables/dataTables.bootstrap4.min.js"></script>
-    <!-- Page level custom scripts -->
-    <script>
-        function getRequest(route, id, type) {
-            $('#sub-sub-category-select').empty().append('<option value="null" selected disabled>---{{ translate('select')}}---</option>');
-            $.get({
-                url: route,
-                dataType: 'json',
-                success: function(data) {
-                    if (type == 'select') {
-                        $('#' + id).empty().append(data.select_tag);
-                    }
-                },
-            });
-        }
-
-        // Call the dataTables jQuery plugin
-        $(document).ready(function () {
-            $('#dataTable').DataTable();
-        });
-
-        $('.product_status_form').on('submit', function(event){
-            event.preventDefault();
-
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-                }
-            });
-            $.ajax({
-                url: "{{route('admin.product.status-update')}}",
-                method: 'POST',
-                data: $(this).serialize(),
-                success: function (data) {
-                    if(data.success == true) {
-                        toastr.success('{{translate("status_updated_successfully")}}');
-                    }
-                    else if(data.success == false) {
-                        toastr.error('{{translate("Status_updated_failed.")}} {{translate("Product_must_be_approved")}}');
-                        setTimeout(function(){
-                            location.reload();
-                        }, 2000);
-                    }
-                }
-            });
-        });
-
-        $('.product_featured_form').on('submit', function(event){
-            event.preventDefault();
-
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-                }
-            });
-            $.ajax({
-                url: "{{route('admin.product.featured-status')}}",
-                method: 'POST',
-                data: $(this).serialize(),
-                success: function (data) {
-                    toastr.success('{{translate("featured_status_updated_successfully")}}');
-                }
-            });
-        });
-    </script>
-@endpush

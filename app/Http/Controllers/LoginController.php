@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\CPU\Helpers;
-use App\Model\Admin;
-use Illuminate\Http\Request;
-use App\Model\BusinessSetting;
-use Gregwar\Captcha\PhraseBuilder;
-use Gregwar\Captcha\CaptchaBuilder;
+use App\Enums\SessionKey;
+use App\Utils\Helpers;
+use App\Models\Admin;
+use App\Models\BusinessSetting;
 use Brian2694\Toastr\Facades\Toastr;
+use Gregwar\Captcha\CaptchaBuilder;
+use Gregwar\Captcha\PhraseBuilder;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Session;
 
@@ -47,7 +49,7 @@ class LoginController extends Controller
 
     }
 
-    public function submit(Request $request)
+    public function submit(Request $request): RedirectResponse
     {
         $request->validate([
             'email' => 'required|email',
@@ -55,12 +57,14 @@ class LoginController extends Controller
             'role' => 'required'
         ]);
 
-        $recaptcha = Helpers::get_business_settings('recaptcha');
-        if (isset($recaptcha) && $recaptcha['status'] == 1) {
+        $sessionKey = $request['role'] == 'admin' ? SessionKey::ADMIN_RECAPTCHA_KEY : SessionKey::EMPLOYEE_RECAPTCHA_KEY;
+        $recaptcha = getWebConfig(name: 'recaptcha');
+
+        if (isset($recaptcha) && $recaptcha['status'] == 1 && !($request['set_default_captcha'] == 1)) {
             $request->validate([
                 'g-recaptcha-response' => [
                     function ($attribute, $value, $fail) {
-                        $secret_key = Helpers::get_business_settings('recaptcha')['secret_key'];
+                        $secret_key = getWebConfig(name: 'recaptcha')['secret_key'];
                         $response = $value;
                         $url = 'https://www.google.com/recaptcha/api/siteverify?secret=' . $secret_key . '&response=' . $response;
                         $response = Http::get($url);
@@ -71,14 +75,13 @@ class LoginController extends Controller
                     },
                 ],
             ]);
-        } else if(strtolower(session('default_recaptcha_id_'.$request->role.'_login')) != strtolower($request->default_captcha_value))
-        {
+        } else if(strtolower(session($sessionKey)) != strtolower($request['default_captcha_value'])) {
             Toastr::error(translate('ReCAPTCHA_Failed'));
             return back();
         }
 
         if ($request->role == 'admin') {
-            $data = Admin::where('email', $request->email)->where('admin_role_id', 1)->first();
+            $data = Admin::where('email', $request['email'])->where('admin_role_id', 1)->first();
 
             if (!isset($data)) {
                 return redirect()->back()->withInput($request->only('email', 'remember'))
@@ -107,7 +110,7 @@ class LoginController extends Controller
         $data = $this->login_attemp($request->role, $request->email, $request->password, $request->remember);
 
         if ($data == 'admin' || $data == 'employee') {
-            return redirect()->route('admin.dashboard');
+            return redirect()->route('admin.dashboard.index');
         }
 
         return redirect()->back()->withInput($request->only('email', 'remember'))

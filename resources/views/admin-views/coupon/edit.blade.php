@@ -1,124 +1,134 @@
-@extends('layouts.back-end.app')
+@extends('layouts.admin.app')
+
 @section('title', translate('coupon_Edit'))
-@push('css_or_js')
-    <link href="{{ asset('public/assets/select2/css/select2.min.css')}}" rel="stylesheet">
-    <link href="{{ asset('public/assets/back-end/css/custom.css')}}" rel="stylesheet">
-@endpush
 
 @section('content')
 <div class="content container-fluid">
-    <!-- Page Title -->
     <div class="mb-3">
-        <h2 class="h1 mb-0 text-capitalize">
-            <img src="{{asset('/public/assets/back-end/img/coupon_setup.png')}}" class="mb-1 mr-1" alt="">
-            {{translate('coupon_update')}}
+        <h2 class="h1 mb-0 text-capitalize d-flex align-items-center gap-2">
+            <img src="{{ dynamicAsset(path: 'public/assets/back-end/img/coupon_setup.png') }}" alt="">
+            {{translate('coupon_update') }}
         </h2>
     </div>
-    <!-- End Page Title -->
-
-    <!-- Content Row -->
     <div class="row">
         <div class="col-md-12">
             <div class="card">
 
                 <div class="card-body">
-                    <form action="{{route('admin.coupon.update',[$c['id']])}}" method="post">
+                    <form action="{{route('admin.coupon.update',[$coupon['id']]) }}" method="post" class="" id="coupon-add-ajax-submit">
                         @csrf
-                        <div class="row">
-                            <div class="col-md-6 col-lg-4 form-group">
-                                <label for="name" class="title-color text-capitalize">{{translate('coupon_type')}}</label>
-                                <select class="form-control" id="coupon_type" name="coupon_type" required>
-                                    <option disabled selected>{{translate('select_Coupon_Type')}}</option>
-                                    <option value="discount_on_purchase" {{$c['coupon_type']=='discount_on_purchase'?'selected':''}}>{{translate('discount_on_Purchase')}}</option>
-                                    <option value="free_delivery" {{$c['coupon_type']=='free_delivery'?'selected':''}}>{{translate('free_Delivery')}}</option>
-                                    <option value="first_order" {{$c['coupon_type']=='first_order'?'selected':''}}>{{translate('first_Order')}}</option>
-                                </select>
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6 col-lg-4">
+                                <label for="name" class="form-label">{{translate('coupon_type') }}<span class="text-danger">*</span></label>
+                                <div class="select-wrapper">
+                                    <select class="form-select" id="coupon_type" name="coupon_type" data-required-msg="{{ translate('coupon_type_is_required') }}" >
+                                        <option disabled selected>{{translate('select_Coupon_Type') }}</option>
+                                        <option value="discount_on_purchase" {{ $coupon['coupon_type']=='discount_on_purchase'?'selected':'' }}>{{translate('discount_on_Purchase')}}</option>
+                                        <option value="free_delivery" {{$coupon['coupon_type']=='free_delivery'?'selected':'' }}>{{translate('free_Delivery')}}</option>
+                                        <option value="first_order" {{$coupon['coupon_type']=='first_order'?'selected':'' }}>{{translate('first_Order')}}</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="col-md-6 col-lg-4 form-group">
-                                <label for="name" class="title-color text-capitalize">{{translate('coupon_title')}}</label>
-                                <input type="text" name="title" class="form-control" id="title" value="{{$c['title']}}"
-                                       placeholder="{{translate('title')}}" required>
+                            <div class="col-md-6 col-lg-4">
+                                <div class="form-group">
+                                <label for="name" class="form-label">{{translate('coupon_title')}}<span class="text-danger">*</span></label>
+                                <input type="text" name="title" class="form-control" id="title" value="{{$coupon['title'] }}"
+                                       placeholder="{{translate('title')}}" data-maxlength="80" data-required-msg="{{ translate('coupon_title_is_required') }}" >
+                                </div>
                             </div>
-                            <div class="col-md-6 col-lg-4 form-group">
-                                <label for="name" class="title-color text-capitalize">{{translate('coupon_code')}}</label>
-                                <a href="javascript:void(0)" class="float-right" onclick="generateCode()">{{translate('generate_code')}}</a>
-                                <input type="text" name="code" value="{{$c['code']}}"
+                            <div class="col-md-6 col-lg-4">
+                                <div class="d-flex justify-content-between">
+                                    <label for="name"
+                                           class="form-label text-capitalize">{{translate('coupon_code')}}<span class="text-danger">*</span></label>
+                                    <a href="javascript:" class="text-primary fs-12" id="generateCode">{{translate('generate_code')}}</a>
+                                </div>
+                                <input type="text" name="code" value="{{$coupon['code'] }}"
                                        class="form-control" id="code"
-                                       placeholder="{{translate('ex')}}: EID100" required>
+                                       data-required-msg="{{ translate('coupon_code_is_required') }}"
+                                       placeholder="{{translate('ex')}}: EID100" >
                             </div>
-                            <div class="col-md-6 col-lg-4 form-group first_order">
-                                <label for="name" class="title-color font-weight-medium d-flex">{{translate('coupon_bearer')}}</label>
-                                <select class="form-control" name="coupon_bearer" id="coupon_bearer" >
-                                    <option disabled selected>{{translate('select_coupon_bearer')}}</option>
-                                    <option value="seller" {{$c['coupon_bearer']=='seller'?'selected':''}}>{{translate('seller')}}</option>
-                                    <option value="inhouse" {{$c['coupon_bearer']=='inhouse'?'selected':''}}>{{translate('admin')}}</option>
-                                </select>
+                            <div class="col-md-6 col-lg-4 first_order">
+                                <label for="name" class="form-label">{{translate('coupon_bearer')}}<span class="text-danger">*</span></label>
+                                <div class="select-wrapper">
+                                    <select class="form-select" name="coupon_bearer" id="coupon_bearer">
+                                        <option disabled selected>{{translate('select_coupon_bearer')}}</option>
+                                        <option value="seller" {{$coupon['coupon_bearer']=='seller'?'selected':'' }}>{{translate('vendor')}}</option>
+                                        <option value="inhouse" {{$coupon['coupon_bearer']=='inhouse'?'selected':'' }}>{{translate('admin')}}</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="col-md-6 col-lg-4 form-group coupon_by first_order">
-                                <label for="name" class="title-color font-weight-medium d-flex">{{translate('seller')}}</label>
-                                <select class="js-example-basic-multiple js-states js-example-responsive form-control" name="seller_id" id="seller_wise_coupon">
-                                    <option disabled selected>{{translate('select_seller')}}</option>
-                                    <option value="0" {{$c['seller_id']=='0'?'selected':''}}>{{translate('all_seller')}}</option>
-                                    @if($c['coupon_bearer'] == 'inhouse')
-                                    <option value="inhouse" {{is_null($c['seller_id'])?'selected':''}}>{{translate('inhouse')}}</option>
+                            <div class="col-md-6 col-lg-4 coupon_by first_order">
+                                <label for="name" class="form-label">{{translate('vendor')}}<span class="text-danger">*</span></label>
+                                <select class="custom-select" name="seller_id" id="vendor_wise_coupon">
+                                    <option disabled selected>{{translate('select_Vendor')}}</option>
+                                    <option value="0" {{$coupon['seller_id']=='0'?'selected':'' }}>{{translate('all_Vendor')}}</option>
+                                    @if($coupon['coupon_bearer'] == 'inhouse')
+                                    <option value="inhouse" {{is_null($coupon['seller_id'])?'selected':'' }}>{{getInHouseShopConfig(key:'name')}}</option>
                                     @endif
                                     @foreach($sellers as $seller)
-                                        <option value="{{ $seller->id }}" {{$c['seller_id']==$seller->id?'selected':''}}>{{ $seller->shop->name }}</option>
+                                        <option value="{{ $seller->id }}" {{$coupon['seller_id']==$seller->id?'selected':'' }}>
+                                            {{ $seller?->shop?->name }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-6 col-lg-4 form-group coupon_type first_order">
-                                <label for="name" class="title-color font-weight-medium d-flex">{{translate('customer')}}</label>
-                                <select class="js-example-basic-multiple js-states js-example-responsive form-control" name="customer_id" >
+                            <div class="col-md-6 col-lg-4 coupon_type first_order">
+                                <label for="name" class="form-label">{{translate('customer')}}<span class="text-danger">*</span></label>
+                                <select class="custom-select" name="customer_id" >
                                     <option disabled selected>{{translate('select_customer')}}</option>
-                                    <option value="0" {{$c['customer_id']=='0'?'selected':''}}>{{translate('all_customer')}}</option>
+                                    <option value="0" {{$coupon['customer_id']=='0'?'selected':'' }}>{{translate('All_Customer')}}</option>
                                     @foreach($customers as $customer)
-                                        <option value="{{ $customer->id }}" {{$c['customer_id']==$customer->id ? 'selected':''}}>{{ $customer->f_name. ' '. $customer->l_name }}</option>
+                                        <option value="{{ $customer->id }}" {{$coupon['customer_id']==$customer->id ? 'selected':'' }}>{{ $customer->f_name. ' '. $customer->l_name }}</option>
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-6 col-lg-4 form-group first_order">
-                                <label  for="exampleFormControlInput1" class="title-color text-capitalize">{{translate('limit_for_same_user')}}</label>
-                                <input type="number" name="limit" min="0" value="{{ $c['limit'] }}" id="coupon_limit" class="form-control" placeholder="{{translate('ex')}}: 10">
+                            <div class="col-md-6 col-lg-4 first_order">
+                                <label  for="exampleFormControlInput1" class="form-label">{{translate('limit_for_same_user')}}<span class="text-danger">*</span></label>
+                                <input type="number" name="limit" min="0" value="{{ $coupon['limit'] }}" id="coupon_limit" class="form-control" placeholder="{{translate('ex'.':'.'10')}}">
                             </div>
-                            <div class="col-md-6 col-lg-4 form-group free_delivery">
-                                <label  for="name" class="title-color text-capitalize">{{translate('discount_type')}}</label>
-                                <select id="discount_type" class="form-control" name="discount_type"
-                                        onchange="checkDiscountType(this.value)">
-                                    <option value="amount" {{$c['discount_type']=='amount'?'selected':''}}>{{translate('amount')}}</option>
-                                    <option value="percentage" {{$c['discount_type']=='percentage'?'selected':''}}>{{translate('percentage')}}</option>
-                                </select>
+                            <div class="col-md-6 col-lg-4 free_delivery">
+                                <label  for="name" class="form-label">{{translate('discount_type')}}<span class="text-danger">*</span></label>
+                               <div class="select-wrapper">
+                                    <select class="form-select" id="discount_type" name="discount_type">
+                                        <option disabled selected>{{translate('select_Discount_Type')}}</option>
+                                        <option value="percentage" {{$coupon['discount_type']=='percentage'?'selected':'' }}>{{translate('percentage')}}</option>
+                                        <option value="amount" {{$coupon['discount_type']=='amount'?'selected':'' }}>{{translate('amount')}}</option>
+                                    </select>
+                               </div>
                             </div>
-                            <div class="col-md-6 col-lg-4 form-group free_delivery">
-                                <label for="name" class="title-color text-capitalize">{{translate('discount_Amount')}} <span id="discount_percent"> (%)</span></label>
-                                <input type="number" min="0" max="1000000" step=".01" name="discount" class="form-control" id="discount" value="{{$c['discount_type']=='amount'?\App\CPU\Convert::default($c['discount']):$c['discount']}}"
-                                    placeholder="{{translate('ex')}} : 500" required>
+                            <div class="col-md-6 col-lg-4 free_delivery">
+                                <label for="name" class="form-label">{{translate('discount_Amount')}}<span class="text-danger">*</span> <span id="discount_percent"> (%)</span>       ({{ getCurrencySymbol(currencyCode: getCurrencyCode()) }})</label>
+                                <input type="number" min="0" max="1000000" step="any" name="discount" class="form-control" id="discount" value="{{$coupon['discount_type']=='amount'? usdToDefaultCurrency(amount:$coupon['discount']):$coupon['discount'] }}"
+                                    placeholder="{{translate('ex').':'.'500' }}">
                             </div>
-                            <div class="col-md-6 col-lg-4 form-group">
-                                <label for="name" class="title-color text-capitalize">{{translate('minimum_purchase')}}</label>
-                                <input type="number" min="0" max="1000000" step=".01" name="min_purchase" class="form-control" id="minimum purchase" value="{{\App\CPU\Convert::default($c['min_purchase'])}}"
-                                       placeholder="{{translate('minimum_purchase')}}" required>
+                            <div class="col-md-6 col-lg-4">
+                                <label for="name" class="form-label">
+                                    {{ translate('minimum_Purchase') }}<span class="text-danger">*</span>
+                                    ({{ getCurrencySymbol(currencyCode: getCurrencyCode()) }})
+                                </label>
+                                <input type="number" min="0" max="1000000" step="any" name="min_purchase" class="form-control" id="minimum purchase" value="{{usdToDefaultCurrency(amount:$coupon['min_purchase'])}}"
+                                       placeholder="{{translate('minimum_purchase')}}" >
                             </div>
-                            <div class="col-md-6 col-lg-4 form-group free_delivery" id="max-discount">
-                                <label for="name" class="title-color text-capitalize">{{translate('maximum_discount')}}</label>
-                                <input type="number" min="0" max="1000000" step=".01" name="max_discount" class="form-control" id="maximum discount" value="{{\App\CPU\Convert::default($c['max_discount'])}}"
+                            <div class="col-md-6 col-lg-4 free_delivery" id="max-discount">
+                                <label for="name" class="form-label">{{translate('maximum_discount')}}<span class="text-danger">*</span>({{ getCurrencySymbol(currencyCode: getCurrencyCode()) }})</label>
+                                <input type="number" min="0" max="1000000" step="any" name="max_discount" class="form-control" id="maximum discount" value="{{usdToDefaultCurrency(amount:$coupon['max_discount'])}}"
                                        placeholder="{{translate('maximum_discount')}}">
                             </div>
-                            <div class="col-md-6 col-lg-4 form-group">
-                                <label for="name" class="title-color text-capitalize">{{translate('start_date')}}</label>
-                                <input type="date" name="start_date" class="form-control" id="start_date" value="{{date('Y-m-d',strtotime($c['start_date']))}}"
-                                       placeholder="{{translate('start_date')}}" required>
+                            <div class="col-md-6 col-lg-4">
+                                <label for="name" class="form-label">{{translate('Start_Date')}}<span class="text-danger">*</span></label>
+                                <input type="date" name="start_date" class="form-control" id="start_date" value="{{date('Y-m-d',strtotime($coupon['start_date']))}}"
+                                       placeholder="{{translate('Start_Date')}}" >
                             </div>
-                            <div class="col-md-6 col-lg-4 form-group">
-                                <label for="name" class="title-color text-capitalize">{{translate('expire_date')}}</label>
-                                <input type="date" name="expire_date" class="form-control" id="expire_date" value="{{date('Y-m-d',strtotime($c['expire_date']))}}"
-                                       placeholder="{{translate('expire_date')}}" required>
+                            <div class="col-md-6 col-lg-4">
+                                <label for="name" class="form-label">{{translate('expire_date')}}<span class="text-danger">*</span></label>
+                                <input type="date" name="expire_date" class="form-control" id="expire_date" value="{{date('Y-m-d',strtotime($coupon['expire_date']))}}"
+                                       placeholder="{{translate('expire_date')}}" >
                             </div>
                         </div>
 
-                        <div class="d-flex align-items-center justify-content-end flex-wrap gap-10">
+                        <div class="d-flex align-items-center justify-content-end flex-wrap gap-3">
                             <button type="reset" class="btn btn-secondary px-4">{{translate('reset')}}</button>
-                            <button type="submit" class="btn btn--primary px-4">{{translate('Update')}}</button>
+                            <button type="submit" class="btn btn-primary px-4">{{translate('Update')}}</button>
                         </div>
                     </form>
                 </div>
@@ -126,132 +136,8 @@
         </div>
     </div>
 </div>
+<span id="coupon-bearer-url" data-url="{{route('admin.coupon.ajax-get-vendor')}}"></span>
 @endsection
-
 @push('script')
-    <script>
-        $(document).ready(function() {
-            let discount_type = $('#discount_type').val();
-            if (discount_type == 'amount') {
-                $('#discount_percent').hide();
-                $('#max-discount').hide()
-            } else if (discount_type == 'percentage') {
-                $('#max-discount').show()
-            }
-            $('#start_date').attr('min',(new Date()).toISOString().split('T')[0]);
-            $('#expire_date').attr('min',(new Date()).toISOString().split('T')[0]);
-
-            field_show_hide();
-        });
-
-        $("#start_date").on("change", function () {
-            $('#expire_date').attr('min',$(this).val());
-        });
-
-        $("#expire_date").on("change", function () {
-            $('#start_date').attr('max',$(this).val());
-        });
-
-
-        function checkDiscountType(val) {
-            if (val == 'amount') {
-                $('#max-discount').hide()
-            } else if (val == 'percentage') {
-                $('#max-discount').show()
-            }
-        }
-
-        function  generateCode(){
-            let code = Math.random().toString(36).substring(2,12);
-            $('#code').val(code)
-        }
-
-    </script>
-    <script src="{{asset('public/assets/back-end')}}/js/select2.min.js"></script>
-    <script>
-        $(".js-example-theme-single").select2({
-            theme: "classic"
-        });
-
-        $(".js-example-responsive").select2({
-            width: 'resolve'
-        });
-    </script>
-
-    <script>
-        $('#coupon_bearer').on('change', function (){
-            let coupon_bearer = $('#coupon_bearer').val();
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-                }
-            });
-            $.ajax({
-                type: 'POST',
-                url: '{{route('admin.coupon.ajax-get-seller')}}',
-                data: {
-                    coupon_bearer: coupon_bearer
-                },
-                success: function (result) {
-                    $("#seller_wise_coupon").html(result);
-                }
-            });
-        });
-
-        $('#discount_type').on('change', function (){
-            let type = $('#discount_type').val();
-            if(type === 'amount'){
-                $('#discount').attr({
-                    'placeholder': 'Ex: 500',
-                    "max":"1000000"
-                });
-                $('#discount_percent').hide();
-            }else if(type === 'percentage'){
-                $('#discount').attr({
-                    "max":"100",
-                    "placeholder":"Ex: 10%"
-                });
-                $('#discount_percent').show();
-            }
-        });
-
-        $('#coupon_type').on('change', function (){
-            field_show_hide();
-        });
-
-        function field_show_hide(){
-            let discount_type = $('#discount_type').val();
-            let type = $('#coupon_type').val();
-
-            if(type === 'free_delivery'){
-                if (discount_type === 'amount') {
-                    $('.first_order').show();
-                    $('.free_delivery').hide();
-                } else if (discount_type === 'percentage') {
-                    $('.first_order').show();
-                    $('.free_delivery').hide();
-                }
-            }else if(type === 'first_order'){
-                if (discount_type === 'amount') {
-                    $('.free_delivery').show();
-                    $('.first_order').hide();
-                    $('#max-discount').hide()
-                } else if (discount_type === 'percentage') {
-                    $('.free_delivery').show();
-                    $('.first_order').hide();
-                    $('#max-discount').show()
-                }
-            }else{
-                if (discount_type === 'amount') {
-                    $('.first_order').show();
-                    $('.free_delivery').show();
-                    $('#max-discount').hide()
-                } else if (discount_type === 'percentage') {
-                    $('.first_order').show();
-                    $('.free_delivery').show();
-                    $('#max-discount').show()
-                }
-            }
-        }
-    </script>
+    <script src="{{ dynamicAsset(path: 'public/assets/back-end/js/admin/coupon.js')}}"></script>
 @endpush

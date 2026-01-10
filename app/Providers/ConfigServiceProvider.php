@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-use App\Model\BusinessSetting;
-use App\Traits\Util;
+use App\Models\BusinessSetting;
+use Exception;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 
@@ -32,6 +32,6 @@ class ConfigServiceProvider extends ServiceProvider
                 Config::set('timezone', $timezone->value);
                 date_default_timezone_set($timezone->value);
             }
-        } catch (\Exception $ex) {}
+        } catch (Exception $ex) {}
     }
 }

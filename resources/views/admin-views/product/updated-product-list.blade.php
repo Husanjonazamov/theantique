@@ -1,142 +1,110 @@
-@extends('layouts.back-end.app')
+@extends('layouts.admin.app')
 
 @section('title', translate('updated_product_list'))
 
-@push('css_or_js')
-
-@endpush
-
 @section('content')
+    <div class="content container-fluid">
+        <div class="mb-3">
+            <h2 class="h1 text-capitalize mb-1 d-flex gap-2 align-items-center">
+                <img src="{{ dynamicAsset(path: 'public/assets/back-end/img/inhouse-product-list.png') }}" alt="">
+                {{ translate('update_product') }}
+            </h2>
+        </div>
 
-<div class="content container-fluid">
-    <!-- Page Title -->
-    <div class="mb-3">
-        <h2 class="h1 text-capitalize mb-1 d-flex gap-2">
-            <img src="{{asset('/public/assets/back-end/img/inhouse-product-list.png')}}" alt="">
-            {{translate('update_product')}}
-        </h2>
-    </div>
-    <!-- End Page Title -->
-
-    <div class="row mt-20">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="px-3 py-4">
-                    <div class="row gy-2 justify-content-between align-items-center">
-                        <div class="col-auto">
-                            <h5 class="mb-0">
-                                    {{translate('product_table')}}
-                                    <span class="badge badge-soft-dark radius-50 fz-12 ml-1">{{ $pro->total() }}</span>
-                            </h5>
-                        </div>
-                        <div class="col-auto">
-                            <!-- Search -->
-                            <form action="{{ url()->current() }}" method="GET">
-                                <div class="input-group input-group-merge input-group-custom">
-                                    <div class="input-group-prepend">
-                                        <div class="input-group-text">
-                                            <i class="tio-search"></i>
+        <div class="row mt-20">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="px-3 py-4">
+                        <div class="d-flex gap-3 flex-wrap justify-content-between align-items-center">
+                            <h3 class="mb-0 d-flex gap-2 align-items-center">
+                                {{ translate('product_table') }}
+                                <span class="badge text-dark bg-body-secondary fw-semibold rounded-50">
+                                    {{ $products->total() }}
+                                </span>
+                            </h3>
+                            <div class="flex-grow-1 max-w-300 min-w-100-mobile">
+                                <form action="{{ url()->current() }}" method="GET">
+                                    <div class="input-group">
+                                        <input id="datatableSearch_" type="search" name="searchValue"
+                                               class="form-control"
+                                               placeholder="{{ translate('search_Product_Name') }}"
+                                               aria-label="Search orders"
+                                               value="{{ $searchValue }}" required>
+                                        <div class="input-group-append search-submit">
+                                            <button type="submit">
+                                                <i class="fi fi-rr-search"></i>
+                                            </button>
                                         </div>
                                     </div>
-                                    <input id="datatableSearch_" type="search" name="search" class="form-control"
-                                           placeholder="{{translate('search_Product_Name')}}" aria-label="Search orders"
-                                           value="{{ $search }}" required>
-                                    <button type="submit" class="btn btn--primary">{{translate('search')}}</button>
-                                </div>
-                            </form>
-                            <!-- End Search -->
+                                </form>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="table-responsive">
-                    <table id="datatable" style="text-align: {{Session::get('direction') === "rtl" ? 'right' : 'left'}};"
-                            class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100">
-                        <thead class="thead-light thead-50 text-capitalize">
-                        <tr>
-                            <th>{{translate('SL')}}</th>
-                            <th>{{translate('product Name')}}</th>
-                            <th>{{translate('previous_shipping_cost')}}</th>
-                            <th>{{translate('new_shipping_cost')}}</th>
-                            <th class="text-center">{{translate('action')}}</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @foreach($pro as $k=>$p)
+                    <div class="table-responsive">
+                        <table id="datatable"
+                               class="table table-hover table-borderless table-thead-bordered align-middle">
+                            <thead class="text-capitalize">
                             <tr>
-                                <th scope="row">{{$pro->firstItem()+$k}}</th>
-                                <td>
-                                    <a href="{{route('admin.product.view',[$p['id']])}}" class="title-color hover-c1">
-                                        {{\Illuminate\Support\Str::limit($p['name'],20)}}
-                                    </a>
-                                </td>
-                                <td>
-                                    {{\App\CPU\BackEndHelper::set_symbol(\App\CPU\BackEndHelper::usd_to_currency($p['shipping_cost']))}}
-                                </td>
-                                <td>
-                                    {{\App\CPU\BackEndHelper::set_symbol(\App\CPU\BackEndHelper::usd_to_currency($p['temp_shipping_cost']))}}
-                                </td>
-
-                                <td>
-                                    <div class="d-flex gap-10 align-items-center justify-content-center">
-                                        <button class="btn btn--primary btn-sm"
-                                            onclick="update_shipping_status({{$p['id']}},1)">
-                                            {{translate('approved')}}
-                                        </button>
-                                        <button class="btn btn-danger btn-sm"
-                                            onclick="update_shipping_status({{$p['id']}},2)">
-                                            {{translate('deneid')}}
-                                        </button>
-                                    </div>
-                                </td>
+                                <th>{{ translate('SL') }}</th>
+                                <th>{{ translate('product Name') }}</th>
+                                <th>{{ translate('previous_shipping_cost') }}</th>
+                                <th>{{ translate('new_shipping_cost') }}</th>
+                                <th class="text-center">{{ translate('action') }}</th>
                             </tr>
-                        @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                            @foreach($products as $key=>$product)
+                                <tr>
+                                    <th scope="row">{{ $products->firstItem()+$key}}</th>
+                                    <td>
+                                        <a href="{{route('admin.products.view',['addedBy'=>($product['added_by']=='seller'?'vendor' : 'in-house'),'id'=>$product['id']]) }}"
+                                           class="text-dark text-hover-primary">
+                                            {{ Str::limit($product['name'],20) }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $product['shipping_cost']), currencyCode: getCurrencyCode()) }}
+                                    </td>
+                                    <td>
+                                        {{setCurrencySymbol(amount: usdToDefaultCurrency(amount: $product['temp_shipping_cost']), currencyCode: getCurrencyCode()) }}
+                                    </td>
 
-                <div class="table-responsive mt-4">
-                    <div class="px-4 d-flex justify-content-lg-end">
-                        <!-- Pagination -->
-                        {{$pro->links()}}
+                                    <td>
+                                        <div class="d-flex gap-10 align-items-center justify-content-center">
+                                            <button class="btn btn-primary btn-sm update-status"
+                                                    data-id="{{ $product['id'] }}"
+                                                    data-message ="{{translate('want_to_approve_this_update_request').'?'}}"
+                                                    data-status="1">
+                                                {{ translate('approved') }}
+                                            </button>
+                                            <button class="btn btn-danger btn-sm update-status"
+                                                    data-id="{{ $product['id'] }}"
+                                                    data-message ="{{translate('want_to_deny_this_update_request').'?'}}"
+                                                    data-status="2">
+                                                {{ translate('denied') }}
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                            </tbody>
+                        </table>
                     </div>
-                </div>
 
-                @if(count($pro)==0)
-                    <div class="text-center p-4">
-                        <img class="mb-3 w-160" src="{{asset('public/assets/back-end')}}/svg/illustrations/sorry.svg" alt="Image Description">
-                        <p class="mb-0">{{translate('no_data_to_show')}}</p>
+                    <div class="table-responsive mt-4">
+                        <div class="px-4 d-flex justify-content-lg-end">
+                            {{ $products->links() }}
+                        </div>
                     </div>
-                @endif
+
+                    @if(count($products)==0)
+                        @include('layouts.admin.partials._empty-state',['text'=>'no_product_found'],['image'=>'default'])
+                    @endif
+                </div>
             </div>
         </div>
     </div>
-</div>
+
+<span id="get-update-status-route" data-action="{{ route('admin.products.updated-shipping') }}"></span>
 @endsection
-
-@push('script')
-<script>
-    function update_shipping_status(product_id,status) {
-
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-                }
-            });
-            $.ajax({
-                url: "{{route('admin.product.updated-shipping')}}",
-                method: 'POST',
-                data: {
-                    product_id: product_id,
-                    status:status
-                },
-                success: function (data) {
-
-                    toastr.success('{{translate("status_updated_successfully")}}');
-                    location.reload();
-                }
-            });
-        }
-</script>
-
-@endpush

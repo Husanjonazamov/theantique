@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Payment_Methods;
 
-use App\Model\PaymentRequest;
+use App\Models\PaymentRequest;
 use App\Traits\Processor;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\JsonResponse;

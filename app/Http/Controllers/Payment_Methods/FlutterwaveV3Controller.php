@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Payment_Methods;
 
 
-use App\Model\PaymentRequest;
+use App\Models\PaymentRequest;
 use App\Models\User;
 use App\Traits\Processor;
 use Illuminate\Http\Request;
@@ -54,16 +54,24 @@ class FlutterwaveV3Controller extends Controller
         }
         $payer = json_decode($data['payer_information']);
 
+        $supportedCurrencies = [
+            "NGN", "GHS", "KES", "ZAR", "USD", "EUR", "GBP", "CAD",
+            "XAF", "CLP", "COP", "EGP", "GNF", "MWK", "MAD", "RWF",
+            "SLL", "STD", "TZS", "UGX", "XOF", "ZMW"
+        ];
+
+        $currencyCode = in_array($data->currency_code, $supportedCurrencies) ? $data->currency_code : 'NGN';
+
         //* Prepare our rave request
         $request = [
-            'tx_ref' => time(),
+            'tx_ref' => (string)time(),
             'amount' => $data->payment_amount,
-            'currency' => 'NGN',
+            'currency' => $currencyCode,
             'payment_options' => 'card',
             'redirect_url' => route('flutterwave-v3.callback', ['payment_id' => $data->id]),
             'customer' => [
-                'email' => $payer->email,
-                'name' => $payer->name
+                'email' => $payer?->email ?? 'customer@example.com',
+                'name' => $payer?->name ?? 'Jhon Doe'
             ],
             'meta' => [
                 'price' => $data->payment_amount
@@ -106,7 +114,7 @@ class FlutterwaveV3Controller extends Controller
 
     public function callback(Request $request)
     {
-        if ($request['status'] == 'successful') {
+        if ($request['status'] == 'successful' || $request['status'] =='completed') {
             $txid = $request['transaction_id'];
             $curl = curl_init();
             curl_setopt_array($curl, array(

@@ -2,11 +2,8 @@
 
 namespace App\Http\Middleware;
 
-use App\CPU\Helpers;
 use App\Traits\ActivationClass;
-use Brian2694\Toastr\Facades\Toastr;
 use Closure;
-use http\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 
@@ -19,10 +16,22 @@ class ActivationCheckMiddleware
      *
      * @param Request $request
      * @param Closure $next
+     * @param null $area
      * @return mixed
      */
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next, $area = null): mixed
     {
+        $response = $this->checkActivationCache(app: $area);
+        if (!$response) {
+            if (!strpos(url()->current(), '/api')) {
+                return Redirect::away(route(base64_decode('c3lzdGVtLmFjdGl2YXRpb24tY2hlY2s=')))->send();
+            }
+
+            return response()->json([
+                'code' => 503,
+                'message' => 'Please check activation for '. str_replace('_', ' ', $area),
+            ], 503);
+        }
         return $next($request);
     }
 }

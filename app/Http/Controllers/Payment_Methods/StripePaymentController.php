@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Payment_Methods;
 
-use App\Model\PaymentRequest;
+use App\Models\PaymentRequest;
 use App\Traits\Processor;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
@@ -86,7 +86,7 @@ class StripePaymentController extends Controller
                 'quantity' => 1,
             ]],
             'mode' => 'payment',
-            'success_url' => url('/') . '/payment/stripe/success?session_id={CHECKOUT_SESSION_ID}&payment_id=' . $data->id,
+            'success_url' => url('/') . '/payment/stripe/success?payment_session_id={CHECKOUT_SESSION_ID}&payment_id=' . $data->id,
             'cancel_url' => url()->previous(),
         ]);
 
@@ -96,7 +96,7 @@ class StripePaymentController extends Controller
     public function success(Request $request)
     {
         Stripe::setApiKey($this->config_values->api_key);
-        $session = Session::retrieve($request->get('session_id'));
+        $session = Session::retrieve($request->get('payment_session_id'));
 
         if ($session->payment_status == 'paid' && $session->status == 'complete') {
 

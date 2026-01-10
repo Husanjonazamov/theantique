@@ -1,6 +1,6 @@
 <div class="d-flex justify-content-center">
     <a href="javascript:">
-        <img src="{{ asset("public/assets/front-end/img/media/OTP-Verification.png")}}" alt="logo" class="img-fluid" width="220">
+        <img src="{{ theme_asset(path: "public/assets/front-end/img/media/OTP-Verification.png")}}" alt="{{ translate('logo') }}" class="img-fluid" width="220">
     </a>
 </div>
 <h3 class="title text-center my-3 text-capitalize">{{ translate('OTP_Verification') }}</h3>
@@ -26,13 +26,13 @@
         <input class="otp-field" type="text" name="opt-field[]" maxlength="1"
             autocomplete="off">
     </div>
-    <!-- Store OTP Value -->
+
     <input class="otp-value" type="hidden" name="otp">
     <input class="identity" type="hidden" name="order_details_id" value="{{ $orderDetailID }}">
-    <p class="text-center verify-message mt-4 mb-0 min-h-30px d-block" style="display: none"></p>
+    <p class="text-center verify-message mt-4 mb-0 min-h-30px d-block d--none"></p>
     <div class="d-flex flex-wrap justify-content-center align-items-center gap-3 mt-5">
         <button type="button"
-            class="btn btn--primary w-auto min-w-180 resend-otp-button" onclick="download_resend_otp_verify()" id="resend_otp">{{translate('resend_OTP')}}</button>
-            <span type="button" class="btn btn--primary w-auto min-w-180 submit-btn" onclick="download_otp_verify()">{{translate('verify')}}</span>
+            class="btn btn--primary w-auto min-w-180 resend-otp-button download-otp-resend-button" id="resend_otp">{{ translate('resend_OTP')}}</button>
+            <span type="button" class="btn btn--primary w-auto min-w-180 submit-btn">{{ translate('verify')}}</span>
     </div>
 </form>

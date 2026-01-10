@@ -1,3 +1,6 @@
 {
-    "Gateways": true
+    "Blog": true,
+    "Gateways": true,
+    "TaxModule": true,
+    "AI": true
 }

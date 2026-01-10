@@ -148,6 +148,7 @@ const COUNTRIES = [
     ["name" => 'Moldova, Republic of', "code" => 'MD'],
     ["name" => 'Monaco', "code" => 'MC'],
     ["name" => 'Mongolia', "code" => 'MN'],
+    ["name" => 'Montenegro', "code" => 'ME'],
     ["name" => 'Montserrat', "code" => 'MS'],
     ["name" => 'Morocco', "code" => 'MA'],
     ["name" => 'Mozambique', "code" => 'MZ'],
@@ -195,6 +196,7 @@ const COUNTRIES = [
     ["name" => 'Saudi Arabia', "code" => 'SA'],
     ["name" => 'Senegal', "code" => 'SN'],
     ["name" => 'Serbia and Montenegro', "code" => 'CS'],
+    ["name" => 'Serbia', "code" => 'RS'],
     ["name" => 'Seychelles', "code" => 'SC'],
     ["name" => 'Sierra Leone', "code" => 'SL'],
     ["name" => 'Singapore', "code" => 'SG'],
@@ -374,6 +376,7 @@ const TELEPHONE_CODES = [
     ["name" => 'Marshall Islands (+692)', "code" => '692'],
     ["name" => 'Martinique (+596)', "code" => '596'],
     ["name" => 'Mauritania (+222)', "code" => '222'],
+    ["name" => 'Mauritius (+230)', "code" => '230'],
     ["name" => 'Mayotte (+269)', "code" => '269'],
     ["name" => 'Mexico (+52)', "code" => '52'],
     ["name" => 'Micronesia (+691)', "code" => '691'],
@@ -397,6 +400,7 @@ const TELEPHONE_CODES = [
     ["name" => 'Northern Marianas (+670)', "code" => '670'],
     ["name" => 'Norway (+47)', "code" => '47'],
     ["name" => 'Oman (+968)', "code" => '968'],
+    ["name" => 'Pakistan (+92)', "code" => '92'],
     ["name" => 'Palau (+680)', "code" => '680'],
     ["name" => 'Panama (+507)', "code" => '507'],
     ["name" => 'Papua New Guinea (+675)', "code" => '675'],
@@ -464,12 +468,13 @@ const TELEPHONE_CODES = [
     ["name" => 'Zimbabwe (+263)', "code" => '263'],
 ];
 
-const SOFTWARE_VERSION = '14.2';
+const SOFTWARE_VERSION = '16.0';
+const SOFTWARE_ID = 'MzE0NDg1OTc=';
 
 const THEME_RATIO = [
     'default' => [
-        'Main Banner'=>'(2400 x 996 px)',
-        'Footer Banner'=>'Ratio 2:1 (2000 x 1000 px)',
+        'Main Banner'=>'Ratio 3:1',
+        'Footer Banner'=>'Ratio 2:1',
         'Popup Banner'=>'Ratio 1:1 (1200 x 1200 px)',
         'Main Section Banner'=>'Ratio 4:1 (2000 x 500 px)',
         'Store cover Image'=>'Ratio 4:1 (2000 x 500 px)',
@@ -481,8 +486,8 @@ const THEME_RATIO = [
         'Meta Thumbnail' => '(Ratio 2:1)'
     ],
     'theme_aster' => [
-        'Main Banner'=>'Ratio 2:1 (2000 x 1000 px)',
-        'Footer Banner'=>'(2500 x 602 px)',
+        'Main Banner'=>'Ratio 3:1',
+        'Footer Banner'=>'Ratio 2:1',
         'Popup Banner'=>'Ratio 1:1 (1200 x 1200 px)',
 
         'Main Section Banner'=>'(2000 x 618 px)',
@@ -557,6 +562,9 @@ const GATEWAYS_PAYMENT_METHODS = [
     ['key' => 'payfast', 'value' => 'Pay Fast'],
     ['key' => 'worldpay', 'value' => 'World Pay'],
     ['key' => 'sixcash', 'value' => 'Six Cash'],
+    ['key' => 'instamojo', 'value' => 'Instamojo'],
+    ['key' => 'phonepe', 'value' => 'PhonePe'],
+    ['key' => 'cashfree', 'value' => 'Cashfree'],
 ];
 
 //currencies
@@ -1152,3 +1160,54 @@ const GATEWAYS_LANGUAGES = [
     ["code" => "za", "name" => "Zhuang, Chuang", "nativeName" => "Saɯ cueŋƅ, Saw cuengh"]
 ];
 
+const CACHE_FOR_3_HOURS = 60 * 60 * 3;
+
+const CACHE_FOR_7_DAYS = 60 * 60 * 24 * 7;
+
+const CACHE_BUSINESS_SETTINGS_TABLE = 'cache_business_settings_table';
+const CACHE_IN_HOUSE_SHOP_TABLE = 'cache_in_house_shop_table';
+const CACHE_CLEARANCE_SALE_SETUP_TABLE = 'cache_clearance_sale_setup_table';
+const CACHE_ROBOTS_META_CONTENT_TABLE = 'Cache_robots_meta_content_table';
+const CACHE_LOGIN_SETUP_TABLE = 'cache_login_setup_table';
+const CACHE_BANNER_TABLE = 'cache_banner_table';
+const CACHE_SHOP_TABLE = 'cache_shops_table';
+const CACHE_TAGS_TABLE = 'cache_tags_table';
+const CACHE_HELP_TOPICS_TABLE = 'cache_help_topics_table';
+const CACHE_ORDER_DETAILS_TABLE = 'cache_order_details_table';
+const IN_HOUSE_SHOP_TEMPORARY_CLOSE_STATUS = 'in_house_shop_temporary_close_status';
+const CACHE_PRIORITY_WISE_BRANDS_LIST = 'cache_priority_wise_brands_list';
+const CACHE_CONTAINER_FOR_LANGUAGE_WISE_CACHE_KEYS = 'cache_container_for_language_wise_cache_keys';
+const CACHE_MAIN_CATEGORIES_LIST = 'cache_main_categories_list';
+const CACHE_HOME_CATEGORIES_LIST = 'cache_home_categories_list';
+const CACHE_HOME_CATEGORIES_API_LIST = 'cache_home_categories_api_list';
+const FIND_WHAT_YOU_NEED_CATEGORIES_LIST = 'find_what_you_need_categories_list';
+const CACHE_FOR_IN_HOUSE_ALL_PRODUCTS = 'cache_for_in_house_all_products';
+const CACHE_FOR_HOME_PAGE_TOP_VENDORS_LIST = 'cache_for_home_page_top_vendors_list';
+const CACHE_FOR_HOME_PAGE_MORE_VENDORS_LIST = 'cache_for_home_page_more_vendors_list';
+const CACHE_FLASH_DEAL_KEYS = 'cache_flash_deal_keys';
+const CACHE_FOR_CLEARANCE_SALE_PRODUCTS_COUNT = 'cache_for_clearance_sale_products_count';
+const CACHE_ACTIVE_BRANDS_WITH_COUNTING_AND_PRIORITY = 'active_brands_with_counting_and_priority';
+const CACHE_FOR_MOST_DEMANDED_PRODUCT_ITEM = 'cache_for_most_demanded_product_item';
+const CACHE_FOR_BEST_SELLING_PRODUCT_ITEM = 'cache_for_most_demanded_product_item';
+const CACHE_FOR_MOST_SEARCHING_PRODUCTS_LIST = 'cache_for_most_searching_products_list';
+const CACHE_FOR_FEATURED_PRODUCTS_LIST = 'cache_for_featured_products_list';
+const CACHE_FOR_FEATURED_DEAL_PRODUCTS_LIST = 'cache_for_Featured_deals_products_list';
+const CACHE_FOR_ALL_COLOR_LIST = 'cache_for_all_color_list';
+const CACHE_FOR_ALL_PRODUCTS_COLOR_LIST = 'cache_for_all_products_color_list';
+const CACHE_FOR_PRODUCTS_MAX_UNIT_PRICE = 'cache_for_products_max_unit_price';
+const CACHE_FOR_PRODUCTS_MIN_UNIT_PRICE = 'cache_for_products_min_unit_price';
+const CACHE_FOR_CURRENCY_TABLE = 'cache_for_currency_table';
+const CACHE_FOR_ALL_PRODUCTS_REVIEW_LIST = 'cache_for_all_products_review_list';
+const CACHE_BANNER_ALL_CACHE_KEYS = 'cache_banner_all_cache_keys';
+const CACHE_CART_LIST_ALL_USER_CACHE_KEYS = 'cache_cart_list_all_user_cache_keys';
+const CACHE_FOR_ANALYTIC_SCRIPT_ACTIVE_LIST = 'cache_for_analytic_script_active_list';
+const CACHE_FOR_RANDOM_SINGLE_PRODUCT = 'cache_for_random_single_product';
+const CACHE_FOR_HOME_PAGE_JUST_FOR_YOU_PRODUCT_LIST = 'cache_for_home_page_just_for_you_product_list';
+const CACHE_FOR_HOME_PAGE_LATEST_PRODUCT_LIST = 'cache_for_home_page_latest_product_list';
+const CACHE_FOR_HOME_PAGE_TOP_RATED_PRODUCT_LIST = 'cache_for_home_page_top_rated_product_list';
+const CACHE_FOR_HOME_PAGE_BEST_SELL_PRODUCT_LIST = 'cache_for_home_page_best_sell_product_list';
+const CACHE_FOR_IN_HOUSE_SHIPPING_TYPE = 'cache_for_in_house_shipping_type';
+const CACHE_FOR_BUSINESS_PAGES_LIST = 'cache_for_business_page_list';
+
+const CACHE_FOR_VENDOR_ALL_PRODUCT_LIST = 'cache_for_vendor_all_product_list';
+const CACHE_FOR_IN_HOUSE_ALL_PRODUCT_LIST = 'cache_for_in_house_all_product_list';

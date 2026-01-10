@@ -1,155 +1,133 @@
-@extends('layouts.back-end.app')
+@php
+    use Carbon\Carbon;
+    use Illuminate\Support\Facades\Session;
+@endphp
+
+@extends('layouts.admin.app')
+
 @section('title', translate('feature_Deal'))
-@push('css_or_js')
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-@endpush
 
 @section('content')
+    @php($direction = Session::get('direction'))
     <div class="content container-fluid">
-        <!-- Page Title -->
-        <div class="mb-3">
-            <h2 class="h1 mb-0 text-capitalize d-flex gap-2">
-                <img width="20" src="{{asset('/public/assets/back-end/img/featured_deal.png')}}" alt="">
-                {{translate('feature_deal')}}
+        <div class="d-flex justify-content-between gap-2 mb-3">
+            <h2 class="h1 mb-0 text-capitalize d-flex align-items-center gap-2">
+                <img width="20" src="{{ dynamicAsset(path: 'public/assets/back-end/img/featured_deal.png') }}" alt="">
+                {{ translate('Feature_Deal') }}
             </h2>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#prioritySetModal" >
+                <span data-bs-toggle="tooltip" data-bs-title="Now you can set priority of products.">{{ translate('product_priority_Setup') }}</span>
+            </button>
         </div>
-        <!-- End Page Title -->
-
-        <div class="row">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-body">
-                        <form action="{{route('admin.deal.flash')}}" style="text-align: {{Session::get('direction') === "rtl" ? 'right' : 'left'}};" method="post">
-                            @csrf
-                            @php($language=\App\Model\BusinessSetting::where('type','pnc_language')->first())
-                            @php($language = $language->value ?? null)
-                            @php($default_lang = 'en')
-
-                            @php($default_lang = json_decode($language)[0])
-                            <ul class="nav nav-tabs w-fit-content mb-4">
-                                @foreach(json_decode($language) as $lang)
-                                    <li class="nav-item text-capitalize">
-                                        <a class="nav-link lang_link {{$lang == $default_lang? 'active':''}}" href="#"
-                                           id="{{$lang}}-link">{{\App\CPU\Helpers::get_language_name($lang).'('.strtoupper($lang).')'}}</a>
-                                    </li>
-                                @endforeach
-                            </ul>
-
-                            <div class="form-group">
-                                <div class="row">
-                                    <input type="text" name="deal_type" value="feature_deal"  class="d-none">
-                                    @foreach(json_decode($language) as $lang)
-                                        <div class="col-md-12 {{$lang != $default_lang ? 'd-none':''}} lang_form" id="{{$lang}}-form">
-                                            <label for="name" class="title-color text-capitalize">{{ translate('title')}} ({{strtoupper($lang)}})</label>
-                                            <input type="text" name="title[]" class="form-control" id="title"
-                                                   placeholder="{{translate('ex')}} : {{translate('LUX')}}" {{$lang == $default_lang? 'required':''}}>
-                                        </div>
-                                        <input type="hidden" name="lang[]" value="{{$lang}}" id="lang">
-                                    @endforeach
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6 mt-3">
-                                        <label for="name" class="title-color text-capitalize">{{ translate('start_date')}}</label>
-                                        <input type="date" name="start_date" required class="form-control">
-                                    </div>
-                                    <div class="col-md-6 mt-3">
-                                        <label for="name" class="title-color text-capitalize">{{ translate('end_date')}}</label>
-                                        <input type="date" name="end_date" required class="form-control">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="d-flex justify-content-end gap-3">
-                                <button type="reset" id="reset" class="btn btn-secondary">{{ translate('reset')}}</button>
-                                <button type="submit" class="btn btn--primary">{{ translate('submit')}}</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!--modal-->
 
         <div class="row mt-20">
             <div class="col-md-12">
                 <div class="card">
-                    <div class="px-3 py-4">
-                        <div class="row align-items-center">
-                            <div class="col-sm-4 col-md-6 col-lg-8 mb-2 mb-sm-0">
-                                <h5 class="mb-0 text-capitalize align-items-center d-flex gap-2">
-                                    {{ translate('feature_deal_Table')}}
-                                    <span class="badge badge-soft-dark radius-50 fz-12">{{ $flash_deals->total() }}</span>
-                                </h5>
-                            </div>
-                            <div class="col-sm-8 col-md-6 col-lg-4">
-                                <!-- Search -->
+                    <div class="px-3 py-4 d-flex justify-content-between align-items-center gap-20 flex-wrap">
+                        <h3 class="mb-0 text-capitalize d-flex gap-2">
+                            {{ translate('feature_deal_table') }}
+                            <span
+                                class="badge text-dark bg-body-secondary fw-semibold rounded-50">{{ $flashDeals->total() }}</span>
+                        </h3>
+                        <div class="d-flex flex-wrap gap-3 align-items-center">
+                            <div class="flex-grow-1 max-w-300 min-w-100-mobile">
                                 <form action="{{ url()->current() }}" method="GET">
-                                    <div class="input-group input-group-merge input-group-custom">
-                                        <div class="input-group-prepend">
-                                            <div class="input-group-text">
-                                                <i class="tio-search"></i>
-                                            </div>
+                                    <div class="input-group">
+                                        <input id="datatableSearch_" type="search" name="searchValue"
+                                               class="form-control"
+                                               placeholder="{{ translate('search_by_title') }}" aria-label="Search orders"
+                                               value="{{ request('searchValue') }}" required>
+                                        <div class="input-group-append search-submit">
+                                            <button type="submit">
+                                                <i class="fi fi-rr-search"></i>
+                                            </button>
                                         </div>
-                                        <input id="datatableSearch_" type="search" name="search" class="form-control"
-                                               placeholder="{{translate('search by Title')}}" aria-label="Search orders" value="{{ $search }}" required>
-                                        <button type="submit" class="btn btn--primary">{{translate('search')}}</button>
                                     </div>
                                 </form>
-                                <!-- End Search -->
+                            </div>
+                            <div>
+                                <a class="btn btn-primary" href="{{ route('admin.deal.feature-add') }}">
+                                    + {{ translate('Create Featured Deal') }}
+                                </a>
                             </div>
                         </div>
                     </div>
-
                     <div class="table-responsive">
                         <table id="datatable"
-                                style="text-align: {{Session::get('direction') === "rtl" ? 'right' : 'left'}};"
-                                class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100">
-                            <thead class="thead-light thead-50 text-capitalize">
+                               style="text-align: {{$direction === "rtl" ? 'right' : 'left' }};"
+                               class="table table-hover table-borderless align-middle">
+                            <thead class="text-capitalize">
                             <tr>
-                                <th>{{ translate('SL')}}</th>
-                                <th>{{ translate('title')}}</th>
-                                <th>{{ translate('start_Date')}}</th>
-                                <th>{{ translate('end_Date')}}</th>
-                                <th>{{ translate('active')}} / {{ translate('expired')}}</th>
-                                <th>{{ translate('status')}}</th>
-                                <th class="text-center">{{ translate('action')}}</th>
+                                <th>{{ translate('SL') }}</th>
+                                <th>{{ translate('title') }}</th>
+                                <th>{{ translate('Start_Date') }}</th>
+                                <th>{{ translate('End_Date') }}</th>
+                                <th>{{ translate('active') }} / {{ translate('expired') }}</th>
+                                <th class="text-center">{{ translate('status') }}</th>
+                                <th class="text-center">{{ translate('action') }}</th>
                             </tr>
                             </thead>
                             <tbody>
-                            @foreach($flash_deals as $k=>$deal)
+                            @foreach($flashDeals as $key => $deal)
                                 <tr>
-                                    <th>{{$k+1}}</th>
-                                    <td>{{$deal['title']}}</td>
-                                    <td>{{date('d-M-y',strtotime($deal['start_date']))}}</td>
-                                    <td>{{date('d-M-y',strtotime($deal['end_date']))}}</td>
+                                    <th>{{$key+1}}</th>
+                                    <td class="max-w-250 text-truncate">{{ $deal['title'] }}</td>
+                                    <td>{{date('d-M-y',strtotime($deal['start_date'])) }}</td>
+                                    <td>{{date('d-M-y',strtotime($deal['end_date'])) }}</td>
                                     <td>
-                                        @if(\Carbon\Carbon::parse($deal['end_date'])->endOfDay()->isPast())
-                                        <span class="badge badge-soft-danger"> {{ translate('expired')}} </span>
+                                        @if(Carbon::parse($deal['end_date'])->endOfDay()->isPast())
+                                            <span class="badge text-bg-danger badge-danger"> {{ translate('expired') }} </span>
                                         @else
-                                        <span class="badge badge-soft-success"> {{ translate('active')}} </span>
+                                            <span class="badge text-bg-success badge-success"> {{ translate('active') }} </span>
                                         @endif
                                     </td>
                                     <td>
-                                        <form action="{{route('admin.deal.feature-status')}}" method="post" id="feature_status{{$deal['id']}}_form" class="feature_status_form">
+                                        <?php
+                                             $isExpired = \Carbon\Carbon::parse($deal['end_date'])->endOfDay()->isPast();
+                                        ?>
+                                        <form action="{{route('admin.deal.feature-status') }}" method="post"
+                                              id="feature-status{{$deal['id'] }}-form" class="no-reload-form reload-true">
                                             @csrf
-                                            <input type="hidden" name="id" value="{{$deal['id']}}">
-                                            <label class="switcher mx-auto">
-                                                <input type="checkbox" class="switcher_input" id="feature_status{{$deal['id']}}" name="status" value="1" {{ $deal['status'] == 1 ? 'checked':'' }} onclick="toogleStatusModal(event,'feature_status{{$deal['id']}}','feature-status-on.png','feature-status-off.png','{{translate('Want_to_Turn_ON_Featured_Deal_Status')}}','{{translate('Want_to_Turn_OFF_Featured_Deal_Status')}}',`<p>{{translate('if_enabled_this_featured_deal_will_be_available_on_the_website_and_customer_app')}}</p>`,`<p>{{translate('if_disabled_this_featured_deal_will_be_hidden_from_the_website_and_customer_app')}}</p>`)">
+                                            <input type="hidden" name="id" value="{{$deal['id'] }}">
+                                            <label class="switcher mx-auto"
+                                                   for="feature-status{{ $deal['id'] }}"
+                                                   @if($isExpired)
+                                                       data-bs-toggle="tooltip"
+                                                   data-bs-placement="top"
+                                                   title="{{ translate('This_deal_has_expired_and_cannot_be_updated.') }}"
+                                                @endif
+                                            >
+                                                <input
+                                                    class="switcher_input custom-modal-plugin"
+                                                    type="checkbox" value="1" name="status"
+                                                    id="feature-status{{$deal['id'] }}"
+                                                        {{ $isExpired ? 'disabled' : '' }}
+                                                    {{ $deal['status'] == 1 ? 'checked':'' }}
+                                                    data-modal-type="input-change-form"
+                                                    data-modal-form="#feature-status{{$deal['id'] }}-form"
+                                                    data-on-image="{{ dynamicAsset(path: 'public/assets/new/back-end/img/modal/feature-status-on.png') }}"
+                                                    data-off-image="{{ dynamicAsset(path: 'public/assets/new/back-end/img/modal/feature-status-off.png') }}"
+                                                    data-on-title = "{{ translate('Want_to_Turn_ON_Featured_Deal_Status').'?' }}"
+                                                    data-off-title = "{{ translate('Want_to_Turn_OFF_Featured_Deal_Status').'?' }}"
+                                                    data-on-message = "<p>{{ translate('if_enabled_this_featured_deal_will_be_available_on_the_website_and_customer_app') }}</p>"
+                                                    data-off-message = "<p>{{ translate('if_disabled_this_featured_deal_will_be_hidden_from_the_website_and_customer_app') }}</p>"
+                                                    data-on-button-text="{{ translate('turn_on') }}"
+                                                    data-off-button-text="{{ translate('turn_off') }}">
                                                 <span class="switcher_control"></span>
                                             </label>
                                         </form>
                                     </td>
                                     <td>
                                         <div class="d-flex align-items-center justify-content-center gap-10">
-                                            <a class="h-30 d-flex gap-2 align-items-center btn btn-soft-info btn-sm border-info" href="{{route('admin.deal.add-product',[$deal['id']])}}">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="9" height="9" viewBox="0 0 9 9" fill="none" class="svg replaced-svg">
-                                                    <path d="M9 3.9375H5.0625V0H3.9375V3.9375H0V5.0625H3.9375V9H5.0625V5.0625H9V3.9375Z" fill="#00A3AD"></path>
-                                                </svg>
-                                                {{translate('add_Product')}}
+                                            <a class="h-30 d-flex gap-2 align-items-center btn btn-outline-info"
+                                               href="{{route('admin.deal.add-product',[$deal['id']]) }}">
+                                               <i class="fi fi-sr-plus fs-10"></i>
+                                                {{ translate('add_product') }}
                                             </a>
-
-                                            <a title="{{ trans ('Edit')}}" href="{{route('admin.deal.edit',[$deal['id']])}}" class="btn btn-outline--primary btn-sm edit">
-                                                <i class="tio-edit"></i>
+                                            <a title="{{ trans ('edit') }}"
+                                               href="{{route('admin.deal.edit',[$deal['id']]) }}"
+                                               class="btn btn-outline-primary icon-btn edit">
+                                                <i class="fi fi-sr-pencil"></i>
                                             </a>
                                         </div>
                                     </td>
@@ -158,119 +136,184 @@
                             </tbody>
                         </table>
                     </div>
-
-
                     <div class="table-responsive mt-4">
                         <div class="px-4 d-flex justify-content-lg-end">
-                            <!-- Pagination -->
-                            {{$flash_deals->links()}}
+                            {{$flashDeals->links() }}
                         </div>
                     </div>
-
-                    @if(count($flash_deals)==0)
-                        <div class="text-center p-4">
-                            <img class="mb-3 w-160" src="{{asset('public/assets/back-end')}}/svg/illustrations/sorry.svg" alt="Image Description">
-                            <p class="mb-0">{{translate('no_data_to_show')}}</p>
-                        </div>
+                    @if(count($flashDeals)==0)
+                        @include('layouts.admin.partials._empty-state',['text'=>'no_data_found'],['image'=>'default'])
                     @endif
                 </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="prioritySetModal" tabindex="-1" aria-labelledby="prioritySetModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{{ route('admin.business-settings.priority-setup.update-by-type') }}" method="post">
+                    @csrf
+                    <input type="hidden" name="type" value="feature_deal_priority">
+                    <div class="modal-body px-sm-4 mb-sm-3">
+                        <div class="d-flex align-items-center justify-content-between mb-4">
+                            <h4 class="modal-title flex-grow-1 text-center text-capitalize" id="prioritySetModalLabel">{{ translate('priority_settings') }}</h4>
+                            <button type="button" class="btn-close border-0 btn-circle bg-section2 shadow-none"
+                                data-bs-dismiss="modal" aria-label="Close">
+                            </button>
+                        </div>
+                        <div class="d-flex gap-4 flex-column feature-deal">
+                            <div class="d-flex gap-2 justify-content-between pb-3 border-bottom">
+                                <div class="d-flex flex-column">
+                                    <h4 class="text-capitalize">{{ translate('use_default_sorting_list') }}</h4>
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <img width="14" src="{{ dynamicAsset(path: 'public/assets/back-end/img/icons/info.svg') }}" alt="">
+                                        <span class="text-dark fs-12">{{ translate('currently_sorting_this_section_based_on_latest_add') }}</span>
+                                    </div>
+                                </div>
+                                <label class="switcher">
+                                    <input type="checkbox" class="switcher_input switcher-input-js" data-parent-class="feature-deal" data-from="default-sorting"
+                                        {{$featureDealPriority?->custom_sorting_status == 1 ? '' : 'checked' }}>
+                                    <span class="switcher_control"></span>
+                                </label>
+                            </div>
+                            <div class="">
+                                <div class="d-flex gap-2 justify-content-between">
+                                    <div class="d-flex flex-column">
+                                        <h4 class="text-capitalize">{{ translate('use_custom_sorting_list') }}</h4>
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <img width="14" src="{{ dynamicAsset(path: 'public/assets/back-end/img/icons/info.svg') }}" alt="">
+                                            <span class="text-dark fs-12">{{ translate('you_can_sorting_this_section_by_others_way') }}</span>
+                                        </div>
+                                    </div>
+                                    <label class="switcher">
+                                        <input type="checkbox" class="switcher_input switcher-input-js" name="custom_sorting_status" value="1" data-parent-class="feature-deal" data-from="custom-sorting"
+                                            {{ isset($featureDealPriority?->custom_sorting_status) && $featureDealPriority?->custom_sorting_status == 1 ? 'checked' : '' }}>
+                                        <span class="switcher_control"></span>
+                                    </label>
+                                </div>
+
+                                <div class="custom-sorting-radio-list {{ isset($featureDealPriority?->custom_sorting_status) && $featureDealPriority?->custom_sorting_status == 1 ? '' : 'd--none' }}">
+                                    <div class="border rounded p-3 d-flex flex-column gap-2 mt-4">
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <input type="radio" class="show form-check-input radio--input" name="sort_by" value="latest_created" id="feature-deal-sort-by-latest-created"
+                                                {{ isset($featureDealPriority?->sort_by) && $featureDealPriority?->sort_by == 'latest_created' ? 'checked' : '' }}>
+                                            <label class="mb-0 cursor-pointer" for="feature-deal-sort-by-latest-created">
+                                                {{ translate('sort_by_latest_created') }}
+                                            </label>
+                                        </div>
+
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <input type="radio" class="show form-check-input radio--input" name="sort_by" value="first_created" id="feature-deal-sort-by-first-created"
+                                                {{ isset($featureDealPriority?->sort_by) && $featureDealPriority?->sort_by == 'first_created' ? 'checked' : '' }}>
+                                            <label class="mb-0 cursor-pointer" for="feature-deal-sort-by-first-created">
+                                                {{ translate('sort_by_first_created') }}
+                                            </label>
+                                        </div>
+
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <input type="radio" class="show form-check-input radio--input" name="sort_by" value="most_order" id="feature-deal-sort-by-most-order"
+                                                {{ isset($featureDealPriority?->sort_by) ? ($featureDealPriority?->sort_by == 'most_order' ? 'checked' : '') : 'checked' }}>
+                                            <label class="mb-0 cursor-pointer" for="feature-deal-sort-by-most-order">
+                                                {{ translate('sort_by_most_order') }}
+                                            </label>
+                                        </div>
+
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <input type="radio" class="show form-check-input radio--input" name="sort_by" id="feature-deal-sort-by-reviews-count" value="reviews_count"
+                                                {{ isset($featureDealPriority?->sort_by) && $featureDealPriority?->sort_by == 'reviews_count' ? 'checked' : '' }}>
+                                            <label class="mb-0 cursor-pointer" for="feature-deal-sort-by-reviews-count">
+                                                {{ translate('sort_by_reviews_count') }}
+                                            </label>
+                                        </div>
+
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <input type="radio" class="show form-check-input radio--input" name="sort_by" id="feature-deal-sort-by-ratings" value="rating"
+                                                {{ isset($featureDealPriority?->sort_by) && $featureDealPriority?->sort_by == 'rating' ? 'checked' : '' }}>
+                                            <label class="mb-0 cursor-pointer" for="feature-deal-sort-by-ratings">
+                                                {{ translate('sort_by_average_ratings') }}
+                                            </label>
+                                        </div>
+
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <input type="radio" class="show form-check-input radio--input" name="sort_by" value="a_to_z" id="feature-deal-sort-alphabetic-order"
+                                                {{ isset($featureDealPriority?->sort_by) && $featureDealPriority?->sort_by == 'a_to_z' ? 'checked' : '' }}>
+                                            <label class="mb-0 cursor-pointer text-capitalize" for="feature-deal-sort-alphabetic-order">
+                                                {{ translate('sort_by_Alphabetical') }} ({{'A '.translate('to').' Z' }})
+                                            </label>
+                                        </div>
+
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <input type="radio" class="show form-check-input radio--input" name="sort_by" value="z_to_a" id="feature-deal-sort-alphabetic-order-reverse"
+                                                {{ isset($featureDealPriority?->sort_by) && $featureDealPriority?->sort_by == 'z_to_a' ? 'checked' : '' }}>
+                                            <label class="mb-0 cursor-pointer text-capitalize" for="feature-deal-sort-alphabetic-order-reverse">
+                                                {{ translate('sort_by_Alphabetical') }} ({{'Z '.translate('to').' A' }})
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="border rounded p-3 d-flex flex-column gap-2 mt-3">
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <input type="radio" name="out_of_stock_product" value="desc" class="check-box form-check-input radio--input" data-parent-class="feature-deal" id="show-in-last"
+                                                {{ isset($featureDealPriority?->out_of_stock_product) && $featureDealPriority?->out_of_stock_product == 'desc' ? 'checked' : '' }}>
+                                            <label class="mb-0 cursor-pointer" for="show-in-last">
+                                                {{ translate('show_stock_out_products_in_the_last') }}
+                                            </label>
+                                        </div>
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <input type="radio" name="out_of_stock_product" value="hide" class="check-box form-check-input radio--input" data-parent-class="feature-deal" id="remove-product"
+                                                {{ isset($featureDealPriority?->out_of_stock_product) && $featureDealPriority?->out_of_stock_product == 'hide' ? 'checked' : '' }}>
+                                            <label class="mb-0 cursor-pointer" for="remove-product">
+                                                {{ translate('remove_stock_out_products_from_the_list') }}
+                                            </label>
+                                        </div>
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <input type="radio" name="out_of_stock_product" value="default" data-parent-class="feature-deal" id="default" class="form-check-input radio--input"
+                                                {{ isset($featureDealPriority?->out_of_stock_product) ? ($featureDealPriority?->out_of_stock_product == 'default' ? 'checked' : '') :'checked' }}>
+                                            <label class="mb-0 cursor-pointer" for="default">
+                                                {{ translate('none') }}
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="border rounded p-3 d-flex flex-column gap-2 mt-3">
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <input type="radio" name="temporary_close_sorting" value="desc" data-parent-class="feature-deal" id="feature-deal-temporary-close-last" class="form-check-input radio--input"
+                                                {{ isset($featureDealPriority?->temporary_close_sorting) && $featureDealPriority?->temporary_close_sorting == 'desc' ? 'checked' : '' }}>
+                                            <label class="mb-0 cursor-pointer" for="feature-deal-temporary-close-last">
+                                                {{ translate('show_product_in_the_last_is_store_is_temporarily_off') }}
+                                            </label>
+                                        </div>
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <input type="radio" name="temporary_close_sorting" value="hide" data-parent-class="feature-deal" id="feature-deal-temporary-close-remove" class="form-check-input radio--input"
+                                                {{ isset($featureDealPriority?->temporary_close_sorting) ? ($featureDealPriority?->temporary_close_sorting == 'hide' ? 'checked' : '') :'checked' }}>
+                                            <label class="mb-0 cursor-pointer" for="feature-deal-temporary-close-remove">
+                                                {{ translate('remove_product_from_the_list_if_store_is_temporarily_off') }}
+                                            </label>
+                                        </div>
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <input type="radio" name="temporary_close_sorting" value="default" data-parent-class="feature-deal" id="feature-deal-temporary-close-default" class="form-check-input radio--input"
+                                                {{ isset($featureDealPriority?->temporary_close_sorting) ?($featureDealPriority?->temporary_close_sorting == 'default' ? 'checked' : '' ) : 'checked' }}>
+                                            <label class="mb-0 cursor-pointer" for="feature-deal-temporary-close-default">
+                                                {{ translate('none') }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="submit" class="btn btn-primary px-5">
+                                {{ translate('save') }}
+                            </button>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 @endsection
 
 @push('script')
-    <script>
-        $(".lang_link").click(function (e) {
-            e.preventDefault();
-            $(".lang_link").removeClass('active');
-            $(".lang_form").addClass('d-none');
-            $(this).addClass('active');
-
-            let form_id = this.id;
-            let lang = form_id.split("-")[0];
-            console.log(lang);
-            $("#" + lang + "-form").removeClass('d-none');
-            if (lang == '{{$default_lang}}') {
-                $(".from_part_2").removeClass('d-none');
-            } else {
-                $(".from_part_2").addClass('d-none');
-            }
-        });
-
-        $(document).ready(function () {
-            $('#dataTable').DataTable();
-        });
-    </script>
-
-    <script>
-        $(document).on('change', '.featured', function () {
-            var id = $(this).attr("id");
-            if ($(this).prop("checked") == true) {
-                var featured = 1;
-            } else if ($(this).prop("checked") == false) {
-                var featured = 0;
-            }
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-                }
-            });
-            $.ajax({
-                url: "{{route('admin.deal.featured-update')}}",
-                method: 'POST',
-                data: {
-                    id: id,
-                    featured: featured
-                },
-                success: function () {
-                    toastr.success("{{translate('status_updated_successfully')}}");
-                    // location.reload();
-                }
-            });
-        });
-
-        $('.feature_status_form').on('submit', function(event){
-            event.preventDefault();
-
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-                }
-            });
-            $.ajax({
-                url: $(this).attr('action'),
-                method: 'POST',
-                data: $(this).serialize(),
-                success: function (data) {
-                    toastr.success("{{translate('status_updated_successfully')}}");
-                    setTimeout(function (){
-                        location.reload();
-                    },1000);
-                }
-            });
-        });
-
-    </script>
-
-    <!-- Page level custom scripts -->
-
-    <script>
-        $(document).ready(function () {
-            // color select select2
-            $('.color-var-select').select2({
-                templateResult: colorCodeSelect,
-                templateSelection: colorCodeSelect,
-                escapeMarkup: function (m) {
-                    return m;
-                }
-            });
-
-            function colorCodeSelect(state) {
-                var colorCode = $(state.element).val();
-                if (!colorCode) return state.text;
-                return "<span class='color-preview' style='background-color:" + colorCode + ";'></span>" + state.text;
-            }
-        });
-    </script>
+    <script src="{{ dynamicAsset(path: 'public/assets/back-end/js/admin/deal.js') }}"></script>
 @endpush

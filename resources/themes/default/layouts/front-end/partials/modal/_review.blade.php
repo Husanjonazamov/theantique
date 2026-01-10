@@ -1,5 +1,5 @@
- <!-- Submit a Review Modal -->
- <div class="modal fade" id="submitReviewModal{{$id}}" tabindex="-1" aria-labelledby="submitReviewModalLabel" aria-hidden="true">
+<div class="modal fade" id="submitReviewModal{{$id}}" tabindex="-1" aria-labelledby="submitReviewModalLabel"
+     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header border-0 pb-0">
@@ -9,107 +9,118 @@
                 </button>
             </div>
             <div class="modal-body d-flex flex-column gap-3">
-                <form action="{{route('review.store')}}" method="post" enctype="multipart/form-data">
+                <form action="{{route('review.store')}}" method="post" enctype="multipart/form-data" class="form-advance-validation  form-advance-file-validation non-ajax-form-validate" novalidate="novalidate">
                     @csrf
                     <div class="border rounded bg-white">
                         <div class="p-3">
                             @if (isset($order_details->product))
-                            <div class="media gap-3">
-                                <div class="position-relative">
-                                    <img class="d-block" onclick="location.href='{{route('product',$order_details->product['slug'])}}'"
-                                    onerror="this.src='{{asset('public/assets/front-end/img/image-place-holder.png')}}'"
-                                    src="{{\App\CPU\ProductManager::product_image_path('thumbnail')}}/{{$order_details->product['thumbnail']}}"
-                                    alt="VR Collection" width="100">
+                                <div class="media gap-3">
+                                    <div class="position-relative">
+                                        <img class="d-block get-view-by-onclick"
+                                             data-link="{{route('product',$order_details->product['slug'])}}"
+                                             src="{{ getStorageImages(path:$order_details->product->thumbnail_full_url, type: 'product') }}"
+                                             alt="{{ translate('product') }}" width="100">
 
-                                    @if($order_details->product->discount > 0)
-                                        <span class="price-discount badge badge-primary position-absolute top-1 left-1">
+                                        @if($order_details->product->discount > 0)
+                                            <span
+                                                class="price-discount badge badge-primary position-absolute top-1 left-1">
                                             @if ($order_details->product->discount_type == 'percent')
-                                                {{round($order_details->product->discount)}}%
-                                            @elseif($order_details->product->discount_type =='flat')
-                                                {{\App\CPU\Helpers::currency_converter($order_details->product->discount)}}
-                                            @endif
+                                                    -{{round($order_details->product->discount)}}%
+                                                @elseif($order_details->product->discount_type =='flat')
+                                                    -{{ webCurrencyConverter(amount: $order_details->product->discount) }}
+                                                @endif
                                         </span>
-                                    @endif
-                                </div>
-                                <div class="media-body">
+                                        @endif
+                                    </div>
+                                    <div class="media-body">
 
-                                    <a href="{{route('product',[$order_details->product['slug']])}}">
-                                        <h6 class="mb-1">
-                                            {{Str::limit($order_details->product['name'],40)}}
-                                        </h6>
-                                    </a>
-                                    @if($order_details->variant)
-                                        <div><small class="text-muted">{{translate('variant')}} : {{$order_details->variant}}</small></div>
-                                    @endif
-                                    <div><small class="text-muted">{{translate('qty')}} : {{$order_details->qty}}</small></div>
-                                    <div><small class="text-muted">{{translate('price')}} : <span class="text-primary">
-                                        {{\App\CPU\Helpers::currency_converter($order_details->price)}}
-                                        </span></small>
+                                        <a href="{{route('product',[$order_details->product['slug']])}}">
+                                            <h6 class="mb-1">
+                                                {{Str::limit($order_details->product['name'],40)}}
+                                            </h6>
+                                        </a>
+                                        @if($order_details->variant)
+                                            <div>
+                                                <small class="text-muted">
+                                                    {{translate('variant')}} : {{$order_details->variant}}
+                                                </small>
+                                            </div>
+                                        @endif
+                                        <div>
+                                            <small class="text-muted">
+                                                {{translate('qty')}}
+                                                : {{$order_details->qty}}
+                                            </small>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted">
+                                                {{translate('price')}} :
+                                                <span class="text-primary">
+                                                    {{ webCurrencyConverter(amount: $order_details->price) }}
+                                                </span>
+                                            </small>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
                             @else
                                 <div class="text-center text-capitalize">
-                                    <img src="{{asset('public/assets/front-end/img/icons/nodata.svg')}}" alt="" width="100">
+                                    <img src="{{theme_asset(path: 'public/assets/front-end/img/icons/nodata.svg')}}"
+                                         alt=""
+                                         width="100">
                                     <h5>{{translate('no_product_found')}}!</h5>
                                 </div>
                             @endif
                         </div>
                     </div>
+                    @if(isset($order_details->reviewData))
+                        <?php
+                            $rating = $order_details->reviewData->rating;
+                            $sessionDirection = session()->get('direction') ?? 'ltr';
+                            $style = match ($rating) {
+                                1 => 'inset-inline-start:14px',
+                                2 => 'inset-inline-start:62',
+                                3 => 'inset-inline-start:130px',
+                                4 => 'inset-inline-start:190px',
+                                default => 'inset-inline-start:142px',
+                            };
 
-                    <div class="d-flex flex-column gap-2 align-items-center my-4">
-                        <h5 class="text-center text-capitalize">{{translate('rate_the_quality')}}</h5>
-                        <div class="rating-label-wrap position-relative">
-                            <label class="rating-label mb-0">
-                                <input
-                                class="rating"
-                                name="rating"
-                                min="1"
-                                max="5"
-                                oninput="this.style.setProperty('--value', `${this.valueAsNumber}`)"
-                                step="1"
-                                style="--value:{{isset($order_details->product->reviews_by_customer[0]) ? $order_details->product->reviews_by_customer[0]->rating : 5}}"
-                                type="range"
-                                value="5">
-                            </label>
-                            @php($style = '')
-                            @if(isset($order_details->product->reviews_by_customer[0]))
-                                <?php
-                                    $rating = $order_details->product->reviews_by_customer[0]->rating;
-                                    $style = match ($rating) {
-                                        1 => 'left:5px',
-                                        2 => 'left:36px',
-                                        3 => 'left:85px',
-                                        4 => 'left:112px',
-                                        default => 'left:155px',
-                                    };
-                                ?>
-                            @endif
-                            <span class="rating_content text-primary fs-12 text-nowrap"style="{{$style}}">
-                            @if(isset($order_details->product->reviews_by_customer[0]))
-                                <?php
-                                    $rating = $order_details->product->reviews_by_customer[0]->rating;
-                                    $rating_status = match ($rating) {
-                                        1 => translate('poor'),
-                                        2 => translate('average'),
-                                        3 => translate('good'),
-                                        4 => translate('very_good'),
-                                        default => translate('excellent'),
-                                    };
-                                ?>
-                                {{$rating_status}}
-                            @else
-                                {{ translate('excellent') }}!
-                            @endif
-                            </span>
+                            $ratingStatus = match ($rating) {
+                                1 => translate('poor'),
+                                2 => translate('average'),
+                                3 => translate('good'),
+                                4 => translate('very_good'),
+                                default => translate('excellent'),
+                            };
+                        ?>
+                    @endif
+                    <div class="mb-5 mt-3">
+                        <div class="star-rating-form">
+                            <div class="star-wrap">
+                                <h3 class="text-capitalize text-center mb-3">{{translate('rate_the_quality')}}</h3>
+                                <input class="rating" name="rating" value="{{$order_details->reviewData?->rating}}" hidden>
+
+                                <input class="star" checked type="radio" value="-1" id="skip-star" name="star-radio"
+                                       autocomplete="off"/>
+                                <label class="star-label hidden"></label>
+                                @for($index =1 ;$index<=5; $index++)
+                                    <input class="star" type="radio" id="st-{{ $id }}-{{ $index }}" value="{{$index}}"
+                                           name="star-radio"
+                                           autocomplete="off" {{isset($rating) && $rating == $index ? 'checked': ''}}>
+                                    <label class="star-label" for="st-{{ $id }}-{{ $index }}">
+                                        <div class="star-shape"></div>
+                                    </label>
+                                @endfor
+                                <div id="result" class="text-nowrap" style="{{$style ?? ''}}">{{$ratingStatus ?? ''}}</div>
+                            </div>
                         </div>
                     </div>
-
                     <h6 class="cursor-pointer">{{translate('have_thoughts_to_share')}}?</h6>
                     <div class="">
                         <input name="product_id" value="{{$order_details->product_id}}" hidden>
                         <input name="order_id" value="{{$order_details->order_id}}" hidden>
-                        <textarea rows="4" class="form-control text-area-class" name="comment" placeholder="{{translate('best_product,_highly_recommended')}}.">{{$order_details->product->reviews_by_customer[0]->comment ?? ''}}</textarea>
+                        <input name="review_id" value="{{$order_details->reviewData?->id}}" hidden>
+                        <textarea rows="4" class="form-control text-area-class" name="comment"
+                                  placeholder="{{translate('best_product,_highly_recommended')}}." required>{{$order_details->reviewData?->comment ?? ''}}</textarea>
                     </div>
 
                     <div class="mt-3">
@@ -117,16 +128,23 @@
                         <div class="mt-2">
                             <div class="d-flex gap-2 flex-wrap">
                                 <div class="d-flex gap-4 flex-wrap coba_review">
-                                    @if (isset($order_details->product->reviews_by_customer[0]) && $order_details->product->reviews_by_customer[0]->attachment && $order_details->product->reviews_by_customer[0]->attachment != [])
-                                        @foreach (json_decode($order_details->product->reviews_by_customer[0]->attachment) as $key => $photo)
-                                        <div class="position-relative img_row{{$key}} border rounded border-primary-light">
-                                            <span class="img_remove_icon" onclick="remove_img_row('{{$key}}')"><i class="czi-close"></i></span>
-                                            <div class="overflow-hidden upload_img_box_img rounded">
-                                                <img class="h-auto" onerror="this.src=' {{asset('public/assets/front-end/img/image-place-holder.png')}}'"
-                                                     src="{{asset('storage/app/public/review')}}/{{$photo}}"
-                                                     alt="VR Collection">
+                                    @if ($order_details?->reviewData && $order_details?->reviewData?->attachment_full_url && count($order_details->reviewData->attachment_full_url) > 0)
+                                        @foreach ($order_details->reviewData->attachment_full_url as $key => $attachment)
+                                            <div
+                                                class="position-relative img_row{{$key}} border rounded border-primary-light">
+                                                <span class="img_remove_icon remove-img-row-by-key cursor-pointer"
+                                                      data-key="{{$key}}"
+                                                      data-review-id="{{ $order_details->reviewData->id }}"
+                                                      data-photo="{{ $attachment['key'] }}"
+                                                      data-route="{{ route('delete-review-image') }}">
+                                                    <i class="czi-close"></i>
+                                                </span>
+                                                <div class="overflow-hidden upload_img_box_img rounded">
+                                                    <img class="h-100 w-100 object-cover"
+                                                         src="{{ getStorageImages(path: $attachment, type: 'product') }}"
+                                                         alt="{{ translate('review') }}">
+                                                </div>
                                             </div>
-                                        </div>
                                         @endforeach
                                     @endif
                                 </div>
@@ -140,9 +158,13 @@
                                 <label class="py-0 d-flex align-items-center m-0 cursor-pointer">
                                         <span class="position-relative">
                                             <img class="border rounded border-primary-light h-70px"
-                                                 src="{{asset('public/assets/front-end/img/image-place-holder.png')}}" alt="">
+                                                 src="{{theme_asset(path: 'public/assets/front-end/img/image-place-holder.png')}}"
+                                                 alt="">
                                         </span>
-                                    <input type="file" class="reviewfilesValue h-100 position-absolute w-100 " hidden multiple accept=".jpg, .png, .jpeg, .gif, .bmp, .webp |image/*">
+                                    <input type="file" class="reviewFilesValue h-100 position-absolute w-100 " hidden
+                                           data-max-size="{{ getFileUploadMaxSize() }}"
+                                           data-required-msg="{{ translate('image_is_required') }}"
+                                           multiple accept="{{ getFileUploadFormats() }}">
                                 </label>
 
                             </div>
@@ -150,52 +172,41 @@
                         </div>
                     </div>
                     <div class="mt-3 d-flex justify-content-end">
-                        <button type="submit" class="btn btn--primary">{{('submit')}}</button>
+                        <button type="submit" class="btn btn--primary">
+                            {{ translate('submit') }}
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
-
+<span id="get-status-text" data-poor="{{translate('poor')}}" data-average="{{translate('average')}}" data-good="{{translate('good')}}"
+      data-great="{{translate('great')}}" data-excellent="{{translate('excellent')}}"></span>
 @push('script')
-<script>
-    function remove_img_row(key){
-        $('.img_row'+key).remove();
-    }
-    $('.rating-label-wrap input[type=range]').on('change', function() {
-        let ratingVal = $(this).val();
-        let ratingContent = $('.rating_content');
-        switch (ratingVal) {
-            case "1":
-                // Execute code for rating value 1
-                ratingContent.text('{{translate('poor')}} !').css('left', '5px');
-                $('.text-area-class').attr("placeholder", "").placeholder();
-                break;
-            case "2":
-                // Execute code for rating value 2
-                ratingContent.text('{{translate('average')}} !').css('left', '36px');
-                $('.text-area-class').attr("placeholder", "").placeholder();
-                break;
-            case "3":
-                // Execute code for rating value 3
-                ratingContent.text('{{translate('good')}} !').css('left', '85px');
-                $('.text-area-class').attr("placeholder", '{{translate('the_product_is_good')}}').placeholder();
-                break;
-            case "4":
-                // Execute code for rating value 4
-                ratingContent.text('{{translate('very_Good')}} !').css('left', '112px');
-                $('.text-area-class').attr("placeholder", '{{translate('this_product_is_very_good_I_am_highly_impressed')}}').placeholder();
-                break;
-            case "5":
-                // Execute code for rating value 5
-                ratingContent.text('excellent !').css('left', '155px');
-                $('.text-area-class').attr("placeholder", '{{translate('best_product,_highly_recommended')}}').placeholder();
-                break;
-            default:
-                break;
-        }
-    });
-
-</script>
+    <script>
+        'use strict';
+        $(".star-rating-form input[name='star-radio']").on("change", () => {
+            let result = $("#result");
+            let getStatusText = $('#get-status-text');
+            let starVal = $(".star-rating-form input[name='star-radio']:checked").val();
+            $('input[name=rating]').val(starVal);
+            if ((starVal == 1)) {
+                result.text(getStatusText.data('poor'));
+                result.css("inset-inline-start", "14px");
+            } else if ((starVal == 2)) {
+                result.text(getStatusText.data('average'));
+                result.css("inset-inline-start", "62px");
+            } else if ((starVal == 3)) {
+                result.text(getStatusText.data('good'));
+                result.css("inset-inline-start", "130px");
+            } else if ((starVal == 4)) {
+                result.text(getStatusText.data('great'));
+                result.css("inset-inline-start", "190px");
+            } else if ((starVal == 5)) {
+                result.text(getStatusText.data('excellent'));
+                result.css("inset-inline-start", "242px");
+            }
+        });
+    </script>
 @endpush

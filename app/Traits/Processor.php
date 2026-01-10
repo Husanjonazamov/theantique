@@ -2,7 +2,9 @@
 
 namespace App\Traits;
 
-use App\Model\Setting;
+use App\Models\Order;
+use App\Models\Setting;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Redirector;
@@ -46,7 +48,7 @@ trait  Processor
                 $result = __('lang.' . $key);
             }
             return $result;
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             return $key;
         }
     }
@@ -69,7 +71,7 @@ trait  Processor
 
         if (isset($old_image)) Storage::disk('public')->delete($dir . $old_image);
 
-        $imageName = \Carbon\Carbon::now()->toDateString() . "-" . uniqid() . "." . $format;
+        $imageName = Carbon::now()->toDateString() . "-" . uniqid() . "." . $format;
         if (!Storage::disk('public')->exists($dir)) {
             Storage::disk('public')->makeDirectory($dir);
         }
@@ -80,10 +82,20 @@ trait  Processor
 
     public function payment_response($payment_info, $payment_flag): Application|JsonResponse|Redirector|RedirectResponse|\Illuminate\Contracts\Foundation\Application
     {
+        $getNewUser = 0;
+        $additionalData = json_decode($payment_info->additional_data, true);
+
+        if (isset($additionalData['new_customer_id']) && isset($additionalData['is_guest_in_order'])) {
+            $getNewUser = ($additionalData['new_customer_id'] != 0) ? 1 : 0;
+        }
+
+        $orderIds = Order::where(['transaction_ref' => $payment_info['transaction_id']])->get()->pluck('id')->toArray();
+        $encodedOrderIds = base64_encode(json_encode($orderIds));
+
         $token_string = 'payment_method=' . $payment_info->payment_method . '&&transaction_reference=' . $payment_info->transaction_id;
         if (in_array($payment_info->payment_platform, ['web', 'app']) && $payment_info['external_redirect_link'] != null) {
-            return redirect($payment_info['external_redirect_link'] . '?flag=' . $payment_flag . '&&token=' . base64_encode($token_string));
+            return redirect($payment_info['external_redirect_link'] . '?flag=' . $payment_flag . '&&token=' . base64_encode($token_string) . '&&new_user=' . $getNewUser . '&&order_ids=' . $encodedOrderIds);
         }
-        return redirect()->route('payment-' . $payment_flag, ['token' => base64_encode($token_string)]);
+        return redirect()->route('payment-' . $payment_flag, ['token' => base64_encode($token_string), 'new_user' => $getNewUser, 'order_ids' => $encodedOrderIds]);
     }
 }

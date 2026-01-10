@@ -1,137 +1,178 @@
-@push('css_or_js')
-<style>
-    .cart_title {
-        font-weight: 400 !important;
-        font-size: 16px;
-    }
-
-    .cart_value {
-        font-weight: 600 !important;
-        font-size: 16px;
-    }
-
-    @media (max-width: 575px) {
-        .cart_title,
-        .cart_value {
-            font-size: 14px;
-        }
-    }
-
-    .cart_total_value {
-        font-weight: 700 !important;
-        font-size: 25px !important;
-        color: {{$web_config['primary_color']}}     !important;
-    }
-
-    .__cart-total_sticky {
-        position: sticky;
-        top: 80px;
-    }
-    /**/
-</style>
-@endpush
-
-<aside class="col-lg-4 pt-4 pt-lg-2 px-max-md-0">
+<aside class="col-lg-4 pt-4 pt-lg-2 px-max-md-0 order-summery-aside">
     <div class="__cart-total __cart-total_sticky">
         <div class="cart_total p-0">
-            @php($shippingMethod=\App\CPU\Helpers::get_business_settings('shipping_method'))
-            @php($sub_total=0)
-            @php($total_tax=0)
-            @php($total_shipping_cost=0)
-            @php($order_wise_shipping_discount=\App\CPU\CartManager::order_wise_shipping_discount())
-            @php($total_discount_on_product=0)
-            @php($cart=\App\CPU\CartManager::get_cart())
-            @php($cart_group_ids=\App\CPU\CartManager::get_cart_group_ids())
-            @php($shipping_cost=\App\CPU\CartManager::get_shipping_cost())
-            @php($get_shipping_cost_saved_for_free_delivery=\App\CPU\CartManager::get_shipping_cost_saved_for_free_delivery())
-            @if($cart->count() > 0)
-                @foreach($cart as $key => $cartItem)
-                    @php($sub_total+=$cartItem['price']*$cartItem['quantity'])
-                    @php($total_tax+=$cartItem['tax_model']=='exclude' ? ($cartItem['tax']*$cartItem['quantity']):0)
-                    @php($total_discount_on_product+=$cartItem['discount']*$cartItem['quantity'])
+            @php($systemTaxConfig = getTaxModuleSystemTypesConfig())
+            @php($shippingMethod = getWebConfig(name: 'shipping_method'))
+            @php($subTotal = 0)
+            @php($totalTax = \App\Utils\CartManager::getCartListTaxAmount())
+            @php($totalAmount = 0)
+            @php($totalAmountAfterReferralDiscount = 0)
+            @php($totalShippingCost = 0)
+            @php($referralAmount = 0)
+            @php($totalDiscountOnProduct = 0)
+            @php($cart = \App\Utils\CartManager::getCartListQuery(type: 'checked'))
+            @php($cartGroupIds = \App\Utils\CartManager::get_cart_group_ids())
+            @php($getShippingCost = \App\Utils\CartManager::get_shipping_cost(type: 'checked'))
+            @php($getShippingCostSavedForFreeDelivery = \App\Utils\CartManager::getShippingCostSavedForFreeDelivery(type: 'checked'))
+            @if ($cart->count() > 0)
+                @foreach ($cart as $key => $cartItem)
+                    @php($subTotal += $cartItem['price'] * $cartItem['quantity'])
+                    @php($totalDiscountOnProduct += $cartItem['discount'] * $cartItem['quantity'])
                 @endforeach
 
-                @if(session()->missing('coupon_type') || session('coupon_type') !='free_delivery')
-                    @php($total_shipping_cost=$shipping_cost - $get_shipping_cost_saved_for_free_delivery)
+                @if (session()->missing('coupon_type') || session('coupon_type') != 'free_delivery')
+                    @php($totalShippingCost = $getShippingCost - $getShippingCostSavedForFreeDelivery)
                 @else
-                    @php($total_shipping_cost=$shipping_cost)
+                    @php($totalShippingCost = $getShippingCost)
                 @endif
             @endif
 
-            @if($total_discount_on_product > 0)
-            <h6 class="text-center text-primary mb-4 d-flex align-items-center justify-content-center gap-2">
-                <img src="{{asset('public/assets/front-end/img/icons/offer.svg')}}" alt="">
-                {{translate('you_have_Saved')}} <strong>{{\App\CPU\Helpers::currency_converter($total_discount_on_product)}}!</strong>
-            </h6>
+            @php($totalSavedAmount = $totalDiscountOnProduct)
+
+            @if (session()->has('coupon_discount') && session('coupon_discount') > 0 && session('coupon_type') != 'free_delivery')
+                @php($totalSavedAmount += session('coupon_discount'))
             @endif
 
+            @if ($getShippingCostSavedForFreeDelivery > 0)
+                @php($totalSavedAmount += $getShippingCostSavedForFreeDelivery)
+            @endif
+
+            @if ($totalSavedAmount > 0)
+                <h6 class="text-center text-primary mb-4 d-flex align-items-center justify-content-center gap-2">
+                    <img src="{{ theme_asset(path: 'public/assets/front-end/img/icons/offer.svg') }}" alt="">
+                    {{ translate('you_have_Saved') }}
+                    <strong>{{ webCurrencyConverter(amount: $totalSavedAmount) }}!</strong>
+                </h6>
+            @endif
+
+
             <div class="d-flex justify-content-between">
-                <span class="cart_title">{{translate('sub_total')}}</span>
+                <span class="cart_title">{{ translate('sub_total') }}</span>
                 <span class="cart_value">
-                    {{\App\CPU\Helpers::currency_converter($sub_total)}}
+                    {{ webCurrencyConverter(amount: $subTotal) }}
                 </span>
             </div>
             <div class="d-flex justify-content-between">
-                <span class="cart_title">{{translate('tax')}}</span>
+                <span class="cart_title">{{ translate('shipping') }}</span>
                 <span class="cart_value">
-                    {{\App\CPU\Helpers::currency_converter($total_tax)}}
+                    {{ webCurrencyConverter(amount: $totalShippingCost) }}
                 </span>
             </div>
             <div class="d-flex justify-content-between">
-                <span class="cart_title">{{translate('shipping')}}</span>
+                <span class="cart_title">{{ translate('discount_on_product') }}</span>
                 <span class="cart_value">
-                    {{\App\CPU\Helpers::currency_converter($total_shipping_cost)}}
+                    - {{ webCurrencyConverter(amount: $totalDiscountOnProduct) }}
                 </span>
             </div>
-            <div class="d-flex justify-content-between">
-                <span class="cart_title">{{translate('discount_on_product')}}</span>
-                <span class="cart_value">
-                    - {{\App\CPU\Helpers::currency_converter($total_discount_on_product)}}
+            @if($systemTaxConfig['SystemTaxVat']['is_active'] && !$systemTaxConfig['is_included'])
+                <div class="d-flex justify-content-between">
+                    <span class="cart_title">{{ translate('tax') }}</span>
+                    <span class="cart_value">
+                    {{ webCurrencyConverter(amount: ($totalTax['item_tax'] + $totalTax['shipping_cost_tax'])) }}
                 </span>
-            </div>
-            @php($coupon_dis=0)
-            @if(auth('customer')->check())
-                @if(session()->has('coupon_discount'))
-                    @php($coupon_discount = session()->has('coupon_discount')?session('coupon_discount'):0)
+                </div>
+            @endif
+
+            <?php
+            $coupon_dis = 0;
+            if (session()->has('coupon_discount')) {
+                $couponDiscount = session()->has('coupon_discount') ? session('coupon_discount') : 0;
+                $coupon_dis = $couponDiscount;
+            }
+
+            $totalAmount = $subTotal + ($totalTax['item_tax'] + $totalTax['shipping_cost_tax']) + $totalShippingCost - $coupon_dis - $totalDiscountOnProduct;
+            $referralAmount = \App\Utils\CustomerManager::getReferralDiscountAmount(
+                user: (auth('customer')->check() ? auth('customer')->user() : null),
+                couponDiscount: $coupon_dis
+            );
+            ?>
+
+            @if ($referralAmount > 0)
+                <div class="d-flex justify-content-between">
+                    <span class="cart_title">{{ translate('referral_discount') }}</span>
+                    <span class="cart_value">
+                        - {{ webCurrencyConverter(amount: $referralAmount) }}
+                    </span>
+                </div>
+            @endif
+
+            @php($coupon_dis = 0)
+            @if (auth('customer')->check())
+
+                @if (session()->has('coupon_discount'))
+                    @php($couponDiscount = session()->has('coupon_discount') ? session('coupon_discount') : 0)
+
                     <div class="d-flex justify-content-between">
-                        <span class="cart_title">{{translate('coupon_discount')}}</span>
-                        <span class="cart_value" id="coupon-discount-amount">
-                            - {{\App\CPU\Helpers::currency_converter($coupon_discount+$order_wise_shipping_discount)}}
+                        <span class="cart_title">{{ translate('coupon_discount') }}</span>
+                        <span class="cart_value">
+                            - {{ webCurrencyConverter(amount: $couponDiscount) }}
                         </span>
                     </div>
-                    @php($coupon_dis=session('coupon_discount'))
+
+                    <div class="pt-2">
+                        <div class="d-flex align-items-center form-control rounded-pill pl-3 p-1">
+                            <img width="24" height="24"
+                                 src="{{ theme_asset(path: 'public/assets/front-end/img/icons/coupon.svg') }}"
+                                 alt="">
+                            <div class="px-2 d-flex justify-content-between w-100">
+                                <div>
+                                    {{ session('coupon_code') }}
+                                    <span class="text-primary small">(
+                                        -{{ webCurrencyConverter(amount: $couponDiscount) }}
+                                        )</span>
+                                </div>
+                                <div class="bg-transparent text-danger cursor-pointer px-2 get-view-by-onclick"
+                                     data-link="{{ route('coupon.remove') }}">x</div>
+                            </div>
+                        </div>
+                    </div>
+                    @php($coupon_dis = session('coupon_discount'))
                 @else
                     <div class="pt-2">
-                        <form class="needs-validation coupon-code-form" action="javascript:" method="post" novalidate id="coupon-code-ajax">
-                            <div class="d-flex form-control rounded-pill pl-3 p-1">
-                                <img width="24" src="{{asset('public/assets/front-end/img/icons/coupon.svg')}}" alt="">
-                                <input class="input_code border-0 px-2 text-dark bg-transparent outline-0 w-100" type="text" name="code" placeholder="{{translate('coupon_code')}}" required>
-                                <button class="btn btn--primary rounded-pill text-uppercase py-1 fs-12" type="button" onclick="couponCode()">{{translate('apply')}}</button>
+                        <form class="needs-validation coupon-code-form" action="javascript:" method="post" novalidate
+                              id="coupon-code-ajax">
+                            <div class="d-flex form-control rounded-pill ps-3 p-1">
+                                <img width="24"
+                                     src="{{ theme_asset(path: 'public/assets/front-end/img/icons/coupon.svg') }}"
+                                     alt="">
+                                <input class="input_code border-0 px-2 text-dark bg-transparent outline-0 w-100"
+                                       type="text" name="code" placeholder="{{ translate('coupon_code') }}"
+                                       required>
+                                <button class="btn btn--primary rounded-pill text-uppercase py-1 fs-12" type="button"
+                                        id="apply-coupon-code">
+                                    {{ translate('apply') }}
+                                </button>
                             </div>
-                            <div class="invalid-feedback">{{translate('please_provide_coupon_code')}}</div>
+                            <div class="invalid-feedback">{{ translate('please_provide_coupon_code') }}</div>
                         </form>
                     </div>
-                    @php($coupon_dis=0)
+                    @php($coupon_dis = 0)
                 @endif
             @endif
+
             <hr class="my-2">
             <div class="d-flex justify-content-between">
-                <span class="cart_title text-primary font-weight-bold">{{translate('total')}}</span>
+                <span class="cart_title text-primary font-weight-bold">
+                    {{ translate('total') }}
+                    @if($systemTaxConfig['SystemTaxVat']['is_active'] && $systemTaxConfig['is_included'])
+                        <span class="fs-12 font-weight--600">({{ translate('Tax_:_Inc.') }})</span>
+                    @endif
+                </span>
                 <span class="cart_value">
-                {{\App\CPU\Helpers::currency_converter($sub_total+$total_tax+$total_shipping_cost-$coupon_dis-$total_discount_on_product-$order_wise_shipping_discount)}}
+                    {{ webCurrencyConverter(amount: $totalAmount - $referralAmount) }}
                 </span>
             </div>
         </div>
-        @php($company_reliability = \App\CPU\Helpers::get_business_settings('company_reliability'))
-        @if($company_reliability != null)
-            <div class="mt-5">
-                <div class="row justify-content-center g-4">
-                    @foreach ($company_reliability as $key=>$value)
+        @php($company_reliability = getWebConfig(name: 'company_reliability'))
+        @if ($company_reliability != null)
+            <div class="pt-5">
+                <div class="footer-slider owl-theme owl-carousel">
+                    @foreach ($company_reliability as $key => $value)
                         @if ($value['status'] == 1 && !empty($value['title']))
-                            <div class="col-sm-3 px-0 text-center mobile-padding">
-                                <img class="order-summery-footer-image" src="{{asset("/storage/app/public/company-reliability").'/'.$value['image']}}"
-                                onerror="this.src='{{asset('/public/assets/front-end/img').'/'.$value['item'].'.png'}}'" alt="">
-                                <div class="deal-title">{{translate($value['title'] ?? 'title_not_found')}}</div>
+                            <div class="">
+                                <img class="order-summery-footer-image" alt=""
+                                     src="{{ getStorageImages(path: imagePathProcessing(imageData: $value['image'], path: 'company-reliability'), type: 'source', source: theme_asset(path: 'public/assets/front-end/img') . '/' . $value['item'] . '.png') }}">
+                                <div class="deal-title">{{ translate($value['title']) }}</div>
                             </div>
                         @endif
                     @endforeach
@@ -139,54 +180,82 @@
             </div>
         @endif
 
-        <div class="mt-4">
-            @if($web_config['guest_checkout_status'] || auth('customer')->check())
-                <a onclick="checkout()" class="btn btn--primary btn-block proceed_to_next_button {{$cart->count() <= 0 ? 'disabled' : ''}}" >{{translate('proceed_to_Next')}}</a>
-            @else
-                <a href="{{route('customer.auth.login')}}" class="btn btn--primary btn-block proceed_to_next_button {{$cart->count() <= 0 ? 'disabled' : ''}}" >{{translate('proceed_to_Next')}}</a>
-            @endif
-        </div>
-        @if( $cart->count() != 0)
-
-            <div class="d-flex justify-content-center mt-3">
-                <a href="{{route('home')}}" class="d-flex align-items-center gap-2 text-primary font-weight-bold">
-                    <i class="tio-back-ui fs-12"></i> {{translate('continue_Shopping')}}
+        <div class="pt-4">
+            @if (str_contains(request()->url(), 'checkout-payment'))
+                <label class="custom-control custom-checkbox mb-3 d-flex user-select-none cursor-pointer">
+                    <input type="checkbox" class="custom-control-input payment-input-checkbox">
+                    <span class="custom-control-label">
+                <span>{{ translate('i_agree_to_Your') }}</span>
+                <a class="font-size-sm text-primary d-inline" target="_blank"
+                   href="{{ route('business-page.view', ['slug' => 'terms-and-conditions']) }}">
+                    {{ translate('terms_and_condition') }}
                 </a>
-            </div>
-        @endif
+                @foreach($web_config['business_pages']->where('default_status', 1) as $businessPage)
+                            @if($businessPage['slug'] == 'privacy-policy' || $businessPage['slug'] == 'refund-policy')
+                                <a class="font-size-sm text-primary d-inline" target="_blank"
+                                   href="{{ route('business-page.view', ['slug' => $businessPage['slug']]) }}">
+                            , {{ translate(str_replace('-', '_', $businessPage['slug'])) }}
+                        </a>
+                            @endif
+                        @endforeach
+                </span>
+                </label>
+            @endif
+
+            <a class="btn btn--primary btn-block proceed_to_next_button {{ $cart->count() <= 0 ? 'custom-disabled' : '' }} action-checkout-function">
+                {{ translate('proceed_to_Checkout') }}
+            </a>
+        </div>
+
+        <div class="d-flex justify-content-center mt-3">
+            <a href="{{ route('home') }}" class="d-flex align-items-center gap-2 text-primary font-weight-bold">
+                <i class="tio-back-ui fs-12"></i> {{ translate('continue_Shopping') }}
+            </a>
+        </div>
 
     </div>
 </aside>
 
 <div class="bottom-sticky3 bg-white p-3 shadow-sm w-100 d-lg-none">
     <div class="d-flex justify-content-center align-items-center fs-14 mb-2">
-        <div class="product-description-label fw-semibold text-capitalize">{{translate('total_price')}} : </div>
-        &nbsp; <strong  class="text-base">{{\App\CPU\Helpers::currency_converter($sub_total+$total_tax+$total_shipping_cost-$coupon_dis-$total_discount_on_product-$order_wise_shipping_discount)}}</strong>
+        <div class="product-description-label fw-semibold text-capitalize">{{ translate('total_price') }} :</div>
+        &nbsp; <strong class="text-base">
+            {{ webCurrencyConverter(amount: $subTotal + ($totalTax['item_tax'] + $totalTax['shipping_cost_tax']) + $totalShippingCost - $coupon_dis - $totalDiscountOnProduct) }}
+        </strong>
     </div>
-    @if($web_config['guest_checkout_status'] || auth('customer')->check())
-        <a onclick="checkout()" class="btn btn--primary btn-block proceed_to_next_button text-capitalize {{$cart->count() <= 0 ? 'disabled' : ''}}">{{translate('proceed_to_next')}}</a>
-    @else
-        <a href="{{route('customer.auth.login')}}" class="btn btn--primary btn-block proceed_to_next_button text-capitalize {{$cart->count() <= 0 ? 'disabled' : ''}}">{{translate('proceed_to_next')}}</a>
+
+    @if (str_contains(request()->url(), 'checkout-payment'))
+        <label class="custom-control custom-checkbox mb-3 d-flex user-select-none cursor-pointer">
+            <input type="checkbox" class="custom-control-input payment-input-checkbox">
+            <span class="custom-control-label">
+                <span>{{ translate('i_agree_to_Your') }}</span>
+                <a class="font-size-sm text-primary d-inline" target="_blank"
+                   href="{{ route('business-page.view', ['slug' => 'terms-and-conditions']) }}">
+                    {{ translate('terms_and_condition') }}
+                </a>
+                @foreach($web_config['business_pages']->where('default_status', 1) as $businessPage)
+                    @if($businessPage['slug'] == 'privacy-policy' || $businessPage['slug'] == 'refund-policy')
+                        <a class="font-size-sm text-primary d-inline" target="_blank"
+                           href="{{ route('business-page.view', ['slug' => $businessPage['slug']]) }}">
+                            , {{ translate(str_replace('-', '_', $businessPage['slug'])) }}
+                        </a>
+                    @endif
+                @endforeach
+                </span>
+        </label>
     @endif
+
+    <a data-route="{{ Route::currentRouteName() }}"
+       class="btn btn--primary btn-block proceed_to_next_button text-capitalize {{ $cart->count() <= 0 ? 'custom-disabled' : '' }} action-checkout-function">
+        {{ translate('proceed_to_checkout') }}
+    </a>
 </div>
+
 @push('script')
     <script>
+        "use strict";
         $(document).ready(function() {
-            const $stickyElement = $('.bottom-sticky3');
-            const $offsetElement = $('.__cart-total_sticky');
-
-            $(window).on('scroll', function() {
-                const elementOffset = $offsetElement.offset().top;
-                const scrollTop = $(window).scrollTop();
-                console.log("scrollTop:", scrollTop, "elementOffset:", elementOffset);
-
-                if (scrollTop >= elementOffset) {
-                    $stickyElement.addClass('stick');
-                } else {
-                    $stickyElement.removeClass('stick');
-                }
-            });
+            orderSummaryStickyFunction()
         });
-
     </script>
 @endpush

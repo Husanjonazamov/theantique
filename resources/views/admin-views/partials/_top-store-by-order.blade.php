@@ -1,29 +1,28 @@
-<!-- Header -->
 <div class="card-header gap-10">
     <h4 class="d-flex align-items-center text-capitalize gap-10 mb-0">
-        <img src="{{asset('/public/assets/back-end/img/top-selling-store.png')}}" alt="">
+        <img src="{{dynamicAsset(path: 'public/assets/back-end/img/most-popular-store-icon.png')}}" alt="">
         {{translate('most_Popular_Stores')}}
     </h4>
 </div>
-<!-- End Header -->
-
-<!-- Body -->
 <div class="card-body">
     @if($top_store_by_order_received)
-        <div class="grid-item-wrap">
-            @foreach($top_store_by_order_received as $key=>$item)
-                @php($shop=\App\Model\Shop::where('seller_id',$item['seller_id'])->first())
-                @if(isset($shop))
-                    <a href="{{route('admin.sellers.view',$item['seller_id'])}}" class="grid-item basic-box-shadow">
-                        <div class="d-flex align-items-center gap-10">
-                            <img onerror="this.src='{{asset('public/assets/back-end/img/160x160/img1.jpg')}}'"
-                                 src="{{asset('storage/app/public/shop/'.$shop->image??'')}}" class="avatar rounded-circle avatar-sm">
-
-                            <h5 class="shop-name">{{$shop['name']??'Not exist'}}</h5>
-                        </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <h5 class="shop-sell c2">{{$item['count']}}</h5>
-                            <img src="{{asset('/public/assets/back-end/img/love.png')}}" alt="">
+        <div class="d-flex flex-column gap-10">
+            @foreach($top_store_by_order_received as $key => $vendorItem)
+                @if(isset($vendorItem?->shop))
+                    <a href="{{route('admin.vendors.view', $vendorItem['id'])}}" class="border p-20 rounded">
+                        <div class="row align-items-center g-2 justify-content-between">
+                            <div class="col-9">
+                                <div class="d-flex align-items-center gap-10">
+                                    <img width="35" src="{{getStorageImages(path: $vendorItem?->shop?->image_full_url, type:'backend-basic')}}" class="rounded-circle aspect-1" alt="">
+                                    <h5 class="mb-0 line-1 pe-2">{{ $vendorItem?->shop?->name ?? 'Not exist' }}</h5>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="d-flex align-items-center justify-content-end gap-2">
+                                    <h5 class="shop-sell mb-0">{{ $vendorItem['wishlist_count'] ?? 0 }}</h5>
+                                    <img src="{{dynamicAsset(path: 'public/assets/back-end/img/love.png')}}" alt="">
+                                </div>
+                            </div>
                         </div>
                     </a>
                 @endif
@@ -32,8 +31,7 @@
     @else
         <div class="text-center">
             <p class="text-muted">{{translate('no_Top_Selling_Products')}}</p>
-            <img class="w-75" src="{{asset('/public/assets/back-end/img/no-data.png')}}" alt="">
+            <img class="w-75" src="{{dynamicAsset(path: 'public/assets/back-end/img/no-data.png')}}" alt="">
         </div>
     @endif
 </div>
-<!-- End Body -->

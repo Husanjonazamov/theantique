@@ -1,137 +1,85 @@
-<style>
-    .product {
-        background-color: #fcfcfc;
-        border: 2px solid #efefef;
-        margin-bottom: 10px;
-    }
+@php($overallRating = getOverallRating($product?->reviews))
 
-    .product_pic {
-        width: 40%;
-    }
+<div class="product-single-hover style--card h-100">
+    <div class="overflow-hidden position-relative">
+        <div class="inline_product clickable d-flex justify-content-center">
+            @if(getProductPriceByType(product: $product, type: 'discount', result: 'value') > 0)
+                <div class="d-flex">
+                    <span class="for-discount-value p-1 pl-2 pr-2 font-bold fs-13">
+                        <span class="direction-ltr d-block">
+                            -{{ getProductPriceByType(product: $product, type: 'discount', result: 'string') }}
+                        </span>
+                    </span>
+                </div>
+            @else
+                <div class="d-flex justify-content-end">
+                    <span class="for-discount-value-null"></span>
+                </div>
+            @endif
 
-    .product_details {
-        width: 60%;
-        padding: 5px;
-    }
+            <div class="d-flex pb-0">
+                <a href="{{route('product',$product->slug)}}" class="w-100 rounded">
+                    <img alt="" class="border border-black-50"
+                         src="{{ getStorageImages(path: $product->thumbnail_full_url, type: 'product') }}">
+                </a>
+            </div>
 
-    .image_center {
-        height: 126px;
-    }
+            <div class="quick-view">
+                <div class="d-none d-md-flex gap-2 align-items-center quick-view-tag">
+                    @if($product->product_type == 'digital')
+                        <div class="bg-white btn-circle" style="--size: 26px" data-toggle="tooltip" title="{{ translate('Digital_Product') }}" data-placement="left">
+                            <img class="h-16px aspect-1 svg" src="{{theme_asset(path: "public/assets/front-end/img/icons/digital-product.svg")}}" alt="">
+                        </div>
+                    @else
+                        <div class="bg-white btn-circle" style="--size: 26px" data-toggle="tooltip" title="{{ translate('Physical_Product') }}" data-placement="left">
+                            <img class="h-16px aspect-1 svg" src="{{ theme_asset(path: "public/assets/front-end/img/icons/physical-product.svg") }}" alt="">
+                        </div>
+                    @endif
+                </div>
+                <a class="btn-circle stopPropagation action-product-quick-view" href="javascript:" data-product-id="{{ $product->id }}">
+                    <i class="czi-eye align-middle"></i>
+                </a>
+            </div>
 
-    .image_center img {
-        min-width: 100px;
-        vertical-align: middle;
-    }
-
-    .product-title {
-        position: relative;
-    }
-
-    .product-title > a {
-        color: #373f50;
-    }
-
-    .star-rating > i {
-        font-size: 8px !important;
-    }
-
-    .ptr1 {
-        position: relative;
-        display: inline-block;
-        word-wrap: break-word;
-        overflow: hidden;
-        max-height: 2.4em; /* (Number of lines you want visible) * (line-height) */
-        line-height: 1.2em;
-        /*text-align:justify;*/
-    }
-
-    .ptr {
-        font-weight: 600;
-        font-size: 16px !important;
-    }
-
-    .inline_product_image {
-        height: 100px;
-    }
-
-    .ptp {
-        font-weight: 700;
-        font-size: 16px !important;
-    }
-
-    .star-rating .sr-star {
-        margin: 0 !important;
-    }
-
-    @media (max-width: 768px) {
-        .product_pic {
-            width: 200px !important;
-        }
-
-        .product {
-            margin-right: 16px;
-        }
-
-        .product_details {
-            width: 100% !important;
-        }
-    }
-
-    .stock-out-side {
-        position: absolute;
-        left: 47% !important;
-        top: 83% !important;
-        color: white !important;
-        font-weight: 900;
-        font-size: 15px;
-    }
-
-    .stock-card {
-        /*cursor: not-allowed !important;*/
-        /*pointer-events: none!important;*/
-        filter: contrast(0.8)!important;
-    }
-
-</style>
-<div class="d-flex product justify-content-between inline_product" style="cursor: pointer;"
-     data-href="{{route('product',$product->slug)}}">
-    <div class="product_pic d-flex align-items-center justify-content-center" style=" text-align: center;">
-        <a href="{{route('product',$product->slug)}}" class="image_center">
-            <img class="inline_product_image"
-                 onerror="this.src='{{asset('public/assets/front-end/img/image-place-holder.png')}}'"
-                 src="{{\App\CPU\ProductManager::product_image_path('thumbnail')}}/{{$product['thumbnail']}}"
-                 width="100%" style="height: 100%;">
-        </a>
-    </div>
-    <div class="product_details {{$product['current_stock']==0?'stock-card':''}}">
-        <h3 class="product-title">
-            <a class="ptr ptr1" href="{{route('product',$product->slug)}}">{{$product['name']}}</a>
-        </h3>
-        @php($overallRating=\App\CPU\ProductManager::get_overall_rating($product->reviews))
-        <h6 class="ptr">
-            @for($inc=0;$inc<5;$inc++)
-                @if($inc<$overallRating[0])
-                    <i class="sr-star czi-star-filled active" style="color: gold"></i>
-                @else
-                    <i class="sr-star czi-star active"></i>
-                @endif
-            @endfor
-        </h6>
-        <div class="product-price">
-            <span class="text-accent ptp">
-            {{\App\CPU\Helpers::currency_converter(
-            $product->unit_price-(\App\CPU\Helpers::get_product_discount($product,$product->unit_price))
-            )}}
-            </span>
-            @if($product->discount > 0)
-                <strike style="font-size: 12px!important;color: grey!important;">
-                    {{\App\CPU\Helpers::currency_converter($product->unit_price)}}
-                </strike>
+            @if($product->product_type == 'physical' && $product->current_stock <= 0)
+                <span class="out_fo_stock">{{translate('out_of_stock')}}</span>
             @endif
         </div>
-        @if($product['current_stock']<=0)
-            <label class="badge badge-danger stock-out-side">{{ translate('stock_out')}}</label>
-        @endif
+
+        <div class="single-product-details">
+            <h3 class="text-center mb-0 letter-spacing-0">
+                <a href="{{route('product',$product->slug)}}" class="fw-semibold">
+                    {{ $product['name'] }}
+                </a>
+            </h3>
+            <div class="justify-content-between text-center mb-1">
+                <h4 class="product-price text-center d-flex flex-wrap justify-content-center align-items-center gap-8 mb-0 letter-spacing-0">
+                    @if(getProductPriceByType(product: $product, type: 'discount', result: 'value') > 0)
+                        <del class="category-single-product-price fs-14 font-weight-normal">
+                            {{ webCurrencyConverter(amount: $product->unit_price) }}
+                        </del>
+                    @endif
+                    <span class="text-accent text-dark fs-15">
+                        {{ getProductPriceByType(product: $product, type: 'discounted_unit_price', result: 'string') }}
+                    </span>
+                </h4>
+            </div>
+            @if($overallRating[0] != 0 )
+                <div class="rating-show justify-content-between text-center mt-1">
+                    <span class="d-inline-block font-size-sm text-body">
+                        @for($inc=1;$inc<=5;$inc++)
+                            @if ($inc <= (int)$overallRating[0])
+                                <i class="tio-star text-warning"></i>
+                            @elseif ($overallRating[0] != 0 && $inc <= (int)$overallRating[0] + 1.1 && $overallRating[0] > ((int)$overallRating[0]))
+                                <i class="tio-star-half text-warning"></i>
+                            @else
+                                <i class="tio-star-outlined text-warning"></i>
+                            @endif
+                        @endfor
+                        <label class="badge-style">( {{ count($product->reviews) }} )</label>
+                    </span>
+                </div>
+            @endif
+        </div>
     </div>
 </div>
-

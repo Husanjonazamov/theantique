@@ -1,380 +1,419 @@
-@extends('layouts.back-end.app')
+@extends('layouts.admin.app')
 
 @section('title', translate('review_List'))
 
 @section('content')
     <div class="content container-fluid">
-        <!-- Page Title -->
         <div class="mb-3">
             <h2 class="h1 mb-0 text-capitalize d-flex gap-2 align-items-center">
-                <img width="20" src="{{asset('/public/assets/back-end/img/customer_review.png')}}" alt="">
+                <img width="20" src="{{dynamicAsset(path: 'public/assets/back-end/img/customer_review.png')}}" alt="">
                 {{translate('customer_reviews')}}
+                <span class="badge badge-info text-bg-info">{{ $reviews->total() }}</span>
             </h2>
         </div>
-        <!-- End Page Title -->
 
-        <div class="card card-body">
-            <div class="row border-bottom pb-3 align-items-center mb-20">
-                <div class="col-sm-4 col-md-6 col-lg-8 mb-2 mb-sm-0">
-                    <h5 class="text-capitalize d-flex gap-2 align-items-center">
-                        {{ translate('review_table') }}
-                        <span class="badge badge-soft-dark radius-50 fz-12">{{ $reviews->total() }}</span>
-                    </h5>
-                </div>
-                <div class="col-sm-8 col-md-6 col-lg-4">
-                    <!-- Search -->
-                    <form action="{{ url()->current() }}" method="GET">
-                        <div class="input-group input-group-merge input-group-custom">
-                            <div class="input-group-prepend">
-                                <div class="input-group-text">
-                                    <i class="tio-search"></i>
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between flex-wrap gap-3 align-items-center mb-4">
+                    <h3 class="mb-0">
+                        {{translate('Customer_Reviews_List')}}
+                    </h3>
+
+                    <div class="d-flex gap-3 flex-wrap">
+                        <form action="{{ url()->current() }}" method="GET">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <input id="datatableSearch_" type="search" name="searchValue" class="form-control"
+                                           placeholder="{{ translate('search_by_Id, Product, Reviewer, Review') }}"
+                                           aria-label="Search orders" value="{{ request('searchValue') }}" >
+                                    <div class="input-group-append search-submit">
+                                        <button type="submit">
+                                            <i class="fi fi-rr-search"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                            <input id="datatableSearch_" type="search" name="search" class="form-control"
-                                placeholder="{{ translate('search_by_Product_or_Customer') }}"
-                                aria-label="Search orders" value="{{ $search }}" required>
-                            <button type="submit" class="btn btn--primary">{{ translate('search') }}</button>
-                        </div>
-                    </form>
-                    <!-- End Search -->
-                </div>
-            </div>
+                        </form>
 
-            <form action="{{ url()->current() }}" method="GET">
-                <div class="row gy-3 align-items-end">
-                    <div class="col-md-4">
 
-                        <label for="name" class="title-color">{{ translate('products')}}</label>
-                        <div class="dropdown select-product-search w-100">
-                            <input type="text" class="product_id" name="product_id" value="{{request('product_id')}}" hidden>
-                            <button class="form-control text-start dropdown-toggle text-truncate " data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                {{request('product_id') !=null ? $product['name']: translate('select_Product')}}
-                            </button>
-                            <div class="dropdown-menu w-100 px-2">
-                                <div class="search-form mb-3">
-                                    <button type="button" class="btn"><i class="tio-search"></i></button>
-                                    <input type="text" class="js-form-search form-control search-bar-input" onkeyup="search_product()" placeholder="{{translate('search menu')}}...">
-                                </div>
-                                <div class="d-flex flex-column gap-3 max-h-40vh overflow-y-auto overflow-x-hidden search-result-box">
-                                    @foreach ($products as $key => $product)
-                                        <div class="select-product-item media gap-3 border-bottom pb-2 cursor-pointer">
-                                            <img class="avatar avatar-xl border" width="75"
-                                            onerror="this.src='{{asset('public/assets/front-end/img/image-place-holder.png')}}'"
-                                            src="{{\App\CPU\ProductManager::product_image_path('thumbnail')}}/{{$product['thumbnail']}}"
-                                             alt="">
-                                            <div class="media-body d-flex flex-column gap-1">
-                                                <h6 class="product-id" hidden>{{$product['id']}}</h6>
-                                                <h6 class="fz-13 mb-1 text-truncate custom-width product-name">{{$product['name']}}</h6>
-                                                <div class="fz-10">{{translate('category')}} : {{isset($product->category) ? $product->category->name : translate('category_not_found') }}</div>
-                                                <div class="fz-10">{{translate('brand')}} : {{isset($product->brand) ? $product->brand->name : translate('brands_not_found') }}</div>
-                                                @if ($product->added_by == "seller")
-                                                    <div class="fz-10">{{translate('shop')}} : {{isset($product->seller) ? $product->seller->shop->name : translate('shop_not_found') }}</div>
-                                                @else
-                                                    <div class="fz-10">{{translate('shop')}} : {{$web_config['name']->value}}</div>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="title-color" for="customer">{{translate('customer')}}</label>
-
-                        <input type="hidden" id='customer_id'  name="customer_id" value="{{request('customer_id') ? request('customer_id') : 'all'}}">
-                        <select  onchange="customer_id_value(this.value)"
-                        data-placeholder="@if($customer == 'all')
-                                            {{translate('all_customer')}}
-                                        @else
-                                            {{$customer->name ? $customer->name : $customer->f_name.' '.$customer->l_name.' '.'('.$customer->phone.')'}}
-                                        @endif"
-                        class="js-data-example-ajax form-control form-ellipsis">
-                            <option value="all">{{translate('all_customer')}}</option>
-                        </select>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div>
-                            <label for="status" class="title-color d-flex">{{ translate('choose') }}
-                                {{ translate('status') }}</label>
-                            <select class="form-control" name="status">
-                                <option value="" selected>
-                                    --{{ translate('select_status') }}--</option>
-                                <option value="1" {{ $status != null && $status == 1 ? 'selected' : '' }}>
-                                    {{ translate('active') }}</option>
-                                <option value="0" {{ $status != null && $status == 0 ? 'selected' : '' }}>
-                                    {{ translate('inactive') }}</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div>
-                            <label for="from" class="title-color d-flex">{{ translate('from') }}</label>
-                            <input type="date" name="from" id="from_date" value="{{ $from }}"
-                                class="form-control"
-                                title="{{ translate('from_date') }}">
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div>
-                            <label for="to" class="title-color d-flex">{{ translate('to') }}</label>
-                            <input type="date" name="to" id="to_date" value="{{ $to }}"
-                                class="form-control"
-                                title="{{ ucfirst(translate('to_date')) }}">
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div>
-                            <button id="filter" type="submit" class="btn btn--primary btn-block filter">
-                                <i class="tio-filter-list nav-icon"></i>
-                                {{ translate('filter') }}
+                        <div class="position-relative">
+                            @if(request('product_id') || request('customer_id') || request('status') || request('from') || request('to'))
+                                <div class="position-absolute inset-inline-end-0 top-0 mt-n1 me-n1 btn-circle bg-danger border border-white border-2 z-2" style="--size: 12px;"></div>
+                            @endif
+                            <button type="button"
+                                    @if(request('product_id') || request('customer_id') || request('status') || request('from') || request('to'))
+                                        class="btn btn-primary px-4"
+                                    @else
+                                        class="btn btn-outline-primary px-4"
+                                    @endif
+                                    data-bs-toggle="offcanvas"
+                                    data-bs-target="#reviewFilterOffcanvas">
+                                <i class="fi fi-rr-bars-filter"></i> {{ translate('Filter') }}
                             </button>
                         </div>
-                    </div>
-                    <div class="col-md-2">
-                        <div>
-                            <button type="button" class="btn btn-outline--primary text-nowrap btn-block" data-toggle="dropdown">
-                                <i class="tio-download-to"></i>
-                                {{ translate('export') }}
-                                <i class="tio-chevron-down"></i>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-right">
-                                <li>
-                                    <a class="dropdown-item" href="{{ route('admin.reviews.export', ['search'=>request('search'), 'product_id' => $product_id, 'customer_id' => $customer_id, 'status' => $status, 'from' => $from, 'to' => $to]) }}">
-                                        <img width="14" src="{{asset('/public/assets/back-end/img/excel.png')}}" alt="">
-                                        {{ translate('excel') }}
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
+
+                        <a type="button" class="btn btn-outline-primary" href="{{ route('admin.reviews.export', ['searchValue'=>$searchValue, 'product_id' => $product_id, 'vendor_id' => $vendor_id, 'customer_id' => $customer_id, 'status' => $status, 'from' => $from, 'to' => $to]) }}">
+                            <i class="fi fi-sr-inbox-in"></i>
+                            <span class="fs-12">{{ translate('export') }}</span>
+                        </a>
                     </div>
                 </div>
-            </form>
-        </div>
 
-        <!-- End Page Header -->
-        <div class="card mt-20">
-            <div class="table-responsive datatable-custom">
-                <table
-                    class="table table-hover table-borderless table-thead-bordered table-nowrap table-align-middle card-table w-100"
-                    style="text-align: {{ Session::get('direction') === 'rtl' ? 'right' : 'left' }}">
-                    <thead class="thead-light thead-50 text-capitalize">
-                        <tr>
-                            <th>{{ translate('SL') }}</th>
-                            <th>{{ translate('product') }}</th>
-                            <th>{{ translate('customer') }}</th>
-                            <th>{{ translate('rating') }}</th>
-                            <th>{{ translate('review') }}</th>
-                            <th>{{ translate('date') }}</th>
-                            <th class="text-center">{{ translate('status') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                <div class="table-responsive datatable-custom">
+                    <table class="table table-hover table-borderless table-thead-bordered table-nowrap align-middle card-table w-100">
+                        <thead class="thead-light thead-50 text-capitalize">
+                            <tr>
+                                <th>{{ translate('SL') }}</th>
+                                <th>{{ translate('Review_ID') }}</th>
+                                <th>{{ translate('product') }}</th>
+                                <th>{{ translate('customer') }}</th>
+                                <th>{{ translate('rating') }}</th>
+                                <th>{{ translate('review') }}</th>
+                                <th>{{ translate('Reply') }}</th>
+                                <th>{{ translate('date') }}</th>
+                                <th class="text-center">{{ translate('status') }}</th>
+                                <th class="text-center">{{ translate('action') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                         @foreach ($reviews as $key => $review)
                             <tr>
                                 <td>
                                     {{ $reviews->firstItem()+$key }}
                                 </td>
-                                <td>
-                                    <a href="{{ route('admin.product.view', [$review['product_id']]) }}" class="title-color hover-c1">
-                                        {{isset($review->product) ?Str::limit($review->product['name'], 25) : translate('product_not_found') }}
-                                    </a>
+                                <td class="text-center">
+                                    {{ $review->id }}
                                 </td>
                                 <td>
-                                    @if ($review->customer)
-                                        <a href="{{ route('admin.customer.view', [$review->customer_id]) }}" class="title-color hover-c1">
-                                            {{ $review->customer->f_name . ' ' . $review->customer->l_name }}
+                                    @if(isset($review->product))
+                                        <a href="{{$review['product_id'] ? route('admin.products.view', ['addedBy'=>($review->product->added_by =='seller'?'vendor' : 'in-house'),'id'=>$review->product->id]) : 'javascript:'}}"
+                                           class="text-dark text-hover-primary">
+                                            {{ Str::limit($review->product['name'], 25) }}
                                         </a>
                                     @else
-                                        <label
-                                            class="badge badge-soft-danger">{{ translate('customer_removed') }}</label>
+                                        <span class="text-dark">
+                                            {{ translate('product_not_found') }}
+                                        </span>
                                     @endif
                                 </td>
                                 <td>
-                                    <label class="badge badge-soft-info mb-0">
-                                        <span class="fz-12 d-flex align-items-center gap-1">{{ $review->rating }} <i class="tio-star"></i>
-                                        </span>
+                                    @if ($review->customer)
+                                        <a href="{{ route('admin.customer.view', [$review->customer_id]) }}"
+                                           class="text-dark text-hover-primary">
+                                            {{ $review->customer->f_name . ' ' . $review->customer->l_name }}
+                                        </a>
+                                    @else
+                                        <label class="badge badge-soft-danger">{{ translate('customer_removed') }}</label>
+                                    @endif
+                                </td>
+                                <td>
+                                    <label class="badge badge-info text-bg-info">
+                                            <span class="fs-12 d-flex align-items-center gap-1">{{ $review->rating }}
+                                                <i class="fi fi-sr-star"></i>
+                                            </span>
                                     </label>
                                 </td>
                                 <td>
                                     <div class="gap-1">
-                                        <div>{{ $review->comment ? Str::limit($review->comment, 35) : translate('no_comment_found') }}</div>
-                                        <br>
-                                        @if($review->attachment)
-                                            <div class="d-flex flex-wrap">
-                                                @foreach (json_decode($review->attachment) as $img)
-                                                    <a href="{{ asset('storage/app/public/review') }}/{{ $img }}"
-                                                        data-lightbox="mygallery">
-                                                        <img width="60" height="60" src="{{ asset('storage/app/public/review') }}/{{ $img }}"
-                                                        onerror="this.src='{{asset('public/assets/back-end/img/image-place-holder.png')}}'"
-                                                                alt="Image">
+                                        <div class="fs-12 mb-1">
+                                            {{ $review->comment ? Str::limit($review->comment, 35) : translate('no_comment_found') }}
+                                        </div>
+                                        @if(count($review->attachment_full_url) > 0)
+                                            <div class="d-flex flex-wrap gap-1 min-w-200">
+                                                @foreach ($review->attachment_full_url as $img)
+                                                    <a href="{{ $img['path'] }}"
+                                                       data-lightbox="mygallery-{{ $review->id }}">
+                                                        <img width="60" height="60"
+                                                             class="aspect-1 rounded object-fit-cover"
+                                                             src="{{ getStorageImages(path: $img, type: 'backend-basic') }}"
+                                                             alt="{{translate('image')}}">
                                                     </a>
                                                 @endforeach
                                             </div>
                                         @endif
                                     </div>
                                 </td>
-                                <td>{{ date('d M Y', strtotime($review->created_at)) }}</td>
                                 <td>
-                                    <form action="{{ route('admin.reviews.status', [$review['id'], $review->status ? 0 : 1]) }}" method="get" id="reviews_status{{$review['id']}}_form" class="reviews_status_form">
-                                        <label class="switcher mx-auto">
-                                            <input type="checkbox" class="switcher_input" id="reviews_status{{$review['id']}}" {{ $review->status ? 'checked' : '' }} onclick="toogleStatusModal(event,'reviews_status{{$review['id']}}','customer-reviews-on.png','customer-reviews-off.png','{{translate('Want_to_Turn_ON_Customer_Reviews')}}','{{translate('Want_to_Turn_OFF_Customer_Reviews')}}',`<p>{{translate('if_enabled_anyone_can_see_this_review_on_the_user_website_and_customer_app')}}</p>`,`<p>{{translate('if_disabled_this_review_will_be_hidden_from_the_user_website_and_customer_app')}}</p>`)">
+                                    <div class="line-2 word-break">
+                                        {{Str::limit( $review?->reply?->reply_text , 180)?? '-' }}
+                                    </div>
+                                </td>
+                                <td>{{ date('d M Y', strtotime($review->updated_at)) }}</td>
+                                <td>
+                                    <form action="{{ route('admin.reviews.status') }}"
+                                          method="post" id="reviews-status{{$review['id']}}-form"
+                                          class="no-reload-form">
+                                        <input type="hidden" name="id" value="{{$review['id']}}">
+                                        <label class="switcher mx-auto" for="reviews-status{{$review['id']}}">
+                                            <input
+                                                class="switcher_input custom-modal-plugin"
+                                                type="checkbox" value="1" name="status"
+                                                id="reviews-status{{$review['id']}}"
+                                                {{ $review->status ? 'checked' : '' }}
+                                                data-modal-type="input-change-form"
+                                                data-modal-form="#reviews-status{{$review['id']}}-form"
+                                                data-on-image="{{ dynamicAsset(path: 'public/assets/new/back-end/img/modal/customer-reviews-on.png') }}"
+                                                data-off-image="{{ dynamicAsset(path: 'public/assets/new/back-end/img/modal/customer-reviews-off.png') }}"
+                                                data-on-title = "{{translate('Want_to_Turn_ON_Customer_Reviews').'?'}}"
+                                                data-off-title = "{{translate('Want_to_Turn_OFF_Customer_Reviews').'?'}}"
+                                                data-on-message = "<p>{{translate('if_enabled_anyone_can_see_this_review_on_the_user_website_and_customer_app')}}</p>"
+                                                data-off-message = "<p>{{translate('if_disabled_this_review_will_be_hidden_from_the_user_website_and_customer_app')}}</p>"
+                                                data-on-button-text="{{ translate('turn_on') }}"
+                                                data-off-button-text="{{ translate('turn_off') }}">
                                             <span class="switcher_control"></span>
                                         </label>
                                     </form>
                                 </td>
+                                <td>
+                                    <div class="d-flex gap-2 justify-content-center">
+                                        <div data-bs-toggle="modal" data-bs-target="#review-view-for-{{ $review['id'] }}">
+                                            <a class="btn btn-outline-info icon-btn" title="{{ translate('View') }}" data-bs-toggle="tooltip">
+                                                <i class="fi fi-rr-eye"></i>
+                                            </a>
+                                        </div>
 
+                                        @if(isset($review->product) && $review?->product?->added_by == 'admin')
+                                            <div data-bs-toggle="modal" data-bs-target="#review-update-for-{{ $review['id'] }}">
+                                                @if($review?->reply)
+                                                    <a class="btn btn-outline-primary icon-btn" title="{{ translate('Update_Review') }}" data-bs-toggle="tooltip">
+                                                        <i class="fi fi-rr-pencil"></i>
+                                                    </a>
+                                                @else
+                                                    <div class="btn btn-outline-primary icon-btn" title="{{ translate('Review_Reply') }}" data-bs-toggle="tooltip">
+                                                        <i class="fi fi-rr-reply-all"></i>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        @elseif($review?->product?->added_by == 'seller')
+                                            <div>
+                                                <a class="btn btn-outline-primary icon-btn" title="{{ translate('Admin_can_not_reply_to_vendor_product_review') }}" data-bs-toggle="tooltip">
+                                                    @if($review?->reply)
+                                                        <i class="fi fi-rr-pencil"></i>
+                                                    @else
+                                                    <i class="fi fi-rr-reply-all"></i>
+                                                    @endif
+                                                </a>
+                                            </div>
+                                        @else
+                                            <div>
+                                                <a class="btn btn-outline-primary icon-btn" title="{{ translate('product_not_found') }}" data-bs-toggle="tooltip">
+                                                    @if($review?->reply)
+                                                    <i class="fi fi-rr-pencil"></i>
+                                                    @else
+                                                    <i class="fi fi-rr-reply-all"></i>
+                                                    @endif
+                                                </a>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </td>
                             </tr>
                         @endforeach
-                    </tbody>
-                </table>
-            </div>
+                        </tbody>
+                    </table>
+                </div>
 
-            <div class="table-responsive mt-4">
-                <div class="px-4 d-flex justify-content-lg-end">
-                    <!-- Pagination -->
-                    {!! $reviews->links() !!}
+                @foreach($reviews as $key => $review)
+                    @if(isset($review->customer))
+                        <div class="modal fade" id="review-update-for-{{ $review['id'] }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header border-0 d-flex justify-content-end">
+                                        <button type="button" class="btn btn-circle border-0 fs-12 text-body bg-section2 shadow-none"
+                                                style="--size: 2rem;" data-bs-dismiss="modal" aria-label="Close">
+                                            <i class="fi fi-sr-cross"></i>
+                                        </button>
+                                    </div>
+                                    <form method="POST" action="{{ route('admin.reviews.add-review-reply') }}">
+                                        @csrf
+                                        <div class="modal-body pt-0">
+                                            <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+                                                @if(isset($review->product))
+                                                    <img src="{{ getStorageImages(path: $review->product->thumbnail_full_url, type: 'backend-product') }}"
+                                                         width="60" class="rounded aspect-1 border" alt="{{ translate('Product') }}">
+                                                    <div class="flex-grow-1">
+                                                        <h5 class="mb-1 fs-14 text-dark">{{ $review->product['name'] }}</h5>
+                                                        @if($review['order_id'])
+                                                            <span class="fs-12 text-muted">{{ translate('Order_ID') }} #{{ $review['order_id'] }}</span>
+                                                        @endif
+                                                    </div>
+                                                @else
+                                                    <span class="text-dark">{{ translate('product_not_found') }}</span>
+                                                @endif
+                                            </div>
+
+                                            <div class="bg-section p-3 rounded border mb-3">
+                                                <div class="d-flex gap-2 align-items-center mb-2">
+                                                    <img class="h-30 aspect-1 rounded-circle"
+                                                         src="{{ getStorageImages(path: $review->customer?->image_full_url, type: 'backend-profile') }}"
+                                                         alt="{{ translate('Customer') }}">
+                                                    <span class="fs-14 fw-medium text-dark">
+                                    {{ $review->customer?->f_name ?? translate('Customer') }}
+                                </span>
+                                                </div>
+                                                <p class="mb-0 fs-14">{{ $review['comment'] ?? translate('No comment found') }}</p>
+                                            </div>
+
+                                            @if(count($review->attachment_full_url) > 0)
+                                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                                    @foreach ($review->attachment_full_url as $img)
+                                                        <a href="{{ getStorageImages(path: $img, type: 'backend-basic') }}"
+                                                           data-lightbox="review-gallery-modal{{ $review['id'] }}">
+                                                            <img width="45" class="rounded aspect-1 border"
+                                                                 src="{{ getStorageImages(path: $img, type: 'backend-basic') }}"
+                                                                 alt="{{ translate('review_image') }}">
+                                                        </a>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+
+                                            <label class="form-label fw-bold">
+                                                {{ translate('Reply') }}
+                                            </label>
+                                            <input type="hidden" name="review_id" value="{{ $review['id'] }}">
+                                            <textarea class="form-control text-area-max-min" rows="3" name="reply_text"
+                                                      placeholder="{{ translate('Write_the_reply_of_the_product_review') }}...">{{ $review?->reply?->reply_text ?? '' }}</textarea>
+
+                                            <div class="text-end mt-4">
+                                                <button type="submit" class="btn btn-primary">
+                                                    {{ $review?->reply?->reply_text ? translate('Update') : translate('submit') }}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+
+
+                    @include("admin-views.reviews._review-modal", ['review' => $review])
+                @endforeach
+
+                <div class="table-responsive mt-4">
+                    <div class="px-4 d-flex justify-content-lg-end">
+                        {!! $reviews->links() !!}
+                    </div>
+                </div>
+                @if(count($reviews)==0)
+                    @include('layouts.admin.partials._empty-state',['text'=>'no_review_found'],['image'=>'default'])
+                @endif
+            </div>
+        </div>
+    </div>
+
+    {{-- review modal --}}
+    <div class="modal fade" id="review-modal" tabindex="-1" aria-labelledby="review-modal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header border-0 pb-0 d-flex justify-content-end">
+                    <button type="button" class="btn btn-circle border-0 fs-12 text-body bg-section2 shadow-none" style="--size: 2rem;"  data-bs-dismiss="modal" aria-label="Close">
+                        <i class="fi fi-sr-cross"></i>
+                    </button>
+                </div>
+                <div class="modal-body px-20 py-0 mb-30">
+                    <h3 class="mb-2">Review #403</h3>
+                    <div
+                        class="d-flex gap-3 flex-wrap flex-sm-nowrap justify-content-between align-items-center border-bottom mb-4 pb-4">
+                        <div class="d-flex gap-2 align-items-center">
+                            <img class="h-50px aspect-1 rounded border"
+                                src="{{ dynamicAsset( path: 'public/assets/back-end/img/160x160/img2.jpg') }}" alt="">
+                            <span class="fs-14 text-dark">Premium Brown Leather Shoulder Bag for Women – Classic, Chic &
+                                Everyday Ready</span>
+                        </div>
+                        <div
+                            class="bg-section h-50px w-120 rounded-10 text-dark fs-20 fw-medium d-flex gap-2 align-items-center justify-content-center lh-1">
+                            <span>4.5</span>
+                            <span class="lh-1"><i class="fi fi-sr-star text-warning"></i></span>
+                        </div>
+                    </div>
+                    <div class="mb-20">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-2">
+                            <h4 class="mb-0">Review</h4>
+                            <div class="d-flex flex-sm-no-wrap flex-wrap gap-2 align-items-center">
+                                <span>12 Jan, 2024</span>
+                                <span class="d-none d-sm-block">|</span>
+                                <span>12:10 PM</span>
+                            </div>
+                        </div>
+                        <div class="bg-section p-3 p-sm-20 rounded-10">
+                            <div class="d-flex gap-2 align-items-center mb-2">
+                                <img class="h-30 aspect-1 rounded-circle"
+                                    src="{{ dynamicAsset( path: 'public/assets/back-end/img/160x160/img2.jpg') }}" alt="">
+                                <span class="fs-14 text-dark fw-medium">Devid Jack</span>
+                            </div>
+                            <p class="short_text_wrapper mb-0">
+                                <span class="short_text" data-maxlength="298"
+                                    data-see-more-text="{{ translate('See_More') }}"
+                                    data-see-less-text="{{ translate('See_Less') }}">
+                                    It is a long established fact that a reader will be distracted the
+                                    readable content of a page when looking at its layout. The point of
+                                    using Lorem Ipsum is that it has a more-or-less normal distribution of
+                                    letters, as opposed to using 'Content here, content here. It is a long established fact
+                                    that a reader will be distracted the
+                                    readable content of a page when looking at its layout. The point of
+                                    using Lorem Ipsum is that it has a more-or-less normal distribution of
+                                    letters, as opposed to using 'Content here, content here.
+                                </span>
+                                <a href="javascript:"
+                                    class="see_more_btn text-underline text-nowrap">{{ translate('See_More') }}</a>
+                            </p>
+                            <div class="d-flex flex-wrap gap-3 align-items-center mt-2">
+                                <img class="w-50px aspect-1 rounded"
+                                     src="{{ dynamicAsset( path: 'public/assets/back-end/img/160x160/img2.jpg') }}" alt="">
+                                <img class="w-50px aspect-1 rounded"
+                                     src="{{ dynamicAsset( path: 'public/assets/back-end/img/160x160/img2.jpg') }}" alt="">
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-2">
+                            <h4 class="mb-0">Reply</h4>
+                            <div class="d-flex flex-sm-no-wrap flex-wrap gap-2 align-items-center">
+                                <span>12 Jan, 2024</span>
+                                <span class="d-none d-sm-block">|</span>
+                                <span>12:10 PM</span>
+                            </div>
+                        </div>
+                        <div class="bg-section p-3 p-sm-20 rounded-10">
+                            <div class="d-flex gap-2 align-items-center mb-2">
+                                <img class="h-30 aspect-1 rounded-circle"
+                                    src="{{ dynamicAsset( path: 'public/assets/back-end/img/160x160/img2.jpg') }}" alt="">
+                                <span class="fs-14 text-dark fw-medium">Equator Shop</span>
+                            </div>
+                            <p class="short_text_wrapper mb-0">
+                                <span class="short_text" data-maxlength="298"
+                                    data-see-more-text="{{ translate('See_More') }}"
+                                    data-see-less-text="{{ translate('See_Less') }}">
+                                    It is a long established fact that a reader will be distracted the
+                                    readable content of a page when looking at its layout. The point of
+                                    using Lorem Ipsum is that it has a more-or-less normal distribution of
+                                    letters, as opposed to using 'Content here, content here. It is a long established fact
+                                    that a reader will be distracted the
+                                    readable content of a page when looking at its layout. The point of
+                                    using Lorem Ipsum is that it has a more-or-less normal distribution of
+                                    letters, as opposed to using 'Content here, content here.
+                                </span>
+                                <a href="javascript:"
+                                    class="see_more_btn text-underline text-nowrap">{{ translate('See_More') }}</a>
+                            </p>
+                            <div class="d-flex flex-wrap gap-3 align-items-center mt-2">
+                                <img class="w-50px aspect-1 rounded"
+                                    src="{{ dynamicAsset( path: 'public/assets/back-end/img/160x160/img2.jpg') }}" alt="">
+                                <img class="w-50px aspect-1 rounded"
+                                    src="{{ dynamicAsset( path: 'public/assets/back-end/img/160x160/img2.jpg') }}" alt="">
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    @include('admin-views.reviews.partials._filter-offcanvas')
 @endsection
 
-@push('script_2')
-    <script>
-        function customer_id_value(id){
-            $('#customer_id').empty().val(id);
-        }
-        $('.js-data-example-ajax').select2({
-        // Need Add a initial option
-            data: [{ id: '', text: 'Select your option', disabled: true, selected: true }],
-            ajax: {
-                url: '{{route('admin.reviews.customer-list-search')}}',
-                data: function (params) {
-                    return {
-                        q: params.term, // search term
-                        page: params.page
-                    };
-                },
-                processResults: function (data) {
-                    console.log(data);
-                    return {
-                    results: data
-
-                    };
-                },
-                __port: function (params, success, failure) {
-                    var $request = $.ajax(params);
-
-                    $request.then(success);
-                    $request.fail(failure);
-
-                    return $request;
-                }
-
-            }
-        });
-        $(document).on('ready', function() {
-            // INITIALIZATION OF DATATABLES
-            // =======================================================
-            // var datatable = $.HSCore.components.HSDatatables.init($('#columnSearchDatatable'));
-
-            $('#column1_search').on('keyup', function() {
-                datatable
-                    .columns(1)
-                    .search(this.value)
-                    .draw();
-            });
-
-            $('#column2_search').on('keyup', function() {
-                datatable
-                    .columns(2)
-                    .search(this.value)
-                    .draw();
-            });
-
-            $('#column3_search').on('change', function() {
-                datatable
-                    .columns(3)
-                    .search(this.value)
-                    .draw();
-            });
-
-            $('#column4_search').on('keyup', function() {
-                datatable
-                    .columns(4)
-                    .search(this.value)
-                    .draw();
-            });
-
-
-            // INITIALIZATION OF SELECT2
-            // =======================================================
-            $('.js-select2-custom').each(function() {
-                var select2 = $.HSCore.components.HSSelect2.init($(this));
-            });
-        });
-    </script>
-    <script>
-        $(document).on('change', '#from_date', function() {
-            from_date = $(this).val();
-            if (from_date) {
-                $("#to_date").prop('required', true);
-            }
-        });
-    </script>
-    <script>
-        $('#from_date , #to_date').change(function() {
-            let fr = $('#from_date').val();
-            let to = $('#to_date').val();
-            if (fr != '' && to != '') {
-                if (fr > to) {
-                    $('#from_date').val('');
-                    $('#to_date').val('');
-                    toastr.error("{{translate('invalid_date_range')}}!", Error, {
-                        CloseButton: true,
-                        ProgressBar: true
-                    });
-                }
-            }
-
-        })
-        function search_product(){
-            let name = $(".search-bar-input").val();
-            if (name.length >0) {
-                $.get("{{route('admin.deal.search-product')}}",{name:name},(response)=>{
-                    $('.search-result-box').empty().html(response.result);
-                })
-            }
-        }
-
-        let selectProductSearch = $('.select-product-search');
-            selectProductSearch.on('click', '.select-product-item', function () {
-                let productName = $(this).find('.product-name').text();
-                let productId = $(this).find('.product-id').text();
-                selectProductSearch.find('button.dropdown-toggle').text(productName);
-                $('.product_id').val(productId);
-            })
-    </script>
-    <script>
-        $('.reviews_status_form').on('submit', function(event){
-            event.preventDefault();
-
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-                }
-            });
-            $.ajax({
-                url: $(this).attr('action'),
-                method: 'GET',
-                data: $(this).serialize(),
-                success: function (data) {
-                    toastr.success(data.message);
-                }
-            });
-        });
-    </script>
+@push('script')
+    <script src="{{dynamicAsset(path: 'public/assets/new/back-end/js/search-product.js')}}"></script>
 @endpush

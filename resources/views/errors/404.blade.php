@@ -1,40 +1,27 @@
 @extends('errors::minimal')
 
-{{--@section('title', __('Not Found'))
-@section('code', '404')--}}
+@section('title', translate('page_Not_found'))
 
 @section('message')
-    <style>
-        .for-margin {
-            margin: auto;
-
-            margin-bottom: 10%;
-        }
-
-        .for-margin {
-
-        }
-
-        .page-not-found {
-            margin-top: 30px;
-            font-weight: 600;
-            text-align: center;
-        }
-        .bg-light-blue{
-            background-color: #1B7FED !important;
-            border: none
-        }
-    </style>
     <div class="container">
-        <div class="row justify-content-center align-items-center">
+        <div class="row justify-content-center align-items-center vh-100">
             <div class="col-12">
-                <img style="" src="{{asset("public/assets/back-end/img/404-logo.svg")}}" alt="">
-                <h2 class="page-not-found">{{translate('page_Not_found')}}</h2>
+                <div class="text-primary">
+                    @include('errors.404-icon')
+                </div>
 
-                <p style="text-align: center;">{{translate('we_are_sorry')}}, {{translate('the_page_you_requested_could_not_be_found')}} <br>
-                    {{translate('please_go_back_to_the_homepage')}}</p>
-                <div style="text-align: center;">
-                    <a class="btn btn--primary bg-light-blue" href="{{ route('home') }}"> {{translate('home')}}</a>
+                <h2 class="text-center pt-3">{{translate('page_Not_found')}}</h2>
+
+                <p class="text-center h4 lead py-2">
+                    {{translate('we_are_sorry')}}, {{translate('the_page_you_requested_could_not_be_found')}}
+                    <br>
+                    {{translate('please_go_back_to_the_homepage')}}
+                </p>
+                <div class="text-center">
+                    <a class="btn btn-primary font-weight-bold" href="{{ route('home') }}">
+                        <span class="mr-2"><i class="fa fa-home" aria-hidden="true"></i></span>
+                        {{translate('home')}}
+                    </a>
                 </div>
             </div>
         </div>

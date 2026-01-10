@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Exports;
+
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromView;
@@ -11,16 +12,19 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+use PhpOffice\PhpSpreadsheet\Worksheet\MemoryDrawing;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
-class EmployeeListExport implements FromView, ShouldAutoSize, WithStyles,WithColumnWidths ,WithHeadings, WithEvents
+class EmployeeListExport implements FromView, ShouldAutoSize, WithStyles, WithColumnWidths, WithHeadings, WithEvents
 {
     use Exportable;
+
     protected $data;
 
-    public function __construct($data) {
+    public function __construct($data)
+    {
         $this->data = $data;
     }
 
@@ -38,10 +42,11 @@ class EmployeeListExport implements FromView, ShouldAutoSize, WithStyles,WithCol
         ];
     }
 
-    public function styles(Worksheet $sheet) {
+    public function styles(Worksheet $sheet)
+    {
         $sheet->getStyle('A1:A3')->getFont()->setBold(true);
         $sheet->getStyle('A4:I4')->getFont()->setBold(true)->getColor()
-        ->setARGB('FFFFFF');
+            ->setARGB('FFFFFF');
 
         $sheet->getStyle('A4:I4')->getFill()->applyFromArray([
             'fillType' => 'solid',
@@ -51,7 +56,7 @@ class EmployeeListExport implements FromView, ShouldAutoSize, WithStyles,WithCol
         $sheet->setShowGridlines(false);
         return [
             // Define the style for cells with data
-            'A1:I'.$this->data['employees']->count() + 4 => [
+            'A1:I' . ($this->data['employees']->count() + 4) => [
                 'borders' => [
                     'allBorders' => [
                         'borderStyle' => Border::BORDER_THIN,
@@ -61,61 +66,76 @@ class EmployeeListExport implements FromView, ShouldAutoSize, WithStyles,WithCol
             ],
         ];
     }
-    public function setImage($workSheet) {
-        $this->data['employees']->each(function($item,$index) use($workSheet) {
-            $drawing = new Drawing();
+
+    public function setImage($workSheet): void
+    {
+        $this->data['employees']->each(function ($item, $index) use ($workSheet) {
+            $tempImagePath = null;
+            $filePath = 'admin/' . $item->image_full_url['key'];
+            $fileCheck = fileCheck(disk: 'public', path: $filePath);
+            if ($item->image_full_url['path'] && !$fileCheck) {
+                $tempImagePath = getTemporaryImageForExport($item->image_full_url['path']);
+                $imagePath = getImageForExport($item->image_full_url['path']);
+                $drawing = new MemoryDrawing();
+                $drawing->setImageResource($imagePath);
+            } else {
+                $drawing = new Drawing();
+                $drawing->setPath(is_file(storage_path('app/public/' . $filePath)) ? storage_path('app/public/' . $filePath) : public_path('assets/back-end/img/employee.png'));
+            }
             $drawing->setName($item->name);
             $drawing->setDescription($item->name);
-            $drawing->setPath(file_exists(storage_path('app/public/admin/'.$item->image))? storage_path('app/public/admin/'.$item->image) : public_path('assets/back-end/img/employee.png'));
             $drawing->setHeight(50);
             $drawing->setOffsetX(45);
             $drawing->setOffsetY(10);
             $drawing->setResizeProportional(true);
-            $index+=5;
+            $index += 5;
             $drawing->setCoordinates("B$index");
             $drawing->setWorksheet($workSheet);
-
+            if ($tempImagePath) {
+                imagedestroy($tempImagePath);
+            }
         });
     }
 
     public function registerEvents(): array
     {
         return [
-            AfterSheet::class => function(AfterSheet $event) {
+            AfterSheet::class => function (AfterSheet $event) {
                 $event->sheet->getStyle('A1:I1') // Adjust the range as per your needs
-                    ->getAlignment()
+                ->getAlignment()
                     ->setHorizontal(Alignment::HORIZONTAL_CENTER)
                     ->setVertical(Alignment::VERTICAL_CENTER);
-                $event->sheet->getStyle('A4:I'.$this->data['employees']->count() + 4) // Adjust the range as per your needs
-                    ->getAlignment()
+                $event->sheet->getStyle('A4:I' . ($this->data['employees']->count() + 4)) // Adjust the range as per your needs
+                ->getAlignment()
                     ->setHorizontal(Alignment::HORIZONTAL_CENTER)
                     ->setVertical(Alignment::VERTICAL_CENTER);
                 $event->sheet->getStyle('A2:I3') // Adjust the range as per your needs
-                    ->getAlignment()
+                ->getAlignment()
                     ->setHorizontal(Alignment::HORIZONTAL_LEFT)
                     ->setVertical(Alignment::VERTICAL_CENTER);
 
-                    $event->sheet->mergeCells('A1:I1');
-                    $event->sheet->mergeCells('A2:B2');
-                    $event->sheet->mergeCells('C2:I2');
-                    $event->sheet->mergeCells('A3:B3');
-                    $event->sheet->mergeCells('C3:I3');
-                    $event->sheet->mergeCells('D2:I2');
-                    $event->sheet->getRowDimension(2)->setRowHeight(60);
-                    $event->sheet->getRowDimension(1)->setRowHeight(30);
-                    $event->sheet->getRowDimension(3)->setRowHeight(30);
-                    $event->sheet->getRowDimension(4)->setRowHeight(30);
-                    $event->sheet->getDefaultRowDimension()->setRowHeight(50);
+                $event->sheet->mergeCells('A1:I1');
+                $event->sheet->mergeCells('A2:B2');
+                $event->sheet->mergeCells('C2:I2');
+                $event->sheet->mergeCells('A3:B3');
+                $event->sheet->mergeCells('C3:I3');
+                $event->sheet->mergeCells('D2:I2');
+                $event->sheet->getRowDimension(2)->setRowHeight(60);
+                $event->sheet->getRowDimension(1)->setRowHeight(30);
+                $event->sheet->getRowDimension(3)->setRowHeight(30);
+                $event->sheet->getRowDimension(4)->setRowHeight(30);
+                $event->sheet->getDefaultRowDimension()->setRowHeight(50);
 
-                    $workSheet = $event->sheet->getDelegate();
-                    $this->setImage($workSheet);
+                $workSheet = $event->sheet->getDelegate();
+                $this->setImage($workSheet);
             },
         ];
     }
+
     public function headings(): array
     {
         return [
-           '1'
+            '1'
         ];
     }
 }

@@ -6,20 +6,24 @@
             </tr>
             <tr>
 
-                <th>{{ translate('delivery_Man_Analytics') }} -</th>
+                <th>{{ translate('delivery_Man_Analytics') .' '.'-'}}</th>
                 <th></th>
                 <th>
-                        {{translate('total_Delivery_Man')}} - {{count($data['delivery_men'])}}
+                    @if(isset($data['vendor']))
+                        {{translate('store_Name')}} - {{$data['vendor']?->shop?->name}}
+                        <br>
+                    @endif
+                        {{translate('total_Delivery_Man').' '.'-'.' '.count($data['delivery_men'])}}
                     <br>
-                        {{translate('active_Delivery_Man')}} - {{$data['active']}}
+                        {{translate('active_Delivery_Man').' '.'-'.' '.$data['active']}}
                     <br>
-                        {{translate('inactive_Delivery_man')}} - {{$data['inactive']}}
+                        {{translate('inactive_Delivery_man').' '.'-'.' '.$data['inactive']}}
                 </th>
             </tr>
             <tr>
                 <th>{{translate('search_Criteria')}}-</th>
                 <th></th>
-                <th>  {{translate('search_Bar_Content')}} - {{!empty($data['search']) ? $data['search'] : 'N/A'}}</th>
+                <th>  {{translate('search_Bar_Content').' '.'-'.' '.!empty($data['search']) ? $data['search'] : 'N/A'}}</th>
             </tr>
             <tr>
                 <td> {{translate('SL')}}	</td>
@@ -33,7 +37,6 @@
                 <td> {{translate('rating')}} </td>
                 <td> {{translate('status')}}</td>
             </tr>
-            <!-- loop  you data -->
             @foreach ($data['delivery_men'] as $key=>$item)
                 <tr>
                     <td> {{++$key}}	</td>
@@ -48,7 +51,6 @@
                     <td> {{translate($item->is_active == 1 ? 'active' : 'inactive')}}</td>
                 </tr>
             @endforeach
-            <!-- end -->
         </thead>
     </table>
 </html>

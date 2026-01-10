@@ -1,114 +1,193 @@
-@extends('layouts.back-end.app')
+@extends('layouts.admin.app')
 
 @section('title',translate('add_new_delivery_man'))
 
-@push('css_or_js')
-
-@endpush
-
 @section('content')
     <div class="content container-fluid">
-        <!-- Page Title -->
         <div class="mb-3">
             <h2 class="h1 mb-0 text-capitalize d-flex align-items-center gap-2">
-                <img src="{{asset('/public/assets/back-end/img/add-new-delivery-man.png')}}" alt="">
-                {{translate('add_new_delivery_man')}}
+                <img src="{{dynamicAsset(path: 'public/assets/back-end/img/add-new-delivery-man.png') }}" alt="">
+                {{ translate('add_new_delivery_man') }}
             </h2>
         </div>
-        <!-- End Page Title -->
 
-        <!-- Page Header -->
         <div class="row">
             <div class="col-12">
-
-                <form action="{{route('admin.delivery-man.store')}}" method="post" enctype="multipart/form-data">
+                <form action="{{route('admin.delivery-man.add') }}" method="post" enctype="multipart/form-data" id="add-delivery-man-form" class="form-advance-validation form-advance-file-validation" novalidate="novalidate">
                     @csrf
                     <div class="card">
-                        <!-- End Page Header -->
                         <div class="card-body">
-                            <h5 class="mb-0 page-header-title d-flex align-items-center gap-2 border-bottom pb-3 mb-3">
-                                <i class="tio-user"></i>
-                                {{translate('general_Information')}}
-                            </h5>
-                            <div class="row">
-                                <div class="col-md-6">
+                            <h3 class="mb-0 page-header-title d-flex align-items-center gap-2 border-bottom pb-3 mb-3">
+                                <i class="fi fi-sr-user"></i>
+                                {{ translate('general_Information') }}
+                            </h3>
+                            <div class="row g-4">
+
+                                <div class="col-md-4">
                                     <div class="form-group">
-                                        <label class="title-color d-flex" for="f_name">{{translate('first_Name')}}</label>
-                                        <input type="text" name="f_name" value="{{old('f_name')}}" class="form-control" placeholder="{{translate('first_Name')}}"
-                                               required>
+                                        <label class="mb-2" for="f_name">{{ translate('first_Name') }} <span class="text-danger">*</span> </label>
+                                        <input type="text" name="f_name" value="{{old('f_name') }}" class="form-control"  data-required-msg="{{ translate('first_Name_field_is_required') }}" placeholder="{{ translate('first_Name') }}" required>
                                     </div>
+                                </div>
+
+                                <div class="col-md-4">
                                     <div class="form-group">
-                                        <label class="title-color d-flex" for="exampleFormControlInput1">{{translate('last_Name')}}</label>
-                                        <input value="{{old('l_name')}}"  type="text" name="l_name" class="form-control" placeholder="{{translate('last_Name')}}"
-                                               required>
+                                        <label class="mb-2" for="exampleFormControlInput1">{{ translate('last_Name') }} <span class="text-danger">*</span> </label>
+                                        <input value="{{old('l_name') }}"  type="text" name="l_name" class="form-control"  data-required-msg="{{ translate('last_name_field_is_required') }}" placeholder="{{ translate('last_Name') }}" required>
                                     </div>
+                                </div>
+
+                                <div class="col-md-4">
                                     <div class="form-group">
-                                        <label class="title-color d-flex" for="exampleFormControlInput1">{{translate('phone')}}</label>
-                                        <div class="input-group mb-3">
-                                            <div class="input-group-prepend">
-                                                <select
-                                                    class="js-example-basic-multiple js-states js-example-responsive form-control"
-                                                    name="country_code" required>
-                                                    @foreach ($telephone_codes as $code)
-                                                        <option value="{{ $code['code'] }}" {{old($code['code']) == $code['code']? 'selected' : ''}}>{{ $code['name'] }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                            <input value="{{old('phone')}}" type="text" name="phone" class="form-control" placeholder="{{translate('ex')}} : 017********"
+                                        <label class="mb-2" for="exampleFormControlInput1">{{ translate('phone') }} <span class="text-danger">*</span> </label>
+                                        <div class="input-group">
+                                            <input type="tel" value="{{ old('phone') }}" name="phone" class="form-control"
+                                                   placeholder="{{ translate('ex') }} : 017********"
+                                                   data-required-msg="{{ translate('phone_field_is_required') }}"
                                                    required>
                                         </div>
                                     </div>
-
                                 </div>
-                                <div class="col-md-6">
+
+                                <div class="col-md-4">
                                     <div class="form-group">
-                                        <label class="title-color d-flex" for="exampleFormControlInput1">{{translate('identity_Type')}}</label>
-                                        <select name="identity_type" class="form-control">
-                                            <option value="passport">{{translate('passport')}}</option>
-                                            <option value="driving_license">{{translate('driving_License')}}</option>
-                                            <option value="nid">{{translate('nid')}}</option>
-                                            <option value="company_id">{{translate('company_ID')}}</option>
-                                        </select>
+                                        <label class="mb-2" for="exampleFormControlInput1">{{ translate('Identity_Type') }}</label>
+                                        <div class="select-wrapper">
+                                            <select name="identity_type" class="form-select">
+                                                <option value="passport">{{ translate('passport') }}</option>
+                                                <option value="driving_license">{{ translate('driving_License') }}</option>
+                                                <option value="nid">{{ translate('nid') }}</option>
+                                                <option value="company_id">{{ translate('company_ID') }}</option>
+                                            </select>
+                                        </div>
                                     </div>
+                                </div>
+
+                                <div class="col-md-4">
                                     <div class="form-group">
-                                        <label class="title-color d-flex" for="exampleFormControlInput1">{{translate('identity_Number')}}</label>
+                                        <label class="mb-2" for="exampleFormControlInput1">{{ translate('Identity_Number') }}</label>
                                         <input value="{{ old('identity_number') }}"  type="text" name="identity_number" class="form-control"
-                                               placeholder="{{translate('ex')}} : DH-23434-LS"
-                                               required>
+                                               placeholder="{{ translate('ex').': '.'DH-23434-LS'}}">
                                     </div>
+                                </div>
+
+                                <div class="col-md-4">
                                     <div class="form-group">
-                                        <label class="title-color d-flex" for="exampleFormControlInput1">{{translate('address')}}</label>
+                                        <label class="mb-2" for="exampleFormControlInput1">{{ translate('address') }}</label>
                                         <div class="input-group mb-3">
-                                            <textarea name="address" class="form-control" id="address" rows="1" placeholder="{{translate('address')}}">{{ old('address') }}</textarea>
+                                            <textarea name="address" class="form-control" id="address" rows="1" placeholder="{{ translate('address') }}">{{ old('address') }}</textarea>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="title-color">{{translate('deliveryman_image')}}</label>
-                                        <span class="text-info">* ( {{translate('ratio')}} 1:1 )</span>
-                                        <div class="custom-file">
-                                            <input value="{{ old('image') }}" type="file" name="image" id="customFileEg1" class="custom-file-input"
-                                                   accept=".jpg, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*" required>
-                                            <label class="custom-file-label" for="customFileEg1">{{translate('choose_File')}}</label>
-                                        </div>
-                                        <center class="mt-4">
-                                            <img class="upload-img-view" id="viewer"
-                                                 src="{{asset('public\assets\back-end\img\400x400\img2.jpg')}}" alt="delivery-man image"/>
-                                        </center>
+                                <div class="col-md-12">
+                                    <div class="p-12 p-sm-20 bg-section rounded">
+                                        <div class="row g-4">
+                                            <div class="col-md-4">
+                                                <div class="card shadow-none">
+                                                    <div class="card-body">
+                                                        <div class="d-flex flex-column gap-20">
+                                                            <div>
+                                                                <label for="" class="form-label fw-semibold mb-1 text-capitalize">
+                                                                    {{ translate('Deliveryman_Image') }}
+                                                                </label>
+                                                                <p class="fs-12 mb-0">
+                                                                    {{ translate('Displayed_as_the_deliveryman_avatar_in_the_system.') }}
+                                                                </p>
+                                                            </div>
+                                                            <div class="upload-file">
+                                                                <input type="file" name="image" class="upload-file__input single_file_input" value="{{ getStorageImages(path:[], type: 'backend-placeholder') ?? '' }}" {{ [] ? '' : 'required' }}
+                                                                data-max-size="{{ getFileUploadMaxSize() }}"
+                                                                       accept="{{ getFileUploadFormats(skip: '.svg,.gif') }}"
+                                                                       data-required-msg="{{ translate('Deliveryman_image_field_is_required') }}">
+                                                                <label
+                                                                    class="upload-file__wrapper">
+                                                                    <div class="upload-file-textbox text-center {{ [] ? 'd-none' : '' }}">
+                                                                        <img width="34" height="34" class="svg img-fluid" src="{{ getStorageImages(path: [] , type: 'backend-placeholder') }}" alt="image upload">
+                                                                        <h6 class="mt-1 fw-medium lh-base text-center text-capitalize">
+                                                                            <span class="text-info">{{ translate('Click_to_upload') }}</span>
+                                                                            <br>
+                                                                            {{ translate('or_drag_and_drop') }}
+                                                                        </h6>
+                                                                    </div>
+                                                                    <img class="upload-file-img" loading="lazy" src="{{ !empty([]) ? getStorageImages(path:[], type: 'backend-placeholder') ?? '' :  '' }}"
+                                                                         data-default-src="{{ !empty([]) ? getStorageImages(path:[],type: 'backend-placeholder') ?? '' :  '' }}" alt="">
+                                                                </label>
+                                                                <div class="overlay">
+                                                                    <div class="d-flex gap-10 justify-content-center align-items-center h-100">
+                                                                        <button type="button" class="btn btn-outline-info icon-btn view_btn">
+                                                                            <i class="fi fi-sr-eye"></i>
+                                                                        </button>
+                                                                        <button type="button" class="btn btn-outline-info icon-btn edit_btn">
+                                                                            <i class="fi fi-rr-camera"></i>
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <p class="fs-10 mb-0 text-center">
+                                                                {{ getFileUploadFormats(skip: '.svg,.gif', asBladeMessage: true).' '. translate('Image_size'). ' : '. translate('Max').' '. getFileUploadMaxSize() . 'MB' }}
+                                                                <span class="fw-medium text-dark">
+                                                                    ({{ translate('Ratio') }} {{ "1:1" }})
+                                                                </span>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
 
+                                            <div class="col-md-8">
+                                                <div class="card shadow-none h-100">
+                                                    <div class="card-body">
+                                                        <div class="d-flex flex-column gap-20">
+                                                            <div>
+                                                                <label for="" class="form-label fw-semibold mb-1 text-capitalize">
+                                                                    {{ translate('Deliveryman_Identity_Image') }}
+                                                                </label>
+                                                                <p class="fs-12 mb-0">
+                                                                    {{ translate('Upload the documents that help verify and identify the deliveryman.') }}
+                                                                </p>
+                                                            </div>
+                                                            <div class="d-flex flex-column">
+                                                                <div class="position-relative">
+                                                                    <div class="multi_image_picker d-flex gap-20 pt-20"
+                                                                         data-ratio="1/1"
+                                                                         data-field-name="identity_image[]"
+                                                                         data-max-count="5"
+                                                                         data-max-filesize="{{getFileUploadMaxSize()}}"
+                                                                         data-required="true"
+                                                                         data-required-msg="{{ translate('Employee_Identity_Image_is_required') }}"
+                                                                         data-allowed-formats="{{ getFileUploadFormats(skip: '.svg,.gif') }}"
+                                                                         data-validation-error-msg="{{ translate('File_size_is_too_large_Maximum_').' '.getFileUploadMaxSize().' '.'MB' }}"
+                                                                    >
 
-                                    </div>
-
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label class="title-color" for="exampleFormControlInput1">{{translate('identity_image')}}</label>
-                                        <div>
-                                            <div class="row" id="coba"></div>
+                                                                        <div>
+                                                                            <div class="imageSlide_prev">
+                                                                                <div
+                                                                                    class="d-flex justify-content-center align-items-center h-100">
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        class="btn btn-circle border-0 bg-primary text-white">
+                                                                                        <i class="fi fi-sr-angle-left"></i>
+                                                                                    </button>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="imageSlide_next">
+                                                                                <div class="d-flex justify-content-center align-items-center h-100">
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        class="btn btn-circle border-0 bg-primary text-white">
+                                                                                        <i class="fi fi-sr-angle-right"></i>
+                                                                                    </button>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -116,44 +195,58 @@
                         </div>
                     </div>
                     <div class="card mt-3">
-                        <!-- End Page Header -->
                         <div class="card-body">
-                            <h5 class="mb-0 page-header-title d-flex align-items-center gap-2 border-bottom pb-3 mb-3">
-                                <i class="tio-user"></i>
-                                {{translate('account_Information')}}
-                            </h5>
-
-                            <form action="{{route('admin.delivery-man.store')}}" method="post" enctype="multipart/form-data">
-                                @csrf
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label class="title-color d-flex" for="exampleFormControlInput1">{{translate('email')}}</label>
-                                            <input value="{{old('email')}}" type="email" name="email" class="form-control" placeholder="{{translate('ex')}} : ex@example.com"
-                                                required>
-                                        </div>
+                            <h3 class="mb-0 page-header-title d-flex align-items-center gap-2 border-bottom pb-3 mb-3">
+                                <i class="fi fi-sr-user"></i>
+                                {{ translate('account_Information') }}
+                            </h3>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-4">
+                                        <label class="mb-2 d-flex" for="exampleFormControlInput1">{{ translate('email') }}</label>
+                                        <input value="{{old('email') }}" type="email" name="email" class="form-control" placeholder="{{ translate('ex').':'.'ex@example.com'}}">
                                     </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label class="title-color d-flex" for="exampleFormControlInput1">{{translate('password')}}</label>
-                                            <input type="text" name="password" class="form-control" placeholder="{{translate('password_minimum_8_characters')}}"
-                                                required>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-group">
-                                            <label class="title-color d-flex" for="exampleFormControlInput1">{{translate('confirm_password')}}</label>
-                                            <input type="text" name="confirm_password" class="form-control" placeholder="{{translate('password_minimum_8_characters')}}"
-                                                required>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-4">
+                                        <label class="mb-2 d-flex align-items-center gap-2" for="user_password">
+                                            {{ translate('password') }}
+                                            <span class="input-label-secondary cursor-pointer d-flex" data-bs-toggle="tooltip" data-bs-title="{{ translate('The_password_must_be_at_least_8_characters_long_and_contain_at_least_one_uppercase_letter').','.translate('_one_lowercase_letter').','.translate('_one_digit_').','.translate('_one_special_character').','.translate('_and_no_spaces').'.'}}">
+                                                <i class="fi fi-rr-info"></i>
+                                            </span>
+                                        </label>
+                                        <div class="input-group">
+                                            <input type="password" class="js-toggle-password form-control password-check" name="password" id="user_password"  data-required-msg="{{ translate('password_field_is_required') }}" placeholder="{{ translate('password_minimum_8_characters') }}" required>
+                                            <div id="changePassTarget" class="input-group-append changePassTarget">
+                                                <a class="text-body-light" href="javascript:">
+                                                    <i id="changePassIcon" class="fi fi-sr-eye"></i>
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+                                <div class="col-md-4">
+                                    <div class="mb-4">
+                                        <label class="mb-2 d-flex text-capitalize" for="confirm_password">
+                                            {{ translate('confirm_password') }}
+                                        </label>
 
-                                <div class="d-flex gap-3 justify-content-end">
-                                    <button type="reset" id="reset" class="btn btn-secondary px-4">{{translate('reset')}}</button>
-                                    <button type="submit" class="btn btn--primary px-4">{{translate('submit')}}</button>
+                                        <div class="input-group">
+                                            <input type="password" class="js-toggle-password form-control" name="confirm_password" id="confirm_password" placeholder="{{ translate('password_minimum_8_characters') }}"  data-required-msg="{{ translate('confirm_password_field_is_required') }}" required>
+                                            <div id="changeConfirmPassTarget" class="input-group-append changePassTarget">
+                                                <a class="text-body-light" href="javascript:">
+                                                    <i id="changeConfirmPassIcon" class="fi fi-sr-eye"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </form>
+                            </div>
+                            <div class="d-flex gap-3 justify-content-end">
+                                <button type="reset" id="reset" class="btn btn-secondary">{{ translate('reset') }}</button>
+                                <button type="button" class="btn btn-primary form-submit" data-form-id="add-delivery-man-form" data-redirect-route="{{route('admin.delivery-man.list') }}"
+                                        data-message="{{ translate('want_to_add_this_delivery_man').'?'}}">{{ translate('submit') }}</button>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -161,68 +254,12 @@
         </div>
     </div>
 
+    <span id="coba-image" data-url="{{dynamicAsset(path: "public/assets/back-end/img/400x400/img2.jpg") }}"></span>
+    <span id="extension-error" data-text="{{ translate("please_only_input_png_or_jpg_type_file") }}"></span>
+    <span id="size-error" data-text="{{ translate("file_size_too_big") }}"></span>
 @endsection
 
-@push('script_2')
-    <script>
-        $(".js-example-responsive").select2({
-            width: 'resolve'
-        });
-    </script>
-    <script>
-        function readURL(input) {
-            if (input.files && input.files[0]) {
-                var reader = new FileReader();
-
-                reader.onload = function (e) {
-                    $('#viewer').attr('src', e.target.result);
-                }
-
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        $("#customFileEg1").change(function () {
-            readURL(this);
-        });
-    </script>
-
-    <script src="{{asset('public/assets/back-end/js/spartan-multi-image-picker.js')}}"></script>
-    <script type="text/javascript">
-        $(function () {
-            $("#coba").spartanMultiImagePicker({
-                fieldName: 'identity_image[]',
-                maxCount: 5,
-                rowHeight: 'auto',
-                groupClassName: 'col-6 col-lg-4',
-                maxFileSize: '',
-                placeholderImage: {
-                    image: '{{asset("public/assets/back-end/img/400x400/img2.jpg")}}',
-                    width: '100%'
-                },
-                dropFileLabel: "Drop Here",
-                onAddRow: function (index, file) {
-
-                },
-                onRenderedPreview: function (index) {
-
-                },
-                onRemoveRow: function (index) {
-
-                },
-                onExtensionErr: function (index, file) {
-                    toastr.error('{{ translate("please_only_input_png_or_jpg_type_file") }}', {
-                        CloseButton: true,
-                        ProgressBar: true
-                    });
-                },
-                onSizeErr: function (index, file) {
-                    toastr.error('{{ translate("file_size_too_big") }}', {
-                        CloseButton: true,
-                        ProgressBar: true
-                    });
-                }
-            });
-        });
-    </script>
+@push('script')
+    <script src="{{ dynamicAsset(path: 'public/assets/back-end/js/spartan-multi-image-picker.js') }}"></script>
+    <script src="{{dynamicAsset(path: 'public/assets/backend/admin/js/user-management/deliveryman.js') }}"></script>
 @endpush

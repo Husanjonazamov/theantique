@@ -22,6 +22,7 @@
 </table>
 
 <script type="text/javascript">
+    "use strict";
     $(document).ready(function () {
         $('input').addClass('form-control');
     });

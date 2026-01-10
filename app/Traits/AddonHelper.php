@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use Exception;
 use Illuminate\Support\Facades\File;
 
 trait AddonHelper
@@ -31,7 +32,7 @@ trait AddonHelper
         return $array;
     }
 
-    public function get_addon_admin_routes(): array
+    public function getAddonAdminRoutes(): array
     {
         $dir = 'Modules';
         $directories = self::getDirectories($dir);
@@ -43,41 +44,39 @@ trait AddonHelper
             }
         }
 
-        $full_data = [];
+        $fullData = [];
         foreach ($addons as $item) {
-            $info = include($item . '/Addon/info.php');
-            if ($info['is_published']){
-                $full_data[] = include($item . '/Addon/admin_routes.php');
+            if (file_exists(base_path($item . '/Addon/info.php')) && file_exists(base_path($item . '/Addon/admin_routes.php'))) {
+                $info = include(base_path($item . '/Addon/info.php'));
+                if ($info['is_published']) {
+                    $fullData[] = include(base_path($item . '/Addon/admin_routes.php'));
+                }
             }
         }
 
-        return $full_data;
+        return $fullData;
     }
 
-    public function get_payment_publish_status(): array
+    public function getPaymentPublishStatus(): int
     {
         $dir = 'Modules'; // Update the directory path to Modules/Gateways
         $directories = self::getDirectories($dir);
-        // dd($directories);
+
         $addons = [];
         foreach ($directories as $directory) {
-            $sub_dirs = self::getDirectories($dir . '/' . $directory); // Use $dir instead of 'Modules/'
+            $subDirectories = self::getDirectories($dir . '/' . $directory); // Use $dir instead of 'Modules/'
             if($directory == 'Gateways'){
-                if (in_array('Addon', $sub_dirs)) {
+                if (in_array('Addon', $subDirectories)) {
                     $addons[] = $dir . '/' . $directory; // Use $dir instead of 'Modules/'
                 }
             }
         }
 
-        $array = [];
         foreach ($addons as $item) {
-            $full_data = include($item . '/Addon/info.php');
-            $array[] = [
-                'is_published' => $full_data['is_published'],
-            ];
+            $fullData = include(base_path($item . '/Addon/info.php'));
+            return (int)$fullData['is_published'];
         }
-
-        return $array;
+        return 0;
     }
 
 
@@ -90,18 +89,27 @@ trait AddonHelper
                 File::makeDirectory($module_dir);
                 File::chmod($module_dir, 0777);
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
 
         }
 
         $directories = [];
         $items = scandir(base_path($path));
         foreach ($items as $item) {
-            if ($item == '..' || $item == '.')
-                continue;
-            if (is_dir($path . '/' . $item))
+            if ($item != '.' && $item != '..' && is_dir(base_path($path . '/' . $item))) {
                 $directories[] = $item;
+            }
         }
         return $directories;
+    }
+
+    public function getModuleNameList(): array
+    {
+        $moduleFileJsonData = [];
+        $modulesStatusesFile = base_path('modules_statuses.json');
+        if (File::exists($modulesStatusesFile)) {
+            $moduleFileJsonData = json_decode(File::get($modulesStatusesFile), true);
+        }
+        return $moduleFileJsonData;
     }
 }

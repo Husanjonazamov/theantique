@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\CentralLogics\Helpers;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
@@ -38,7 +37,7 @@ class UpdatePackage extends Command
      *
      * @return int
      */
-    public function handle()
+    public function handle(): int
     {
         Artisan::call('debugbar:clear');
 
@@ -51,11 +50,12 @@ class UpdatePackage extends Command
             }
         }
 
-        $add_on_folder = base_path('Modules');
-        $add_on_directories = glob($add_on_folder . '/*', GLOB_ONLYDIR);
-        foreach ($add_on_directories as $directory) {
+        $addOnFolder = base_path('Modules');
+        $addOnDirectories = glob($addOnFolder . '/*', GLOB_ONLYDIR);
+        foreach ($addOnDirectories as $directory) {
             $array = explode('/', $directory);
-            if (File::isDirectory($directory)) {
+            $directoryName = end($array);
+            if (File::isDirectory($directory) && $directoryName == 'Gateways') {
                 File::deleteDirectory($directory);
             }
         }

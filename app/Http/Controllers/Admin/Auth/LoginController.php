@@ -2,111 +2,99 @@
 
 namespace App\Http\Controllers\Admin\Auth;
 
-use App\Http\Controllers\Controller;
-use Brian2694\Toastr\Facades\Toastr;
+use App\Models\Admin;
+use App\Enums\UserRole;
+use App\Enums\SessionKey;
 use Illuminate\Http\Request;
-use Gregwar\Captcha\CaptchaBuilder;
-use App\CPU\Helpers;
+use App\Services\AdminService;
+use App\Traits\RecaptchaTrait;
+use App\Services\RecaptchaService;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Session;
-use App\Model\Admin;
-use Gregwar\Captcha\PhraseBuilder;
+use App\Http\Controllers\BaseController;
+use Devrabiul\ToastMagic\Facades\ToastMagic;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
-class LoginController extends Controller
+class LoginController extends BaseController
 {
-    public function __construct()
+    use RecaptchaTrait;
+
+    public function __construct(private readonly Admin $admin, private readonly AdminService $adminService)
     {
         $this->middleware('guest:admin', ['except' => ['logout']]);
     }
 
-    public function captcha($tmp)
+    public function index(?Request $request, ?string $type = null): View|Collection|LengthAwarePaginator|null|callable
     {
 
-        $phrase = new PhraseBuilder;
-        $code = $phrase->build(4);
-        $builder = new CaptchaBuilder($code, $phrase);
-        $builder->setBackgroundColor(220, 210, 230);
-        $builder->setMaxAngle(25);
-        $builder->setMaxBehindLines(0);
-        $builder->setMaxFrontLines(0);
-        $builder->build($width = 100, $height = 40, $font = null);
-        $phrase = $builder->getPhrase();
+        $loginTypes = [
+            UserRole::ADMIN => getWebConfig(name: 'admin_login_url'),
+            UserRole::EMPLOYEE => getWebConfig(name: 'employee_login_url')
+        ];
 
-        if(Session::has('default_captcha_code')) {
-            Session::forget('default_captcha_code');
+        $userType = array_search($type, $loginTypes);
+        abort_if(!$userType, 404);
+
+        $recaptchaBuilder = $this->generateDefaultReCaptcha(4);
+        Session::put(SessionKey::ADMIN_RECAPTCHA_KEY, $recaptchaBuilder->getPhrase());
+
+        $recaptcha = getWebConfig(name: 'recaptcha');
+        return view('admin-views.auth.login', compact('recaptchaBuilder', 'recaptcha'))->with(['role' => $userType]);
+    }
+
+    public function generateReCaptcha()
+    {
+        $recaptchaBuilder = $this->generateDefaultReCaptcha(4);
+        if (Session::has(SessionKey::ADMIN_RECAPTCHA_KEY)) {
+            Session::forget(SessionKey::ADMIN_RECAPTCHA_KEY);
         }
-        Session::put('default_captcha_code', $phrase);
+        Session::put(SessionKey::ADMIN_RECAPTCHA_KEY, $recaptchaBuilder->getPhrase());
         header("Cache-Control: no-cache, must-revalidate");
         header("Content-Type:image/jpeg");
-        $builder->output();
+        $recaptchaBuilder->output();
     }
 
-    public function login()
+    public function login(Request $request): RedirectResponse
     {
-        return view('admin-views.auth.login');
-    }
+        $sessionKey = ($request['role'] == 'admin') ? SessionKey::ADMIN_RECAPTCHA_KEY: SessionKey::EMPLOYEE_RECAPTCHA_KEY;
 
-    public function submit(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|min:6'
-        ]);
+        $result = RecaptchaService::verificationStatus(request: $request, session: $sessionKey, action: "login");
+        if ($result && !$result['status']) {
+            ToastMagic::error($result['message']);
+            return back();
+        }
 
-        //recaptcha validation
-        $recaptcha = Helpers::get_business_settings('recaptcha');
-        if (isset($recaptcha) && $recaptcha['status'] == 1) {
-            try {
-                $request->validate([
-                    'g-recaptcha-response' => [
-                        function ($attribute, $value, $fail) {
-                            $secret_key = Helpers::get_business_settings('recaptcha')['secret_key'];
-                            $response = $value;
-                            $url = 'https://www.google.com/recaptcha/api/siteverify?secret=' . $secret_key . '&response=' . $response;
-                            $response = \file_get_contents($url);
-                            $response = json_decode($response);
-                            if (!$response->success) {
-                                $fail(\App\CPU\translate('ReCAPTCHA Failed'));
-                            }
-                        },
-                    ],
-                ]);
-            } catch (\Exception $exception) {
+        $admin = $this->admin->where('email', $request['email'])->first();
+        if (isset($admin) && in_array($request['role'], [UserRole::ADMIN, UserRole::EMPLOYEE]) && $admin->status) {
+            if ($admin['id'] == 1 && $request['role'] != 'admin') {
+                return redirect()->back()->withInput($request->only('email', 'remember'))
+                    ->withErrors([translate('Please_login_from_the_admin_login_page')]);
             }
+            if ($admin['id'] != 1 && $request['role'] != 'employee') {
+                return redirect()->back()
+                    ->withInput($request->only('email', 'remember'))
+                    ->withErrors([translate('Please_login_from_the_employee_login_page')]);
+            }
+            if ($this->adminService->isLoginSuccessful($request['email'], $request['password'], $request['remember'])) {
+                return redirect()->route('admin.dashboard.index');
+            }
+        }
+
+        ToastMagic::error(translate('credentials_does_not_match_or_your_account_has_been_suspended'));
+        return redirect()->back()->withInput($request->only('email', 'remember'));
+    }
+
+    public function logout(): RedirectResponse
+    {
+        $authType = auth('admin')->id() == 1 ? 'admin' : 'employee';
+        $this->adminService->logout();
+        session()->flash('success', translate('logged out successfully'));
+        if ($authType == 'employee') {
+            return redirect('login/' . getWebConfig(name: 'employee_login_url'));
         } else {
-
-            if (strtolower($request->default_captcha_value) != strtolower(Session('default_captcha_code'))) {
-                Session::forget('default_captcha_code');
-                return back()->withErrors(\App\CPU\translate('Captcha Failed'));
-            }
-
+            return redirect('login/' . getWebConfig(name: 'admin_login_url'));
         }
-        $admin = Admin::where('email', $request->email)->first();
-        if (isset($admin) && $admin->status != 1) {
-            return redirect()->back()->withInput($request->only('email', 'remember'))
-                ->withErrors(['You are blocked!!, contact with admin.']);
-        }else{
-            if (auth('admin')->attempt(['email' => $request->email, 'password' => $request->password], $request->remember)) {
-                return redirect()->route('admin.dashboard');
-            }
-        }
-
-        return redirect()->back()->withInput($request->only('email', 'remember'))
-            ->withErrors(['Credentials does not match.']);
-    }
-
-    public function logout(Request $request)
-    {
-
-        if(auth()->guard('admin')->user()->admin_role_id == 1)
-        {
-            $redirect = Helpers::get_business_settings('admin_login_url');
-        }else{
-            $redirect = Helpers::get_business_settings('employee_login_url');
-        }
-
-        auth()->guard('admin')->logout();
-        $request->session()->invalidate();
-
-        return redirect()->route('login', ['tab'=>$redirect]);
     }
 }

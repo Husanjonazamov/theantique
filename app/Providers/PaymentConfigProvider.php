@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-use App\CPU\Helpers;
-use App\Model\BusinessSetting;
+use App\Utils\Helpers;
+use App\Models\BusinessSetting;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 
@@ -26,7 +26,7 @@ class PaymentConfigProvider extends ServiceProvider
      */
     public function boot()
     {
-        
+
         try {
             $data = BusinessSetting::where(['type' => 'paypal'])->first();
             $paypal = json_decode($data['value'], true);
@@ -121,7 +121,7 @@ class PaymentConfigProvider extends ServiceProvider
 
 
             //paytm
-            $paytm = Helpers::get_business_settings('paytm');
+            $paytm = getWebConfig(name: 'paytm');
             if (isset($paytm)) {
 
                 $PAYTM_STATUS_QUERY_NEW_URL='https://securegw-stage.paytm.in/merchant-status/getTxnStatus';

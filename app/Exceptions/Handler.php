@@ -2,11 +2,16 @@
 
 namespace App\Exceptions;
 
+use App\Traits\ErrorLogsTrait;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 class Handler extends ExceptionHandler
 {
+    use ErrorLogsTrait;
+
     /**
      * A list of the exception types that are not reported.
      *
@@ -29,27 +34,33 @@ class Handler extends ExceptionHandler
     /**
      * Report or log an exception.
      *
-     * @param  \Throwable  $exception
+     * @param Throwable $e
      * @return void
      *
-     * @throws \Throwable
+     * @throws Throwable
      */
-    public function report(Throwable $exception)
+    public function report(Throwable $e): void
     {
-        parent::report($exception);
+        parent::report($e);
     }
 
     /**
      * Render an exception into an HTTP response.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Throwable  $exception
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @param Request $request
+     * @param Throwable $e
+     * @return Response
      *
-     * @throws \Throwable
+     * @throws Throwable
      */
-    public function render($request, Throwable $exception)
+    public function render($request, Throwable $e): Response
     {
-        return parent::render($request, $exception);
+        if ($this->isHttpException($e) && $e?->getStatusCode() == 404) {
+            $redirectUrl = $this->storeErrorLogsUrl(url: $request->fullUrl(), statusCode: $e->getStatusCode());
+            if ($redirectUrl && isset($redirectUrl['redirect_url'])) {
+                return redirect(to: $redirectUrl['redirect_url'], status: ($redirectUrl['redirect_status'] ?? '301'));
+            }
+        }
+        return parent::render($request, $e);
     }
 }

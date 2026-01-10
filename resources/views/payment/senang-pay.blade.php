@@ -1,15 +1,13 @@
 @extends('payment.layouts.master')
 
-@push('script')
-
-@endpush
-
 @section('content')
 
     @if(isset($config))
-        <center><h1>Please do not refresh this page...</h1></center>
+        <div>
+            <h1 class="text-center">{{ "Please do not refresh this page..." }}</h1>
+        </div>
 
-        <div class="col-md-6 mb-4" style="cursor: pointer">
+        <div class="col-md-6 mb-4 cursor-pointer">
             <div class="card">
                 <div class="card-body" style="height: 70px">
                     @php($secretkey = $config->secret_key)
@@ -23,11 +21,11 @@
 
                     <form id="form" method="post"
                           action="https://{{env('APP_MODE')=='live'?'app.senangpay.my':'sandbox.senangpay.my'}}/payment/{{$config->merchant_id}}">
-                        <input type="hidden" name="amount" value="{{$data->amount}}">
-                        <input type="hidden" name="name" value="{{$data->name}}">
-                        <input type="hidden" name="email" value="{{$data->email}}">
-                        <input type="hidden" name="phone" value="{{$data->phone}}">
-                        <input type="hidden" name="hash" value="{{$data->hashed_string}}">
+                        <input type="hidden" name="amount" value="{{ $data->amount }}">
+                        <input type="hidden" name="name" value="{{ $data->name }}">
+                        <input type="hidden" name="email" value="{{ $data->email }}">
+                        <input type="hidden" name="phone" value="{{ $data->phone }}">
+                        <input type="hidden" name="hash" value="{{ $data->hashed_string }}">
                     </form>
 
                 </div>
@@ -36,6 +34,7 @@
     @endif
 
     <script type="text/javascript">
+        "use strict";
         document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("form").submit();
         });

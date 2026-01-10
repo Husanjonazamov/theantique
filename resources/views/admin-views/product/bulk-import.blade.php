@@ -1,110 +1,160 @@
-@extends('layouts.back-end.app')
+@extends('layouts.admin.app')
 
 @section('title', translate('product_Bulk_Import'))
 
-@push('css_or_js')
-
-@endpush
-
 @section('content')
     <div class="content container-fluid">
-        <!-- Page Title -->
+
         <div class="mb-4">
-            <h2 class="h1 mb-1 text-capitalize d-flex gap-2">
-                <img src="{{asset('/public/assets/back-end/img/bulk-import.png')}}" alt="">
+            <h1 class="mb-1 text-capitalize d-flex gap-2">
+                <img src="{{dynamicAsset(path: 'public/assets/back-end/img/bulk-import.png')}}" alt="">
                 {{translate('bulk_Import')}}
-            </h2>
+            </h1>
         </div>
-        <!-- End Page Title -->
 
-        <!-- Content Row -->
-        <div class="row" style="text-align: {{Session::get('direction') === "rtl" ? 'right' : 'left'}};">
-            <div class="col-12">
-                <div class="card card-body">
-                    <h1 class="display-5">{{translate('instructions')}} : </h1>
-                    <p>{{ translate('1') }}. {{translate('download_the_format_file_and_fill_it_with_proper_data.')}}</p>
-
-                    <p>{{ translate('2') }}. {{translate('you_can_download_the_example_file_to_understand_how_the_data_must_be_filled.')}}</p>
-
-                    <p>{{ translate('3') }}. {{translate('once_you_have_downloaded_and_filled_the_format_file')}}, {{translate('upload_it_in_the_form_below_and_submit.')}}</p>
-
-                    <p>4. {{translate('after_uploading_products_you_need_to_edit_them_and_set_product_images_and_choices.')}}</p>
-
-                    <p>5. {{translate('you_can_get_brand_and_category_id_from_their_list_please_input_the_right_ids.')}}</p>
-
-                    <p>6. {{translate('you_can_upload_your_product_images_in_product_folder_from_gallery_and_copy_image_path.')}}</p>
-                </div>
-            </div>
-
-            <div class="col-md-12 mt-2">
-                <form class="product-form" action="{{route('admin.product.bulk-import')}}" method="POST"
-                      enctype="multipart/form-data">
-                    @csrf
-                    <div class="card rest-part">
-                        <div class="px-3 py-4 d-flex flex-wrap align-items-center gap-10 justify-content-center">
-                            <h4 class="mb-0">{{translate("do_not_have_the_template")}} ?</h4>
-                            <a href="{{asset('public/assets/product_bulk_format.xlsx')}}" download=""
-                               class="btn-link text-capitalize fz-16 font-weight-medium">{{translate('download_here')}}</a>
-                        </div>
-                        <div class="card-body">
-                            <div class="form-group">
-                                <div class="row justify-content-center">
-                                    <div class="col-auto">
-
-                                        <!-- Drag & Drop Upload -->
-                                        <div class="uploadDnD">
-
-                                                <div class="form-group inputDnD input_image input_image_edit" data-title="{{translate('drag_&_drop_file_or_browse_file')}}">
-                                                <input type="file" name="products_file" accept=".xlsx, .xls" class="form-control-file text--primary font-weight-bold" id="inputFile"
-                                                    onchange="readUrl(this)">
-                                            </div>
-                                        </div>
-
+        <div class="card mb-20">
+            <div class="card-body">
+                <div class="row g-4 mb-20">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="border rounded-3 p-4 bg-white h-100">
+                            <div class="p-xl-1">
+                                <div class="d-flex align-items-center justify-content-between gap-2 mb-20">
+                                    <div class="cont">
+                                        <h3 class="fs-20 font-weight-normal fw-normal mb-1 lh-base d-block text-dark">{{ translate('Step_1') }} : </h3>
+                                        <p class="fs-12 m-0 max-w-150px">{{ translate('Download_Excel_File') }}</p>
                                     </div>
+                                    <img width="60" src="{{dynamicAsset(path: 'public/assets/back-end/img/xlsx-down.png')}}" alt="">
                                 </div>
-                            </div>
-                            <div class="d-flex flex-wrap gap-10 align-items-center justify-content-end">
-                                <button type="reset" class="btn btn-secondary px-4" onclick="resetImg();">{{translate('reset')}}</button>
-                                <button type="submit" class="btn btn--primary px-4">{{translate('submit')}}</button>
+                                <div>
+                                    <div class="fs-12 text-dark fw-semibold font-weight-semibold mb-3">
+                                        {{ translate('Instruction') }}
+                                    </div>
+                                    <ul class="d-flex flex-column gap-10 ps-3 list-group">
+                                        <li class="text-dark fs-12">
+                                            {{ translate('Download the format file to get the required column structure.') }}
+                                        </li>
+                                        <li class="text-dark fs-12">
+                                            {{ translate('Check the example file for accurate data input guidance.') }}
+                                        </li>
+                                        <li class="text-dark fs-12">
+                                            {{ translate('Please upload the xlsx or excel file') }}
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </form>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="border rounded-3 p-4 bg-white h-100">
+                            <div class="p-xl-1">
+                                <div class="d-flex align-items-center justify-content-between gap-2 mb-20">
+                                    <div class="cont">
+                                        <h3 class="fs-20 font-weight-normal fw-normal mb-1 lh-base d-block text-dark">{{ translate('Step_2') }} : </h3>
+                                        <p class="fs-12 m-0 max-w-150px">{{ translate('Match_Spread_sheet_data_according_to_instruction') }}</p>
+                                    </div>
+                                    <img width="60" src="{{dynamicAsset(path: 'public/assets/back-end/img/proper-sheet.png')}}" alt="">
+                                </div>
+                                <div>
+                                    <div class="fs-12 text-dark fw-semibold font-weight-semibold mb-3">
+                                        {{ translate('Instruction') }}
+                                    </div>
+                                    <ul class="d-flex flex-column gap-10 ps-3 list-group">
+                                        <li class="text-dark fs-12">
+                                            {{ translate('Ensure all required columns in your Excel file are complete and match the downloaded format.') }}
+                                        </li>
+                                        <li class="text-dark fs-12">
+                                            {{ translate('Check your data before uploading to avoid errors.') }}
+                                        </li>
+                                        <li class="text-dark fs-12">
+                                            {{ translate('The system will automatically align columns during the final import') }}
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="border rounded-3 p-4 bg-white h-100">
+                            <div class="p-xl-1">
+                                <div class="d-flex align-items-center justify-content-between gap-2 mb-20">
+                                    <div class="cont">
+                                        <h3 class="fs-20 font-weight-normal fw-normal mb-1 lh-base d-block text-dark">{{ translate('Step_3') }} : </h3>
+                                        <p class="fs-12 m-0 max-w-150px">{{ translate('Validate_data_and_complete_import') }}</p>
+                                    </div>
+                                    <img width="60" src="{{dynamicAsset(path: 'public/assets/back-end/img/xlsx-up.png')}}" alt="">
+                                </div>
+                                <div>
+                                    <div class="fs-12 text-dark fw-semibold font-weight-semibold mb-3">
+                                        {{ translate('Instruction') }}
+                                    </div>
+                                    <ul class="d-flex flex-column gap-10 ps-3 list-group">
+                                        <li class="text-dark fs-12">
+                                            {{ translate('Upload your completed Excel or xlsx file using the upload tool.') }}
+                                        </li>
+                                        <li class="text-dark fs-12">
+                                            {{ translate('Review the validation report for any errors.') }}
+                                        </li>
+                                        <li class="text-dark fs-12">
+                                            {{ translate('After resolving errors, click "Import" to finalise adding products to your store') }}
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <p class="mb-15px fs-16 text-dark">{{ translate('Download_Spreadsheet_Template') }}</p>
+                    <div class="d-flex align-items-center gap-3 justify-content-center flex-wrap">
+                        <a href="{{dynamicAsset(path: 'public/assets/product_bulk_format.xlsx')}}" download=""
+                           class="btn btn-secondary px-4 fs-14 fw-medium min-h-40">{{translate('With_Existing_Data')}}</a>
+                        <a href="{{dynamicAsset(path: 'public/assets/product_bulk_format_without_data.xlsx')}}" download=""
+                           class="btn btn-primary px-4 fs-14 fw-medium min-h-40">{{translate('Without_Any_Data')}}</a>
+                    </div>
+                </div>
             </div>
         </div>
+        <form class="product-form form-advance-validation form-advance-inputs-validation form-advance-file-validation non-ajax-form-validate" action="{{route('admin.products.bulk-import')}}" method="POST"
+                enctype="multipart/form-data" novalidate="novalidate">
+            @csrf
+            <div class="card rest-part">
+                <div class="card-body">
+                    <div class="text-center mb-20">
+                        <h3 class="mb-0 fs16">{{translate("Import items file")}} ?</h3>
+                    </div>
+                    <div class="form-group mb-20">
+                        <div class="row justify-content-center">
+                            <div class="max-w-500 uplad-xls-file">
+                                <div class="uploadDnD position-relative pt-3">
+                                    <label for="inputFile" class="text-center d-block" style="cursor:pointer;">
+                                        <img width="54"
+                                             src="{{dynamicAsset(path: 'public/assets/back-end/img/xlsx-up.png')}}"
+                                             alt=""
+                                             class="view-img position- object-contain">
+                                    </label>
+                                    <div class="form-group inputDnD input_image input_image_edit"
+                                         data-title="{{translate('drag_&_drop_file_or_browse_file')}}">
+                                        <div class="text-center">
+                                            <input type="file"
+                                                   name="products_file"
+                                                   accept=".xlsx, .xls"
+                                                   class="form-control-file font-weight-bold action-upload-section-dot-area"
+                                                   data-max-size="{{ getFileUploadMaxSize(type: 'file') }}"
+                                                   data-required-msg="{{ translate('file_field_is_required') }}"
+                                                   id="inputFile"
+                                                   required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-10 align-items-center justify-content-end mt-4">
+                        <button type="reset" class="btn btn-secondary px-4 action-onclick-reload-page">{{translate('reset')}}</button>
+                        <button type="submit" class="btn btn-primary px-4">{{translate('submit')}}</button>
+                    </div>
+                </div>
+            </div>
+        </form>
     </div>
 @endsection
-
-@push('script')
-<script>
-    // File Upload
-    "use strict";
-
-    $('.upload-file__input').on('change', function() {
-        $(this).siblings('.upload-file__img').find('img').attr({
-            'src': '{{asset("/public/assets/back-end/img/excel.png")}}',
-            'width': 80
-        });
-    });
-
-    function resetImg() {
-        $('.upload-file__img img').attr({
-            'src': '{{asset("/public/assets/back-end/img/drag-upload-file.png")}}',
-            'width': 'auto'
-        });
-    }
-
-    function readUrl(input) {
-        if (input.files && input.files[0]) {
-            let reader = new FileReader();
-            reader.onload = (e) => {
-                let imgData = e.target.result;
-                let imgName = input.files[0].name;
-                input.closest('[data-title]').setAttribute("data-title", imgName);
-            }
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-</script>
-
-@endpush

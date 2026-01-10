@@ -1,52 +1,48 @@
 @if ($categories->count() > 0 )
-    <section class="pb-4 rtl">
-        <div class="container">
+    <section class="container py-0 rtl px-0 px-md-3">
+        <div class="__inline-62">
             <div>
                 <div class="card __shadow h-100 max-md-shadow-0">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div class="categories-title m-0">
-                                <span class="font-semibold">{{ translate('categories')}}</span>
-                            </div>
+                        <div class="d-flex justify-content-between align-items-baseline">
+                            <h2 class="categories-title m-0 letter-spacing-0 h5 fw-bold">
+                                <span class="fw-bold">{{ translate('categories')}}</span>
+                            </h2>
                             <div>
-                                <a class="text-capitalize view-all-text" style="color: {{$web_config['primary_color']}}!important"
-                                    href="{{route('categories')}}">{{ translate('view_all')}}
+                                <a class="text-capitalize view-all-text web-text-primary"
+                                   href="{{route('categories')}}">{{ translate('view_all')}}
                                     <i class="czi-arrow-{{Session::get('direction') === "rtl" ? 'left mr-1 ml-n1 mt-1 float-left' : 'right ml-1 mr-n1'}}"></i>
                                 </a>
                             </div>
                         </div>
-                        <div class="d-none d-md-block">
+                        <div class="d-none d-lg-block">
                             <div class="row mt-3">
-                                @foreach($categories as $key=>$category)
-                                    @if ($key<10)
+                                @foreach($categories as $key => $category)
+                                    @if ($key < 8)
                                         <div class="text-center __m-5px __cate-item">
-                                            <a href="{{route('products',['id'=> $category['id'],'data_from'=>'category','page'=>1])}}">
+                                            <a href="{{ route('category-products', ['slug' => $category['slug']]) }}" class="d-flex flex-column align-items-center">
                                                 <div class="__img">
-                                                    <img
-                                                        onerror="this.src='{{asset('public/assets/front-end/img/image-place-holder.png')}}'"
-                                                        src="{{asset("storage/app/public/category/$category->icon")}}"
-                                                        alt="{{$category->name}}">
+                                                    <img loading="lazy" alt="{{ $category->name }}"
+                                                         src="{{ getStorageImages(path: $category->icon_full_url, type: 'category') }}">
                                                 </div>
-                                                <p class="text-center small mt-2">{{Str::limit($category->name, 12)}}</p>
+                                                <h3 class="text-center max-w-100px mx-auto fs-13 font-semibold mt-2 letter-spacing-0 line--limit-2">{{Str::limit($category->name, 15)}}</h3>
                                             </a>
                                         </div>
                                     @endif
                                 @endforeach
                             </div>
                         </div>
-                        <div class="d-md-none">
+                        <div class="d-lg-none">
                             <div class="owl-theme owl-carousel categories--slider mt-3">
-                                @foreach($categories as $key=>$category)
-                                    @if ($key<10)
+                                @foreach($categories as $key => $category)
+                                    @if ($key<8)
                                         <div class="text-center m-0 __cate-item w-100">
-                                            <a href="{{route('products',['id'=> $category['id'],'data_from'=>'category','page'=>1])}}">
+                                            <a href="{{ route('category-products', ['slug' => $category['slug']]) }}">
                                                 <div class="__img mw-100 h-auto">
-                                                    <img
-                                                        onerror="this.src='{{asset('public/assets/front-end/img/image-place-holder.png')}}'"
-                                                        src="{{asset("storage/app/public/category/$category->icon")}}"
-                                                        alt="{{$category->name}}">
+                                                    <img alt="{{ $category->name }}"
+                                                         src="{{ getStorageImages(path: $category->icon_full_url, type: 'category') }}">
                                                 </div>
-                                                <p class="text-center small mt-2">{{Str::limit($category->name, 12)}}</p>
+                                                <h3 class="text-center line--limit-2 small mt-2 letter-spacing-0">{{ $category->name }}</h3>
                                             </a>
                                         </div>
                                     @endif

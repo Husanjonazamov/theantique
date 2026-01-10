@@ -1,29 +1,54 @@
 @if(isset($product))
-    @php($overallRating = \App\CPU\ProductManager::get_overall_rating($product->reviews))
-    <div class="flash_deal_product rtl" onclick="location.href='{{route('product',$product->slug)}}'">
-        @if($product->discount > 0)
-        <span class="for-discoutn-value p-1 pl-2 pr-2">
-            @if ($product->discount_type == 'percent')
-                {{round($product->discount,(!empty($decimal_point_settings) ? $decimal_point_settings: 0))}}%
-            @elseif($product->discount_type =='flat')
-                {{\App\CPU\Helpers::currency_converter($product->discount)}}
-            @endif {{translate('off')}}
-        </span>
+    @php($overallRating = getOverallRating($product?->reviews))
+    <div class="flash_deal_product get-view-by-onclick"
+         data-link="{{ route('product', $product->slug) }}">
+
+
+        @if(getProductPriceByType(product: $product, type: 'discount', result: 'value') > 0)
+            <span class="for-discount-value p-1 pl-2 pr-2 font-bold fs-13">
+               <span class="direction-ltr d-block">
+                   -{{ getProductPriceByType(product: $product, type: 'discount', result: 'string') }}
+               </span>
+           </span>
+        @else
+            <span class="for-discount-value-null"></span>
         @endif
-        <div class=" d-flex">
-            <div class="d-flex align-items-center justify-content-center"
-                 style="padding-{{Session::get('direction') === "rtl" ?'right:12px':'left:12px'}};padding-block:12px;">
+
+
+        <div class="d-flex">
+            <div class="d-flex align-items-center justify-content-center p-12px">
                 <div class="flash-deals-background-image">
-                    <img class="__img-125px"
-                     src="{{\App\CPU\ProductManager::product_image_path('thumbnail')}}/{{$product['thumbnail']}}"
-                     onerror="this.src='{{asset('public/assets/front-end/img/image-place-holder.png')}}'"/>
+                    <img loading="lazy" class="__img-125px" alt=""
+                         src="{{ getStorageImages(path: $product->thumbnail_full_url, type: 'product') }}">
                 </div>
             </div>
-            <div class="flash_deal_product_details pl-3 pr-3 pr-1 d-flex mt-3">
+
+
+            <div class="flash_deal_product_details pl-0 pr-3 pr-1 d-flex mt-3">
                 <div>
-                    @if($overallRating[0] != 0 )
+                    <div>
+                        <a href="{{ route('product', $product->slug) }}"
+                           class="flash-product-title text-capitalize fw-semibold">
+                            {{ $product['name'] }}
+                        </a>
+                    </div>
+
+
+                    <div class="d-flex flex-wrap gap-8 align-items-center row-gap-0">
+                        @if(getProductPriceByType(product: $product, type: 'discount', result: 'value') > 0)
+                            <del class="category-single-product-price">
+                                {{ webCurrencyConverter(amount: $product->unit_price) }}
+                            </del>
+                        @endif
+                        <span class="flash-product-price text-dark fw-semibold">
+                           {{ getProductPriceByType(product: $product, type: 'discounted_unit_price', result: 'string') }}
+                       </span>
+                    </div>
+
+
+                    @if($overallRating[0] != 0)
                         <div class="flash-product-review">
-                            @for($inc=1;$inc<=5;$inc++)
+                            @for($inc = 1; $inc <= 5; $inc++)
                                 @if ($inc <= (int)$overallRating[0])
                                     <i class="tio-star text-warning"></i>
                                 @elseif ($overallRating[0] != 0 && $inc <= (int)$overallRating[0] + 1.1 && $overallRating[0] > ((int)$overallRating[0]))
@@ -33,26 +58,10 @@
                                 @endif
                             @endfor
                             <label class="badge-style2">
-                                ( {{$product->reviews->count()}} )
+                                ( {{ count($product->reviews) }} )
                             </label>
                         </div>
                     @endif
-                    <div>
-                        <a href="{{route('product',$product->slug)}}" class="flash-product-title text-capitalize fw-semibold">
-                            {{ Str::limit($product['name'], 23) }}
-                        </a>
-                    </div>
-                    <div class="d-flex flex-wrap gap-8 align-items-center row-gap-0">
-                        @if($product->discount > 0)
-                            <strike
-                                style="font-size: 12px!important;color: #9B9B9B!important;">
-                                {{\App\CPU\Helpers::currency_converter($product->unit_price)}}
-                            </strike>
-                        @endif
-                        <span class="flash-product-price text-dark fw-semibold">
-                            {{\App\CPU\Helpers::currency_converter($product->unit_price-\App\CPU\Helpers::get_product_discount($product,$product->unit_price))}}
-                        </span>
-                    </div>
                 </div>
             </div>
         </div>

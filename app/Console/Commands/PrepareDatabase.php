@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\File;
 
 class PrepareDatabase extends Command
 {
@@ -37,7 +36,7 @@ class PrepareDatabase extends Command
      *
      * @return int
      */
-    public function handle()
+    public function handle(): int
     {
         Artisan::call('debugbar:clear');
         $routes = base_path('app/Providers/RouteServiceProvider.php');

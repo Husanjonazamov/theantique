@@ -24,7 +24,7 @@
             },
             maxCount:          '',
             maxFileSize:       '',
-            allowedExt:        'png|jpg|jpeg|gif',
+            allowedExt:        'png|jpg|jpeg|gif|webp',
             onAddRow:          function() {},
             onRenderedPreview: function() {},
             onRemoveRow:       function() {},
@@ -67,11 +67,11 @@
                                         `${uploadLoaderIcon}` +
                                     `</div>`+
                                     `<label class="file_upload" style="width: 100%; height: ${rowHeight}; border: 2px dashed #ddd; border-radius: 3px; cursor: pointer; text-align: center; overflow: hidden; padding: 5px; margin-top: 5px; margin-bottom : 5px; position : relative; display: flex; align-items: center; margin: auto; justify-content: center; flex-direction: column;">`+
-                                        `<a href="javascript:void(0)" data-spartanindexremove="${count}" style="position: absolute !important; right : 3px; top: 3px; display : none; background : transparent; border-radius: 3px; width: 30px; height: 30px; line-height : 30px; text-align: center; text-decoration : none; color : #ff0700;" class="spartan_remove_row"><i class="tio-add-to-trash"></i></a>`+
+                                        `<a href="javascript:" data-spartanindexremove="${count}" style="position: absolute !important; right : 3px; top: 3px; display : none; background : transparent; border-radius: 3px; width: 30px; height: 30px; line-height : 30px; text-align: center; text-decoration : none; color : #FFF;justify-content: center;align-items: center;" class="spartan_remove_row"><i class="fi fi-sr-cross-small"></i></a>`+
                                         `<img style="width: ${placeholderImageWidth}; margin: 0 auto; vertical-align: middle;" data-spartanindexi="${count}" src="${placeholderImageTarget}" class="spartan_image_placeholder" /> `+
                                         `<p data-spartanlbldropfile="${count}" style="color : #5FAAE1; display: none; width : auto; ">${dropFileLabel}</p>`+
                                         `<img style="width: 100%; vertical-align: middle; display:none;" class="img_" data-spartanindeximage="${count}">`+
-                                        `<input class="form-control spartan_image_input" accept="image/*" data-spartanindexinput="${count}" style="display : none"  name="${fieldName}" type="file">`+
+                                        `<input class="form-control spartan_image_input" accept=".jpeg,.png,.jpg,.webp" data-spartanindexinput="${count}" style="display : none"  name="${fieldName}" type="file">`+
                                    `</label> `+
                                 `</div>`+
                            `</div>`;

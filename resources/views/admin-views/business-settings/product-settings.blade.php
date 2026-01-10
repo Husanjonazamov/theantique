@@ -1,114 +1,221 @@
-@extends('layouts.back-end.app')
+@extends('layouts.admin.app')
 
 @section('title', translate('product_settings'))
 
-@push('css_or_js')
-    <link href="{{ asset('public/assets/select2/css/select2.min.css')}}" rel="stylesheet">
-    <link href="{{ asset('public/assets/back-end/css/custom.css')}}" rel="stylesheet">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-@endpush
-
 @section('content')
     <div class="content container-fluid">
-        <!-- Page Title -->
-        <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
+        <div class="mb-3 mb-sm-20">
             <h2 class="h1 mb-0 text-capitalize d-flex align-items-center gap-2">
-                <img src="{{asset('/public/assets/back-end/img/business-setup.png')}}" alt="">
-                {{translate('business_Setup')}}
+                {{ translate('business_Setup') }}
             </h2>
-
-            <div class="btn-group">
-                <div class="ripple-animation" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18" fill="none" class="svg replaced-svg">
-                        <path d="M9.00033 9.83268C9.23644 9.83268 9.43449 9.75268 9.59449 9.59268C9.75449 9.43268 9.83421 9.2349 9.83366 8.99935V5.64518C9.83366 5.40907 9.75366 5.21463 9.59366 5.06185C9.43366 4.90907 9.23588 4.83268 9.00033 4.83268C8.76421 4.83268 8.56616 4.91268 8.40616 5.07268C8.24616 5.23268 8.16644 5.43046 8.16699 5.66602V9.02018C8.16699 9.25629 8.24699 9.45074 8.40699 9.60352C8.56699 9.75629 8.76477 9.83268 9.00033 9.83268ZM9.00033 13.166C9.23644 13.166 9.43449 13.086 9.59449 12.926C9.75449 12.766 9.83421 12.5682 9.83366 12.3327C9.83366 12.0966 9.75366 11.8985 9.59366 11.7385C9.43366 11.5785 9.23588 11.4988 9.00033 11.4993C8.76421 11.4993 8.56616 11.5793 8.40616 11.7393C8.24616 11.8993 8.16644 12.0971 8.16699 12.3327C8.16699 12.5688 8.24699 12.7668 8.40699 12.9268C8.56699 13.0868 8.76477 13.1666 9.00033 13.166ZM9.00033 17.3327C7.84755 17.3327 6.76421 17.1138 5.75033 16.676C4.73644 16.2382 3.85449 15.6446 3.10449 14.8952C2.35449 14.1452 1.76088 13.2632 1.32366 12.2493C0.886437 11.2355 0.667548 10.1521 0.666992 8.99935C0.666992 7.84657 0.885881 6.76324 1.32366 5.74935C1.76144 4.73546 2.35505 3.85352 3.10449 3.10352C3.85449 2.35352 4.73644 1.7599 5.75033 1.32268C6.76421 0.88546 7.84755 0.666571 9.00033 0.666016C10.1531 0.666016 11.2364 0.884905 12.2503 1.32268C13.2642 1.76046 14.1462 2.35407 14.8962 3.10352C15.6462 3.85352 16.24 4.73546 16.6778 5.74935C17.1156 6.76324 17.3342 7.84657 17.3337 8.99935C17.3337 10.1521 17.1148 11.2355 16.677 12.2493C16.2392 13.2632 15.6456 14.1452 14.8962 14.8952C14.1462 15.6452 13.2642 16.2391 12.2503 16.6768C11.2364 17.1146 10.1531 17.3332 9.00033 17.3327ZM9.00033 15.666C10.8475 15.666 12.4206 15.0168 13.7195 13.7185C15.0184 12.4202 15.6675 10.8471 15.667 8.99935C15.667 7.15213 15.0178 5.57907 13.7195 4.28018C12.4212 2.98129 10.8481 2.33213 9.00033 2.33268C7.1531 2.33268 5.58005 2.98185 4.28116 4.28018C2.98227 5.57852 2.3331 7.15157 2.33366 8.99935C2.33366 10.8466 2.98283 12.4196 4.28116 13.7185C5.57949 15.0174 7.15255 15.6666 9.00033 15.666Z" fill="currentColor"></path>
-                    </svg>
-                </div>
-
-
-                <div class="dropdown-menu dropdown-menu-right bg-aliceblue border border-color-primary-light p-4 dropdown-w-lg">
-                    <div class="d-flex align-items-center gap-2 mb-3">
-                        <img width="20" src="{{asset('/public/assets/back-end/img/note.png')}}" alt="">
-                        <h5 class="text-primary mb-0">{{translate('note')}}</h5>
-                    </div>
-                    <p class="title-color font-weight-medium mb-0">{{ translate('please_click_save_information_button_below_to_save_all_the_changes') }}</p>
-                </div>
-            </div>
         </div>
-        <!-- End Page Title -->
-
-        <!-- Inlile Menu -->
         @include('admin-views.business-settings.business-setup-inline-menu')
-        <!-- End Inlile Menu -->
 
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0 text-capitalize d-flex gap-2">
-                    <img width="20" src="{{asset('/public/assets/back-end/img/product_setup.png')}}" alt="">
-                    {{translate('product_Setup')}}
-                </h5>
-            </div>
-            <div class="card-body">
-                <form action="{{ route('admin.product-settings.update-product-settings') }}" method="post" enctype="multipart/form-data">
-                    @csrf
-                    <div class="row align-items-end">
-                        @php($stock_limit=\App\Model\BusinessSetting::where('type','stock_limit')->first())
-                        <div class="col-md-6 col-lg-4">
-                            <div class="form-group">
-                                <div class="d-flex gap-2">
-                                    <label class="title-color d-flex" for="stock_limit">{{translate('Re-Order_Level')}}</label>
-                                    <span class="input-label-secondary cursor-pointer" data-toggle="tooltip" data-placement="right" title="{{translate('set_the_stock_limit_for_the_Reorder_level')}}
-                                    {{translate ('sellers_can_see_all_products_that_need_to_be_re_stocked_in_a_section_when_they_reach_this_ReOrder_Level')}}">
-                                        <img width="16" src="{{asset('/public/assets/back-end/img/info-circle.svg')}}" alt="">
-                                    </span>
-                                </div>
-                                <input class="form-control" type="text" name="stock_limit" id="stock_limit" value="{{ $stock_limit->value??"" }}"
-                                        placeholder="{{translate('ex')}} : {{translate('10')}}">
-                            </div>
-                        </div>
-                        <div class="col-md-6 col-lg-4">
-                            <div class="form-group">
-                                <div class="d-flex justify-content-between align-items-center gap-10 form-control">
-                                    <span class="title-color">
-                                        {{translate('sell_Digital_product')}}
-                                        <span class="input-label-secondary cursor-pointer" data-toggle="tooltip" data-placement="right" title="{{translate('if_enabled_sellers_can_sell_digital_products') }} ({{ translate('software') }}, {{ translate('ebooks') }}, {{ translate('activation_keys') }}, JPG, PNG, etc.) {{ translate('in_their_shops') }}">
-                                            <img width="16" src="{{asset('/public/assets/back-end/img/info-circle.svg')}}" alt="">
+        <form action="{{ route('admin.business-settings.product-settings.index') }}" method="post" enctype="multipart/form-data">
+            @csrf
+
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="mb-3 mb-sm-20">
+                        <h3>{{ translate('General_Setup') }}</h3>
+                        <p class="mb-0 fs-12">
+                            {{ translate('Manage_digital_products_and_brands_visibility_preferences_for_the_shops') }}
+                        </p>
+                    </div>
+                    <div class="bg-section-sm">
+                        <div class="row g-4">
+                            <div class="col-xl-6 col-md-6">
+                                <div
+                                    class="border rounded p-3 user-select-none h-100 bg-white d-flex flex-column justify-content-between gap-2">
+                                   <div class="d-flex justify-content-between align-items-start gap-3">
+                                        <div>
+                                            <div class="fw-medium text-dark fs-14 mb-1">{{ translate('Sell_Digital_Product') }}
+                                            </div>
+                                            <p class="mb-0 fs-12">
+                                                {{ translate('if_this_option_is_enabled_vendors_can_sell_digital_products_(such_as_software,_ebooks,_activation_keys,_jpg,_png_etc.)_in_their_shops.') }}
+                                            </p>
+                                        </div>
+                                        <label class="switcher" for="digital-product">
+                                            <input
+                                                class="switcher_input custom-modal-plugin"
+                                                type="checkbox" value="1" name="digital_product"
+                                                id="digital-product"
+                                                {{ $digitalProduct && $digitalProduct['value'] ? 'checked' : '' }}
+                                                data-modal-type="input-change"
+                                                data-on-image="{{ dynamicAsset(path: 'public/assets/new/back-end/img/modal/digital-product-on.png') }}"
+                                                data-off-image="{{ dynamicAsset(path: 'public/assets/new/back-end/img/modal/digital-product-off.png') }}"
+                                                data-on-title = "{{ translate('want_to_Turn_ON_Digital_Product') . '?' }}"
+                                                data-off-title = "{{ translate('want_to_Turn_OFF_Digital_Product') . '?' }}"
+                                                data-on-message = "<p>{{ translate('if_enabled_vendors_can_sell_digital_products_in_their_shops') }}</p>"
+                                                data-off-message = "<p>{{ translate('if_disabled_vendors_can_not_sell_digital_products_in_their_shops') }}</p>"
+                                                data-on-button-text="{{ translate('turn_on') }}"
+                                                data-off-button-text="{{ translate('turn_off') }}">
+                                            <span class="switcher_control"></span>
+                                        </label>
+                                   </div>
+                                    <div class="bg-info bg-opacity-10 fs-12 px-12 py-10 text-dark rounded d-flex gap-2 align-items-center">
+                                        <i class="fi fi-sr-bulb text-info fs-16"></i>
+                                       <span>
+                                            {{ translate('to_add_new_digital_product_for_your_shop_visit') }}
+                                            <a href="{{ route('admin.products.add') }}" target="_blank" class="text-decoration-underline fw-semibold">{{ translate('Add_New_Product') }}</a>
+                                            {{ translate('page') }}.
                                         </span>
-                                    </span>
-
-                                    <label class="switcher" for="digital_product">
-                                        <input type="checkbox" class="switcher_input" value="1" name="digital_product" id="digital_product" {{ $digital_product ? 'checked':'' }} onclick="toogleModal(event,'digital_product','digital-product-on.png','digital-product-off.png','{{translate('want_to_Turn_ON_Digital_Product')}}?','{{translate('want_to_Turn_OFF_Digital_Product')}}?',`<p>{{translate('if_enabled_sellers_can_sell_digital_products_in_their_shops')}}</p>`,`<p>{{translate('if_disabled_sellers_can_not_sell_digital_products_in_their_shops')}}</p>`)">
-                                        <span class="switcher_control"></span>
-                                    </label>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-6 col-lg-4">
-                            <div class="form-group">
-                                <div class="d-flex justify-content-between align-items-center gap-10 form-control">
-                                    <span class="title-color">
-                                        {{translate('show_brand')}}
-                                        <span class="input-label-secondary cursor-pointer" data-toggle="tooltip" data-placement="right" title="{{translate('if_enabled_customers_can_see_brands_on_the_app_and_website')}}. {{translate('they_can_browse_and_search_for_products_from_each_brand_inside_any_shop')}}">
-                                            <img width="16" src="{{asset('/public/assets/back-end/img/info-circle.svg')}}" alt="">
+                            <div class="col-xl-6 col-md-6">
+                                <label
+                                    class="border rounded p-3 user-select-none h-100 bg-white d-flex flex-column justify-content-between gap-2">
+                                    <div class="d-flex justify-content-between align-items-start gap-3">
+                                        <span>
+                                            <div class="fw-medium text-dark fs-14 mb-1">{{ translate('show_brand') }}
+                                            </div>
+                                            <p class="mb-0 fs-12">
+                                                {{ translate('if_enabled_customers_can_see_brands_and_they_can_browse_and_search_for_products_from_each_brand_inside_any_shop') }}.
+                                            </p>
                                         </span>
-                                    </span>
-
-                                    <label class="switcher" for="product_brand">
-                                        <input type="checkbox" class="switcher_input" value="1" name="product_brand" id="product_brand" {{ $brand ? 'checked':'' }}
-                                        onclick="toogleModal(event,'product_brand','product-brand-on.png','product-brand-off.png','{{translate('want_to_Turn_ON_Product_Brand')}}?','{{translate('want_to_Turn_OFF_Product_Brand')}}?',`<p>{{translate('if_enabled_customers_can_see_brands_on_the_app_and_website')}}</p>`,`<p>{{translate('if_disabled_brand_section_will_be_hidden_from_the_customer_app_and_website')}}</p>`)">
-                                        <span class="switcher_control"></span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-12">
-                            <div class="d-flex justify-content-end">
-                                <button type="submit" class="btn btn--primary px-4">{{translate('save')}}</button>
+                                        <label class="switcher" for="product-brand">
+                                            <input
+                                                class="switcher_input custom-modal-plugin"
+                                                type="checkbox" value="1" name="product_brand"
+                                                id="product-brand"
+                                                {{ $brand && $brand['value'] ? 'checked' : '' }}
+                                                data-modal-type="input-change"
+                                                data-on-image="{{ dynamicAsset(path: 'public/assets/new/back-end/img/modal/product-brand-on.png') }}"
+                                                data-off-image="{{ dynamicAsset(path: 'public/assets/new/back-end/img/modal/product-brand-off.png') }}"
+                                                data-on-title = "{{ translate('Do_You_Want_to_Show_Brands') . '?' }}"
+                                                data-off-title = "{{ translate('Do_You_Want_to_Hide_Brands') . '?' }}"
+                                                data-on-message = "<p>{{ translate('If_enabled_customers_can_see_brands_and_they_can_browse_and_search_for_products_from_each_brand_inside_any_shop.') }}</p>"
+                                                data-off-message = "<p>{{ translate('if_disabled_brand_section_will_be_hidden_from_the_customer_app_and_website') }}</p>"
+                                                data-on-button-text="{{ translate('turn_on') }}"
+                                                data-off-button-text="{{ translate('turn_off') }}">
+                                            <span class="switcher_control"></span>
+                                        </label>
+                                    </div>
+                                    <div
+                                            class="bg-info bg-opacity-10 fs-12 px-12 py-10 text-dark rounded d-flex gap-2 align-items-center">
+                                            <i class="fi fi-sr-bulb text-info fs-16"></i>
+                                            <span>
+                                                {{ translate('you_can_manage_all_brands_from_this_page') }}
+                                                <a href="{{ route('admin.brand.list') }}" target="_blank" class="text-decoration-underline fw-semibold">{{ translate('Brand_List') }}</a>.
+                                            </span>
+                                        </div>
+                                </label>
                             </div>
                         </div>
                     </div>
-                </form>
+                </div>
             </div>
-        </div>
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="mb-3 mb-sm-20">
+                        <h3>{{ translate('need_Product_Approval') }}</h3>
+                        <p class="mb-0 fs-12">
+                            {{ translate('choose_in_which_cases_need_approval_for_the_vendor_products') }}
+                        </p>
+                    </div>
+                    @php($newProductApproval = getWebConfig('new_product_approval'))
+                    @php($productWiseShippingCostApproval = getWebConfig('product_wise_shipping_cost_approval'))
+                    <div class="bg-section-sm">
+                        <div class="bg-white p-3 rounded border">
+                            <div class="row g-4">
+                                <div class="col-xl-6 col-md-6">
+                                    <div class="form-check d-flex gap-10">
+                                        <input class="form-check-input checkbox--input checkbox--input-lg" type="checkbox" name="new_product_approval"
+                                            id="new-product-approval" value="1" {{$newProductApproval == 1 ? 'checked': ''}}>
+                                        <div class="flex-grow-1">
+                                            <label for="new-product-approval"
+                                                class="form-label text-dark fw-semibold mb-1 user-select-none">
+                                                {{ translate('new_Product') }}
+                                            </label>
+                                            <p class="fs-12 mb-0">
+                                                {{ translate('if_you_checked') }}
+                                                <span class="fw-semibold">{{ translate('New_Product') }}</span>,
+                                                {{ translate('vendors_need_admin_approval_to_add_new_product_to_their_shop') }}.
+                                            </p>
+                                            <div
+                                                class="bg-info bg-opacity-10 fs-12 px-12 py-10 text-dark rounded d-flex gap-2 align-items-center mt-2">
+                                                <i class="fi fi-sr-bulb text-info fs-16"></i>
+                                                <span>
+                                                    {{ translate('you_can_see_all_the_request_from') }}
+                                                    <a href="{{route('admin.products.list',['vendor', 'request_status'=>'0'])}}" target="_blank" class="text-decoration-underline fw-semibold">{{ translate('new_products_request') }}</a>
+                                                    {{ translate('page') }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-xl-6 col-md-6">
+                                    <div class="form-check d-flex gap-10">
+                                        <input class="form-check-input checkbox--input checkbox--input-lg" name="product_wise_shipping_cost_approval" type="checkbox" id="product-wise-shipping" value="1" {{$productWiseShippingCostApproval == 1 ? 'checked' : '' }}>
+                                        <div class="flex-grow-1">
+                                            <label for="product-wise-shipping" class="form-label text-dark fw-semibold mb-1 user-select-none d-flex gap-1 align-items-center">
+                                                {{ translate('Update_Product_Wise_Shipping_Cost') }}
 
+                                                <span class="tooltip-icon d-flex" data-bs-toggle="tooltip"
+                                                      data-bs-placement="right" data-bs-title="{{ translate('vendors_will_need_approval_to_update_shipping_costs_for_each_product.') }}">
+                                                            <i class="fi fi-sr-triangle-warning text-warning"></i>
+                                                </span>
+                                            </label>
+                                            <p class="fs-12 mb-0">
+                                                {{ translate('vendors_need_approval_from_the_admin_before_their_updated_shipping_cost_is_applied.') }}
+                                            </p>
+                                            <div
+                                                class="bg-info bg-opacity-10 fs-12 px-12 py-10 text-dark rounded d-flex gap-2 align-items-center mt-2">
+                                                <i class="fi fi-sr-bulb text-info fs-16"></i>
+                                                <span>
+                                                    {{ translate('shipping_cost_updates_require_admin_approval_before_going_live') }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <div class="mb-3 mb-sm-20">
+                        <h3>{{ translate('Re-order_Level') }}</h3>
+                        <p class="mb-0 fs-12">
+                            {{ translate('choose_in_which_cases_need_approval_for_the_vendor_products') }}
+                        </p>
+                    </div>
+                    <div class="p-12 p-sm-20 bg-section rounded">
+                        <div class="row g-4 align-items-center">
+                            <div class="col">
+                                <h4>{{ translate('Re-order_Level_Amount') }}</h4>
+                                <p>{{ translate('Set_the_stock_limit_for_the_reorder_level_vendors_can_see_all_products_that_need_to_be_restocked_in_a_section_when_they_reach_this_re-order_level') }}</p>
+                            </div>
+                            <div class="col">
+                                <div class="form-group">
+                                    <input type="number" class="form-control" name="stock_limit"
+                                           id="stock_limit"
+                                           placeholder="{{ translate('ex') . ': ' . '100' }}"
+                                           value="{{ $stockLimit->value }}" min="0">
+                                    <p class="mt-1 mb-0">
+                                        {{ translate('Set_the_stock_limit_for_the_reorder_level.') }}.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end trans3 mt-4">
+                <div class="d-flex justify-content-sm-end justify-content-center gap-3 flex-grow-1 flex-grow-sm-0 bg-white action-btn-wrapper trans3">
+                    <button type="reset" class="btn btn-secondary px-3 px-sm-4 w-120">
+                        {{ translate('reset') }}
+                    </button>
+                    <button type="submit" class="btn btn-primary px-3 px-sm-4">
+                        <i class="fi fi-sr-disk"></i>
+                        {{ translate('save_information') }}
+                    </button>
+                </div>
+            </div>
+        </form>
     </div>
+    @include("layouts.admin.partials.offcanvas._product-settings")
 @endsection

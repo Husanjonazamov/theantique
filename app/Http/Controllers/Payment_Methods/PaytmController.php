@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Payment_Methods;
 
 
-use App\Model\PaymentRequest;
+use App\Models\PaymentRequest;
 use App\Models\User;
 use App\Traits\Processor;
 use Illuminate\Contracts\Foundation\Application;
@@ -33,7 +33,7 @@ class PaytmController extends Controller
         } elseif (!is_null($config) && $config->mode == 'test') {
             $this->config_values = json_decode($config->test_values);
         }
-        if (isset($paytm)) {
+        if (isset($config)) {
 
             $PAYTM_STATUS_QUERY_NEW_URL = 'https://securegw-stage.paytm.in/merchant-status/getTxnStatus';
             $PAYTM_TXN_URL = 'https://securegw-stage.paytm.in/theia/processTransaction';

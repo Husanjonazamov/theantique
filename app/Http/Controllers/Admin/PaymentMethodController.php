@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\CPU\Helpers;
-use App\Model\Setting;
-use App\Model\Currency;
-use App\Traits\Processor;
-use Illuminate\Http\Request;
-use App\Model\BusinessSetting;
-use function App\CPU\translate;
-use Illuminate\Support\Facades\DB;
+use App\Enums\GlobalConstant;
 use App\Http\Controllers\Controller;
-use Brian2694\Toastr\Facades\Toastr;
+use App\Models\Setting;
+use App\Models\BusinessSetting;
+use App\Traits\Processor;
+use Devrabiul\ToastMagic\Facades\ToastMagic;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -19,13 +18,10 @@ class PaymentMethodController extends Controller
 {
     use Processor;
 
-    public function index()
+    public function index(): View
     {
-
-        $payment_published_status = config('get_payment_publish_status') ?? 0;
-        $payment_gateway_published_status = isset($payment_published_status[0]['is_published']) ? $payment_published_status[0]['is_published'] : 0;
-
-        $payment_gateways = Setting::whereIn('settings_type', ['payment_config'])->whereIn('key_name', Helpers::default_payment_gateways())->get();
+        $paymentGatewayPublishedStatus = config('get_payment_publish_status') ?? 0;
+        $payment_gateways = Setting::whereIn('settings_type', ['payment_config'])->whereIn('key_name', GlobalConstant::DEFAULT_PAYMENT_GATEWAYS)->get();
 
         $payment_gateways = $payment_gateways->sortBy(function ($item) {
             return count($item['live_values']);
@@ -45,7 +41,7 @@ class PaymentMethodController extends Controller
         }
 
         return view('admin-views.business-settings.payment-method.index',
-            compact('payment_gateways', 'payment_gateway_published_status','payment_url'));
+            compact('payment_gateways', 'paymentGatewayPublishedStatus', 'payment_url'));
     }
 
     public function update(Request $request)
@@ -65,14 +61,15 @@ class PaymentMethodController extends Controller
             'value' => json_encode(['status' => $request['offline_payment'] ?? 0]),
             'updated_at' => now()
         ]);
-
-        Toastr::success(translate('successfully_updated'));
+        clearWebConfigCacheKeys();
+        ToastMagic::success(translate('successfully_updated'));
         return back();
     }
 
     /**
      * Display a listing of the resource.
      * @param Request $request
+     * @return RedirectResponse
      * @throws ValidationException
      */
     public function payment_config_set(Request $request)
@@ -345,7 +342,7 @@ class PaymentMethodController extends Controller
             'additional_data' => json_encode($payment_additional_data),
         ]);
 
-        Toastr::success(GATEWAYS_DEFAULT_UPDATE_200['message']);
+        ToastMagic::success(GATEWAYS_DEFAULT_UPDATE_200['message']);
         return back();
     }
 }

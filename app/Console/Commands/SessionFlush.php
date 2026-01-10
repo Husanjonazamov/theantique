@@ -35,13 +35,12 @@ class SessionFlush extends Command
     /**
      * Execute the console command.
      *
-     * @return int
+     * @return void
      */
-    public function handle()
+    public function handle(): void
     {
         Session::getHandler()->gc(0);
         Artisan::call('cache:clear');
         Artisan::call('debugbar:clear');
-        //DB::table('sessions')->truncate();
     }
 }
