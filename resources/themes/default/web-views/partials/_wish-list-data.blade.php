@@ -22,7 +22,7 @@
                             <div class="font-name">
                                 <a class="fs-12 font-semibold line-height-16" href="{{route('product',$product['slug'])}}">{{$product['name']}}</a>
                             </div>
-                            @if($brand_setting && $product->product_type != 'digital' && $product->brand)
+                            @if($brand_setting && $product->product_type != 'digital' && $product->brand && !empty($product->brand['slug']))
                                 <span class="sellerName fs-12">
                                 {{ translate('brand') }} :
                                 <a href="{{ route('brand-products', ['slug' => $product->brand['slug']]) }}"

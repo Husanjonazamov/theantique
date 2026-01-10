@@ -48,10 +48,12 @@
         @if(count($brands) > 0)
             <div class="brand_div-wrap">
                 @foreach($brands as $brand)
-                    <a href="{{ route('brand-products', ['slug' => $brand['slug']]) }}" class="brand_div">
-                        <img alt="{{$brand->image_alt_text ?? $brand->name}}" src="{{ getStorageImages(path: $brand->image_full_url, type: 'brand') }}">
-                        <div>{{ $brand->name }}</div>
-                    </a>
+                    @if(!empty($brand['slug']))
+                        <a href="{{ route('brand-products', ['slug' => $brand['slug']]) }}" class="brand_div">
+                            <img alt="{{$brand->image_alt_text ?? $brand->name}}" src="{{ getStorageImages(path: $brand->image_full_url, type: 'brand') }}">
+                            <div>{{ $brand->name }}</div>
+                        </a>
+                    @endif
                 @endforeach
             </div>
         @else

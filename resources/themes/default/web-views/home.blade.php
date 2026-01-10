@@ -194,16 +194,18 @@
                     <div class="owl-carousel owl-theme p-2 brands-slider" data-slide-items="{{ count($brands) }}">
                         @php($brandCount=0)
                         @foreach($brands as $brand)
-                            @if($brandCount < 15)
-                                <div class="text-center">
-                                    <a href="{{ route('brand-products', ['slug' => $brand['slug']]) }}"
-                                       class="__brand-item">
-                                        <img loading="lazy" alt="{{ $brand->image_alt_text }}"
-                                             src="{{ getStorageImages(path: $brand->image_full_url, type: 'brand') }}">
-                                    </a>
-                                </div>
+                            @if(!empty($brand['slug']))
+                                @if($brandCount < 15)
+                                    <div class="text-center">
+                                        <a href="{{ route('brand-products', ['slug' => $brand['slug']]) }}"
+                                           class="__brand-item">
+                                            <img loading="lazy" alt="{{ $brand->image_alt_text }}"
+                                                 src="{{ getStorageImages(path: $brand->image_full_url, type: 'brand') }}">
+                                        </a>
+                                    </div>
+                                    @php($brandCount++)
+                                @endif
                             @endif
-                            @php($brandCount++)
                         @endforeach
                     </div>
                 </div>

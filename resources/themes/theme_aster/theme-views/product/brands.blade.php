@@ -64,6 +64,7 @@
                 <div class="card-body">
                     <div class="auto-col xxl-items-6 justify-content-center gap-3 max-sm-grid-col-2">
                         @foreach($brands as $brand)
+                        @if(!empty($brand['slug']))
                         <div class="brand-item grid-center">
                             <div class="hover__action">
                                 <a href="{{ route('brand-products', ['slug' => $brand['slug']]) }}" class="eye-btn mx-auto mb-3">
@@ -78,6 +79,7 @@
                                  src="{{ getStorageImages(path:$brand->image_full_url, type:'brand') }}" alt="{{ $brand->image_alt_text ?? $brand->name}}">
                             <h6 class="mt-2 text-center">{{$brand->name}}</h6>
                         </div>
+                        @endif
                         @endforeach
                     </div>
 

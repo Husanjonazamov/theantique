@@ -18,7 +18,11 @@
             <div class="no-data-found text-muted" style="display:none;">{{ translate('No_Data_Found') }}</div>
             @foreach($productBrands as $brand)
                 <?php
-                    $brandRoute = route('brand-products', ['slug' => $brand['slug'], 'offer_type' => ($data['offer_type'] ?? ''), 'page' => 1]);
+                    if (!empty($brand['slug'])) {
+                        $brandRoute = route('brand-products', ['slug' => $brand['slug'], 'offer_type' => ($data['offer_type'] ?? ''), 'page' => 1]);
+                    } else {
+                        $brandRoute = '#';
+                    }
                 ?>
                 <ul class="brand mt-2 p-0 for-brand-hover {{ session('direction') === "rtl" ? 'mr-2' : ''}}" id="brand">
                     <li class="flex-between get-view-by-onclick cursor-pointer {{ request('brand_id') == $brand['id'] ? 'text-primary' : '' }}"

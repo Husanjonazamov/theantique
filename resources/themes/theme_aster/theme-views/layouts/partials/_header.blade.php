@@ -330,7 +330,7 @@
                                         @php($brandIndex=0)
                                         @foreach($brands as $brand)
                                             @php($brandIndex++)
-                                            @if($brandIndex < 10)
+                                            @if($brandIndex < 10 && !empty($brand['slug']))
                                                 <li>
                                                     <a href="{{ route('brand-products',['slug' => $brand['slug']]) }}">
                                                         {{ $brand->name }}
@@ -574,7 +574,7 @@
                                                 @php($brandSecondIndex=0)
                                                 @foreach($brands as $brand)
                                                     @php($brandSecondIndex++)
-                                                    @if($brandSecondIndex < 10)
+                                                    @if($brandSecondIndex < 10 && !empty($brand['slug']))
                                                         <a href="{{ route('brand-products', ['slug' => $brand['slug']]) }}"
                                                            class="media gap-3 align-items-center border-bottom">
                                                             <div class="avatar rounded-circle size-1-25rem">

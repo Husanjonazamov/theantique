@@ -339,7 +339,7 @@
                                     @php($brandIndex=0)
                                     @foreach(\App\Utils\BrandManager::getActiveBrandWithCountingAndPriorityWiseSorting() as $brand)
                                         @php($brandIndex++)
-                                        @if($brandIndex < 10)
+                                        @if($brandIndex < 10 && !empty($brand['slug']))
                                             <li class="__inline-17">
                                                 <div>
                                                     <a class="dropdown-item"

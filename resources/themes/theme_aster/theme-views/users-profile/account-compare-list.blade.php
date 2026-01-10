@@ -95,7 +95,7 @@
                                                     <th class="fw-semibold w-25">{{ translate('brand') }}</th>
                                                     @foreach ($compareLists as $compareList)
                                                         @if ($web_config['brand_setting'])
-                                                            @if(isset($compareList->product->brand->image))
+                                                            @if(isset($compareList->product->brand->image) && !empty($compareList->product->brand['slug']))
                                                                 <td>
                                                                     <a href="{{ route('brand-products', ['slug' => $compareList->product->brand['slug']]) }}">
                                                                         <img width="48" class="rounded dark-support" alt=""

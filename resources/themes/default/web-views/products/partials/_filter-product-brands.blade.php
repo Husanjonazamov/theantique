@@ -18,12 +18,16 @@
             <div class="no-data-found text-muted" style="display:none;">{{ translate('No_Data_Found') }}</div>
             @foreach($productBrands as $brand)
                 <?php
-                    if (isset($dataFrom) && $dataFrom == 'shop-view' && isset($shopSlug)) {
-                        $brandRoute = route('vendor-shop', ['slug' => $shopSlug, 'brand_id' => $brand['id'],'data_from' => 'brand', 'offer_type' => ($data['offer_type'] ?? ''), 'page' => 1]);
-                    } else if (isset($dataFrom) && $dataFrom == 'flash-deals') {
-                        $brandRoute = route('flash-deals', ['id' => ($web_config['flash_deals']['id'] ?? 0), 'brand_id' => $brand['id'],'data_from'=>'brand', 'offer_type' => ($data['offer_type'] ?? ''), 'page' => 1]);
+                    if (!empty($brand['slug'])) {
+                        if (isset($dataFrom) && $dataFrom == 'shop-view' && isset($shopSlug)) {
+                            $brandRoute = route('vendor-shop', ['slug' => $shopSlug, 'brand_id' => $brand['id'],'data_from' => 'brand', 'offer_type' => ($data['offer_type'] ?? ''), 'page' => 1]);
+                        } else if (isset($dataFrom) && $dataFrom == 'flash-deals') {
+                            $brandRoute = route('flash-deals', ['id' => ($web_config['flash_deals']['id'] ?? 0), 'brand_id' => $brand['id'],'data_from'=>'brand', 'offer_type' => ($data['offer_type'] ?? ''), 'page' => 1]);
+                        } else {
+                            $brandRoute = route('brand-products', ['slug' => $brand['slug'], 'offer_type' => ($data['offer_type'] ?? ''), 'page' => 1]);
+                        }
                     } else {
-                        $brandRoute = route('brand-products', ['slug' => $brand['slug'], 'offer_type' => ($data['offer_type'] ?? ''), 'page' => 1]);
+                        $brandRoute = '#';
                     }
                 ?>
                 <ul class="brand mt-2 p-0 for-brand-hover {{ session('direction') === "rtl" ? 'mr-2' : ''}}" id="brand">
