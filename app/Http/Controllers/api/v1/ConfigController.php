@@ -20,29 +20,37 @@ class ConfigController extends Controller
     {
         $currency = Currency::all();
         $social_login = [];
-        foreach (Helpers::get_business_settings('social_login') as $social) {
-            $config = [
-                'login_medium' => $social['login_medium'],
-                'status' => (boolean)$social['status']
-            ];
-            array_push($social_login, $config);
+        $socialLoginData = Helpers::get_business_settings('social_login') ?? [];
+        if (is_array($socialLoginData) || is_object($socialLoginData)) {
+            foreach ($socialLoginData as $social) {
+                $config = [
+                    'login_medium' => $social['login_medium'],
+                    'status' => (boolean)$social['status']
+                ];
+                array_push($social_login, $config);
+            }
         }
 
-        foreach (Helpers::get_business_settings('apple_login') as $social) {
-            $config = [
-                'login_medium' => $social['login_medium'],
-                'status' => (boolean)$social['status']
-            ];
-            array_push($social_login, $config);
+        $appleLoginData = Helpers::get_business_settings('apple_login') ?? [];
+        if (is_array($appleLoginData) || is_object($appleLoginData)) {
+            foreach ($appleLoginData as $social) {
+                $config = [
+                    'login_medium' => $social['login_medium'],
+                    'status' => (boolean)$social['status']
+                ];
+                array_push($social_login, $config);
+            }
         }
 
-        $languages = Helpers::get_business_settings('pnc_language');
+        $languages = Helpers::get_business_settings('pnc_language') ?? [];
         $lang_array = [];
-        foreach ($languages as $language) {
-            array_push($lang_array, [
-                'code' => $language,
-                'name' => Helpers::get_language_name($language)
-            ]);
+        if (is_array($languages) || is_object($languages)) {
+            foreach ($languages as $language) {
+                array_push($lang_array, [
+                    'code' => $language,
+                    'name' => Helpers::get_language_name($language)
+                ]);
+            }
         }
 
         $offline_payment = null;

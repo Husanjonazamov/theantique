@@ -23,28 +23,37 @@ class ConfigController extends Controller
     public function configuration(): JsonResponse
     {
         $socialLoginConfig = [];
-        foreach (getWebConfig(name: 'social_login') as $social) {
-            $config = [
-                'login_medium' => $social['login_medium'],
-                'status' => (boolean)$social['status']
-            ];
-            $socialLoginConfig[] = $config;
+        $socialLogin = getWebConfig(name: 'social_login') ?? [];
+        if (is_array($socialLogin) || is_object($socialLogin)) {
+            foreach ($socialLogin as $social) {
+                $config = [
+                    'login_medium' => $social['login_medium'],
+                    'status' => (boolean)$social['status']
+                ];
+                $socialLoginConfig[] = $config;
+            }
         }
 
-        foreach (getWebConfig(name: 'apple_login') as $social) {
-            $config = [
-                'login_medium' => $social['login_medium'],
-                'status' => (boolean)$social['status']
-            ];
-            $socialLoginConfig[] = $config;
+        $appleLogin = getWebConfig(name: 'apple_login') ?? [];
+        if (is_array($appleLogin) || is_object($appleLogin)) {
+            foreach ($appleLogin as $social) {
+                $config = [
+                    'login_medium' => $social['login_medium'],
+                    'status' => (boolean)$social['status']
+                ];
+                $socialLoginConfig[] = $config;
+            }
         }
 
         $languageArray = [];
-        foreach (getWebConfig(name: 'pnc_language') as $language) {
-            $languageArray[] = [
-                'code' => $language,
-                'name' => Helpers::get_language_name($language)
-            ];
+        $pncLanguage = getWebConfig(name: 'pnc_language') ?? [];
+        if (is_array($pncLanguage) || is_object($pncLanguage)) {
+            foreach ($pncLanguage as $language) {
+                $languageArray[] = [
+                    'code' => $language,
+                    'name' => Helpers::get_language_name($language)
+                ];
+            }
         }
 
         $offlinePayment = null;
@@ -79,10 +88,12 @@ class ConfigController extends Controller
         $companyShopBanner = getWebConfig(name: 'shop_banner');
 
         $loginOptions = getLoginConfig(key: 'login_options');
-        $socialMediaLoginOptions = getLoginConfig(key: 'social_media_for_login');
+        $socialMediaLoginOptions = getLoginConfig(key: 'social_media_for_login') ?? [];
 
-        foreach ($socialMediaLoginOptions as $socialMediaLoginKey => $socialMediaLogin) {
-            $socialMediaLoginOptions[$socialMediaLoginKey] = (int)$socialMediaLogin;
+        if (is_array($socialMediaLoginOptions) || is_object($socialMediaLoginOptions)) {
+            foreach ($socialMediaLoginOptions as $socialMediaLoginKey => $socialMediaLogin) {
+                $socialMediaLoginOptions[$socialMediaLoginKey] = (int)$socialMediaLogin;
+            }
         }
 
         $customerLogin = [
