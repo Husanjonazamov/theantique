@@ -133,7 +133,7 @@ class ConfigController extends Controller
             'currency_list' => $currency,
             'currency_symbol_position' => Helpers::get_business_settings('currency_symbol_position') ?? 'right',
             'business_mode'=> Helpers::get_business_settings('business_mode'),
-            'maintenance_mode' => (boolean)Helpers::get_business_settings('maintenance_mode') ?? 0,
+            'maintenance_mode' => (boolean)(is_array(Helpers::get_business_settings('maintenance_mode')) ? 0 : Helpers::get_business_settings('maintenance_mode')) ?? 0,
             'language' => $lang_array,
             'colors' => Color::all(),
             'unit' => Helpers::units(),
