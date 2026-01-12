@@ -17,7 +17,7 @@
 @endif
 
 @php($categories = \App\Utils\CategoryManager::getCategoriesWithCountingAndPriorityWiseSorting(dataLimit: 11))
-@php($brands = \App\Utils\BrandManager::getActiveBrandWithCountingAndPriorityWiseSorting())
+@php($brands = \App\Utils\BrandManager::getActiveBrandWithCountingAndPriorityWiseSorting() ?? collect([]))
 <header class="header">
     <div class="header-top py-2">
         <div class="container">
@@ -323,7 +323,7 @@
                                     </ul>
                                 </li>
                             @endif
-                            @if($web_config['brand_setting'])
+                            @if($web_config['brand_setting'] && $brands)
                                 <li>
                                     <a href="javascript:">{{ translate('brands') }}</a>
                                     <ul class="sub_menu">
@@ -572,6 +572,7 @@
                                         <div class="d-flex gap-4">
                                             <div class="column-2">
                                                 @php($brandSecondIndex=0)
+                                                @if($brands)
                                                 @foreach($brands as $brand)
                                                     @php($brandSecondIndex++)
                                                     @if($brandSecondIndex < 10 && !empty($brand['slug']))
@@ -588,6 +589,7 @@
                                                         </a>
                                                     @endif
                                                 @endforeach
+                                                @endif
                                                 <div class="d-flex">
                                                     <a href="{{route('brands')}}"
                                                        class="fw-bold text-primary d-flex justify-content-center">{{ translate('view_all').'...' }}

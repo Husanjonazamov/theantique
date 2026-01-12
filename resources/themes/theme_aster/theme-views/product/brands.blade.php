@@ -63,6 +63,7 @@
             <div class="card">
                 <div class="card-body">
                     <div class="auto-col xxl-items-6 justify-content-center gap-3 max-sm-grid-col-2">
+                        @if($brands)
                         @foreach($brands as $brand)
                         @if(!empty($brand['slug']))
                         <div class="brand-item grid-center">
@@ -81,9 +82,10 @@
                         </div>
                         @endif
                         @endforeach
+                        @endif
                     </div>
 
-                    @if($brands->count()==0)
+                    @if(!$brands || $brands->count()==0)
                         <div class="d-flex flex-column justify-content-center align-items-center gap-2 py-3 w-100">
                             <img width="80" class="mb-3" src="{{ theme_asset('assets/img/empty-state/empty-brand.svg') }}" alt="">
                             <h5 class="text-center text-muted">{{ translate('there_is_no_Brand') }}.</h5>
@@ -93,8 +95,10 @@
             </div>
         </div>
 
+        @if($brands)
         <div class="card-footer border-0">
             {{$brands->links() }}
         </div>
+        @endif
     </main>
 @endsection

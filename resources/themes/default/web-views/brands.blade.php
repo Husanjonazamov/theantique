@@ -26,6 +26,7 @@
         </div>
         
         <!-- Products grid-->
+        @if($brands && count($brands) > 0)
         <div class="brand_div-wrap mb-4">
             @foreach($brands as $brand)
                 <a href="{{route('products',['id'=> $brand['id'],'data_from'=>'brand','page'=>1])}}" class="brand_div" data-toggle="tooltip" title="{{$brand->name}}">
@@ -41,6 +42,13 @@
                 </center>
             </div>
         </div>
+        @else
+        <div class="d-flex justify-content-center align-items-center pt-3">
+            <div class="d-flex flex-column justify-content-center align-items-center gap-3">
+                <h5 class="text-muted fs-14 font-semi-bold text-center">{{ translate('There_is_no_brands') }}</h5>
+            </div>
+        </div>
+        @endif
     </div>
 @endsection
 

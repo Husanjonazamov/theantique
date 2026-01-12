@@ -191,8 +191,9 @@
                 </div>
 
                 <div class="mt-sm-3 mb-0 brand-slider">
-                    <div class="owl-carousel owl-theme p-2 brands-slider" data-slide-items="{{ count($brands) }}">
+                    <div class="owl-carousel owl-theme p-2 brands-slider" data-slide-items="{{ $brands ? count($brands) : 0 }}">
                         @php($brandCount=0)
+                        @if($brands)
                         @foreach($brands as $brand)
                             @if(!empty($brand['slug']))
                                 @if($brandCount < 15)
@@ -207,6 +208,7 @@
                                 @endif
                             @endif
                         @endforeach
+                        @endif
                     </div>
                 </div>
             </section>

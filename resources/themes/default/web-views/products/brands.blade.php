@@ -45,7 +45,7 @@
             </div>
         </div>
 
-        @if(count($brands) > 0)
+        @if($brands && count($brands) > 0)
             <div class="brand_div-wrap">
                 @foreach($brands as $brand)
                     @if(!empty($brand['slug']))
@@ -67,6 +67,7 @@
         @endif
 
 
+        @if($brands)
         <div class="row mx-n2">
             <div class="col-md-12">
                 <div class="text-center">
@@ -74,6 +75,7 @@
                 </div>
             </div>
         </div>
+        @endif
     </div>
 @endsection
 
