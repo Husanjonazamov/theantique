@@ -117,11 +117,23 @@ class ConfigController extends Controller
             'firebase' => (int)(is_array($firebaseOTPVerification) && isset($firebaseOTPVerification['status']) && $firebaseOTPVerification['status'] && isset($firebaseOTPVerification['web_api_key']) && $firebaseOTPVerification['web_api_key']),
         ];
 
+        $maintenanceSystemSetup = getWebConfig(name: 'maintenance_system_setup') ?? [];
+        $selectedMaintenanceSystem = (object)[];
+        if (is_array($maintenanceSystemSetup) && !empty($maintenanceSystemSetup)) {
+            if (function_exists('array_is_list') && array_is_list($maintenanceSystemSetup)) {
+                $selectedMaintenanceSystem = (object)($maintenanceSystemSetup[0] ?? []);
+            } elseif (isset($maintenanceSystemSetup[0]) && is_array($maintenanceSystemSetup[0])) {
+                $selectedMaintenanceSystem = (object)$maintenanceSystemSetup[0];
+            } else {
+                $selectedMaintenanceSystem = (object)$maintenanceSystemSetup;
+            }
+        }
+
         $maintenanceMode = [
             'maintenance_status' => (int)$this->checkMaintenanceMode(),
-            'selected_maintenance_system' => getWebConfig(name: 'maintenance_system_setup') ?? [],
-            'maintenance_messages' => getWebConfig(name: 'maintenance_message_setup') ?? [],
-            'maintenance_type_and_duration' => getWebConfig(name: 'maintenance_duration_setup') ?? [],
+            'selected_maintenance_system' => $selectedMaintenanceSystem,
+            'maintenance_messages' => (object)(getWebConfig(name: 'maintenance_message_setup') ?? []),
+            'maintenance_type_and_duration' => (object)(getWebConfig(name: 'maintenance_duration_setup') ?? []),
         ];
 
         $themeComfortablePanelVersion = '';
@@ -241,8 +253,8 @@ class ConfigController extends Controller
             'default_location' => getWebConfig(name: 'default_location'),
             'vendor_review_reply_status' => (int)getWebConfig(name: 'vendor_review_reply_status') ?? 0,
             'maintenance_mode' => $maintenanceMode,
-            'customer_login' => $customerLogin,
-            'customer_verification' => $customerVerification,
+            'customer_login' => (object)$customerLogin,
+            'customer_verification' => (object)$customerVerification,
             'otp_resend_time' => getWebConfig(name: 'otp_resend_time') ?? 60,
             'vendor_forgot_password_method' => getWebConfig(name: 'vendor_forgot_password_method') ?? 'phone',
             'vendor_forgot_password_sms_method' => (is_array($firebaseOTPVerification) && isset($firebaseOTPVerification['status']) && $firebaseOTPVerification['status'] == 1) ? 'firebase' : 'sms',
