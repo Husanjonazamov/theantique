@@ -23,22 +23,26 @@ class ConfigController extends Controller
         $socialLoginData = Helpers::get_business_settings('social_login') ?? [];
         if (is_array($socialLoginData) || is_object($socialLoginData)) {
             foreach ($socialLoginData as $social) {
-                $config = [
-                    'login_medium' => $social['login_medium'],
-                    'status' => (boolean)$social['status']
-                ];
-                array_push($social_login, $config);
+                if (is_array($social) || is_object($social)) {
+                    $config = [
+                        'login_medium' => $social['login_medium'] ?? '',
+                        'status' => (boolean)($social['status'] ?? 0)
+                    ];
+                    array_push($social_login, $config);
+                }
             }
         }
 
         $appleLoginData = Helpers::get_business_settings('apple_login') ?? [];
         if (is_array($appleLoginData) || is_object($appleLoginData)) {
             foreach ($appleLoginData as $social) {
-                $config = [
-                    'login_medium' => $social['login_medium'],
-                    'status' => (boolean)$social['status']
-                ];
-                array_push($social_login, $config);
+                if (is_array($social) || is_object($social)) {
+                    $config = [
+                        'login_medium' => $social['login_medium'] ?? '',
+                        'status' => (boolean)($social['status'] ?? 0)
+                    ];
+                    array_push($social_login, $config);
+                }
             }
         }
 
@@ -54,7 +58,8 @@ class ConfigController extends Controller
         }
 
         $offline_payment = null;
-        $offline_payment_status = Helpers::get_business_settings('offline_payment')['status'] == 1 ?? 0;
+        $offlinePaymentConfig = Helpers::get_business_settings('offline_payment') ?? [];
+        $offline_payment_status = (is_array($offlinePaymentConfig) && isset($offlinePaymentConfig['status']) && $offlinePaymentConfig['status'] == 1) ? 1 : 0;
         if($offline_payment_status){
             $offline_payment = [
                 'name' => 'offline_payment',
@@ -89,8 +94,8 @@ class ConfigController extends Controller
             'brand_setting' => BusinessSetting::where('type', 'product_brand')->first()->value,
             'digital_product_setting' => BusinessSetting::where('type', 'digital_product')->first()->value,
             'system_default_currency' => (int)Helpers::get_business_settings('system_default_currency'),
-            'digital_payment' => (boolean)Helpers::get_business_settings('digital_payment')['status'] ?? 0,
-            'cash_on_delivery' => (boolean)Helpers::get_business_settings('cash_on_delivery')['status'] ?? 0,
+            'digital_payment' => (boolean)((Helpers::get_business_settings('digital_payment') ?? [])['status'] ?? 0),
+            'cash_on_delivery' => (boolean)((Helpers::get_business_settings('cash_on_delivery') ?? [])['status'] ?? 0),
             'seller_registration' => BusinessSetting::where('type', 'seller_registration')->first()->value,
             'pos_active' => BusinessSetting::where('type','seller_pos')->first()->value,
             'company_phone' => Helpers::get_business_settings('company_phone'),

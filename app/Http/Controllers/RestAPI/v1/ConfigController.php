@@ -26,22 +26,26 @@ class ConfigController extends Controller
         $socialLogin = getWebConfig(name: 'social_login') ?? [];
         if (is_array($socialLogin) || is_object($socialLogin)) {
             foreach ($socialLogin as $social) {
-                $config = [
-                    'login_medium' => $social['login_medium'],
-                    'status' => (boolean)$social['status']
-                ];
-                $socialLoginConfig[] = $config;
+                if (is_array($social) || is_object($social)) {
+                    $config = [
+                        'login_medium' => $social['login_medium'] ?? '',
+                        'status' => (boolean)($social['status'] ?? 0)
+                    ];
+                    $socialLoginConfig[] = $config;
+                }
             }
         }
 
         $appleLogin = getWebConfig(name: 'apple_login') ?? [];
         if (is_array($appleLogin) || is_object($appleLogin)) {
             foreach ($appleLogin as $social) {
-                $config = [
-                    'login_medium' => $social['login_medium'],
-                    'status' => (boolean)$social['status']
-                ];
-                $socialLoginConfig[] = $config;
+                if (is_array($social) || is_object($social)) {
+                    $config = [
+                        'login_medium' => $social['login_medium'] ?? '',
+                        'status' => (boolean)($social['status'] ?? 0)
+                    ];
+                    $socialLoginConfig[] = $config;
+                }
             }
         }
 
@@ -57,7 +61,8 @@ class ConfigController extends Controller
         }
 
         $offlinePayment = null;
-        $offlinePaymentStatus = getWebConfig(name: 'offline_payment')['status'] == 1 ?? 0;
+        $offlinePaymentConfig = getWebConfig(name: 'offline_payment') ?? [];
+        $offlinePaymentStatus = (is_array($offlinePaymentConfig) && isset($offlinePaymentConfig['status']) && $offlinePaymentConfig['status'] == 1) ? 1 : 0;
         if ($offlinePaymentStatus) {
             $offlinePayment = [
                 'name' => 'offline_payment',
@@ -104,12 +109,12 @@ class ConfigController extends Controller
         $emailVerification = getLoginConfig(key: 'email_verification') ?? 0;
         $phoneVerification = getLoginConfig(key: 'phone_verification') ?? 0;
 
-        $firebaseOTPVerification = getWebConfig(name: 'firebase_otp_verification');
+        $firebaseOTPVerification = getWebConfig(name: 'firebase_otp_verification') ?? [];
         $customerVerification = [
             'status' => (int)($emailVerification == 1 || $phoneVerification == 1) ? 1 : 0,
             'phone' => (int)$phoneVerification,
             'email' => (int)$emailVerification,
-            'firebase' => (int)($firebaseOTPVerification && $firebaseOTPVerification['status'] && $firebaseOTPVerification['web_api_key']),
+            'firebase' => (int)(is_array($firebaseOTPVerification) && isset($firebaseOTPVerification['status']) && $firebaseOTPVerification['status'] && isset($firebaseOTPVerification['web_api_key']) && $firebaseOTPVerification['web_api_key']),
         ];
 
         $maintenanceMode = [
@@ -130,16 +135,16 @@ class ConfigController extends Controller
             $systemTax = SystemTaxSetup::where('is_active', 1)->where('is_default', 1)->first();
         }
 
-        $systemColors = getWebConfig('colors');
+        $systemColors = getWebConfig('colors') ?? [];
         return response()->json([
-            'primary_color' => $systemColors['primary'],
-            'secondary_color' => $systemColors['secondary'],
+            'primary_color' => $systemColors['primary'] ?? '',
+            'secondary_color' => $systemColors['secondary'] ?? '',
             'primary_color_light' => $systemColors['primary_light'] ?? '',
             'brand_setting' => (string)getWebConfig(name: 'product_brand'),
             'digital_product_setting' => (string)getWebConfig(name: 'digital_product'),
             'system_default_currency' => (int)getWebConfig(name: 'system_default_currency'),
-            'digital_payment' => (boolean)getWebConfig(name: 'digital_payment')['status'] ?? 0,
-            'cash_on_delivery' => (boolean)getWebConfig(name: 'cash_on_delivery')['status'] ?? 0,
+            'digital_payment' => (boolean)((getWebConfig(name: 'digital_payment') ?? [])['status'] ?? 0),
+            'cash_on_delivery' => (boolean)((getWebConfig(name: 'cash_on_delivery') ?? [])['status'] ?? 0),
             'seller_registration' => (string)getWebConfig(name: 'seller_registration') ?? 0,
             'pos_active' => (string)getWebConfig(name: 'seller_pos') ?? 0,
             'company_name' => getWebConfig(name: 'company_name') ?? '',
@@ -240,7 +245,7 @@ class ConfigController extends Controller
             'customer_verification' => $customerVerification,
             'otp_resend_time' => getWebConfig(name: 'otp_resend_time') ?? 60,
             'vendor_forgot_password_method' => getWebConfig(name: 'vendor_forgot_password_method') ?? 'phone',
-            'vendor_forgot_password_sms_method' => $firebaseOTPVerification['status'] == 1 ? 'firebase' : 'sms',
+            'vendor_forgot_password_sms_method' => (is_array($firebaseOTPVerification) && isset($firebaseOTPVerification['status']) && $firebaseOTPVerification['status'] == 1) ? 'firebase' : 'sms',
             'deliveryman_forgot_password_method' => getWebConfig(name: 'deliveryman_forgot_password_method') ?? 'phone',
             'blog_page' => Route::has('app.blog.index') && getWebConfig(name: 'blog_feature_active_status') ? route('app.blog.index') : '',
             'in_house_shop' => getInHouseShopConfig(),
