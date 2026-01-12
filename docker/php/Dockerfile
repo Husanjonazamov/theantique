@@ -1,26 +1,52 @@
-# PHP 8.3 CLI + FPM + kerakli ext lar
-FROM php:8.3-fpm
+FROM php:8.2-fpm
 
-# Kerakli paketlar o'rnatish
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
-    unzip \
     curl \
-    libzip-dev \
     libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
     libonig-dev \
     libxml2-dev \
+    libzip-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
     libicu-dev \
     libcurl4-openssl-dev \
-    pkg-config \
-    && docker-php-ext-install pdo_mysql mbstring zip exif pcntl gd intl soap curl
+    zip \
+    unzip \
+    supervisor \
+    && rm -rf /var/lib/apt/lists/*
 
-# Composer o'rnatish
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# Install PHP extensions
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install \
+    pdo_mysql \
+    mbstring \
+    exif \
+    pcntl \
+    bcmath \
+    gd \
+    intl \
+    zip \
+    soap \
+    mysqli \
+    opcache \
+    fileinfo
 
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Set working directory
 WORKDIR /var/www/html
 
-# Laravel loyihasini ishga tushirish uchun
+# Copy existing application directory contents
+COPY . /var/www/html
+
+# Copy existing application directory permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html/storage \
+    && chmod -R 755 /var/www/html/bootstrap/cache
+
+# Expose port 9000 and start php-fpm server
+EXPOSE 9000
 CMD ["php-fpm"]
