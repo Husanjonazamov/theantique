@@ -92,18 +92,30 @@ class ConfigController extends Controller
         $companyFavIcon = getWebConfig(name: 'company_fav_icon');
         $companyShopBanner = getWebConfig(name: 'shop_banner');
 
-        $loginOptions = getLoginConfig(key: 'login_options');
+        $loginOptions = getLoginConfig(key: 'login_options') ?? [];
         $socialMediaLoginOptions = getLoginConfig(key: 'social_media_for_login') ?? [];
 
+        // Ensure it's always an associative array (object in JSON)
+        $socialMediaLoginOptionsFormatted = [];
         if (is_array($socialMediaLoginOptions) || is_object($socialMediaLoginOptions)) {
             foreach ($socialMediaLoginOptions as $socialMediaLoginKey => $socialMediaLogin) {
-                $socialMediaLoginOptions[$socialMediaLoginKey] = (int)$socialMediaLogin;
+                $socialMediaLoginOptionsFormatted[$socialMediaLoginKey] = (int)$socialMediaLogin;
             }
+        }
+
+        // If empty, provide default structure as object
+        if (empty($socialMediaLoginOptionsFormatted)) {
+            $socialMediaLoginOptionsFormatted = (object)[];
+        }
+
+        // Ensure login_option is also object if null or empty
+        if (empty($loginOptions) || !is_array($loginOptions)) {
+            $loginOptions = (object)[];
         }
 
         $customerLogin = [
             'login_option' => $loginOptions,
-            'social_media_login_options' => $socialMediaLoginOptions
+            'social_media_login_options' => $socialMediaLoginOptionsFormatted
         ];
 
         $emailVerification = getLoginConfig(key: 'email_verification') ?? 0;
